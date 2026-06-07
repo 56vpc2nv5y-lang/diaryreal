@@ -194,7 +194,7 @@ function Import({ theme, onBack, onTab }) {
 // ──────────────────────────────────────────────────────────────────
 // Settings
 // ──────────────────────────────────────────────────────────────────
-function Settings({ theme, currentThemeKey, onChangeTheme, onTab }) {
+function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, onSignOut, onTab }) {
   return (
     <Screen theme={theme} tab="settings" onTab={onTab}>
       <div style={{ padding: '64px 24px 24px' }}>
@@ -215,8 +215,8 @@ function Settings({ theme, currentThemeKey, onChangeTheme, onTab }) {
             color: '#fff', fontFamily: "'Noto Serif SC', serif", fontSize: 22, fontWeight: 500,
           }}>林</div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 16, color: theme.text, fontWeight: 500 }}>林时雨</div>
-            <div style={{ fontSize: 11.5, color: theme.textMute, marginTop: 3, letterSpacing: 0.5 }}>已写 658 篇 · 云同步 已开启</div>
+            <div style={{ fontSize: 16, color: theme.text, fontWeight: 500 }}>我的日记</div>
+            <div style={{ fontSize: 11.5, color: theme.textMute, marginTop: 3, letterSpacing: 0.5 }}>已写 {entriesCount} 篇 · 数据仅存于此设备</div>
           </div>
           <IconChevron color={theme.textMute} dir="right" size={14}/>
         </div>
@@ -283,8 +283,9 @@ function Settings({ theme, currentThemeKey, onChangeTheme, onTab }) {
         <SettingsRow theme={theme} label="Android 同步" detail="未连接" isLast />
       </SettingsSection>
 
-      <SettingsSection theme={theme} title="其 它">
-        <SettingsRow theme={theme} label="关于诗签" detail="v 0.8.2" isLast />
+      <SettingsSection theme={theme} title="数 据">
+        <SettingsRow theme={theme} label="清除所有数据" detail="不可撤销" />
+        <SettingsRow theme={theme} label="退出" onClick={onSignOut} isLast />
       </SettingsSection>
 
       <div style={{ height: 100 }} />
@@ -301,12 +302,12 @@ function SettingsSection({ theme, title, children }) {
   );
 }
 
-function SettingsRow({ theme, label, detail, toggle, on, isLast }) {
+function SettingsRow({ theme, label, detail, toggle, on, isLast, onClick }) {
   return (
-    <div style={{
+    <div onClick={onClick} style={{
       padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12,
       borderBottom: isLast ? 'none' : `0.5px solid ${theme.line}`,
-      minHeight: 50,
+      minHeight: 50, cursor: onClick ? 'pointer' : 'default',
     }}>
       <div style={{ flex: 1, fontSize: 14.5, color: theme.text }}>{label}</div>
       {detail && <div style={{ fontSize: 13, color: theme.textMute }}>{detail}</div>}
@@ -653,8 +654,8 @@ function BookPreview({ theme, entries }) {
 // ──────────────────────────────────────────────────────────────────
 // Hexagrams (六爻) — saved divinations: question + time + hexagram + interp
 // ──────────────────────────────────────────────────────────────────
-function Hexagrams({ theme, onOpen, onTab }) {
-  const hexes = window.HEXAGRAMS;
+function Hexagrams({ theme, hexes = [], onNew, onTab }) {
+  const list = hexes.length > 0 ? hexes : [];
   return (
     <Screen theme={theme} tab="hex" onTab={onTab}>
       <div style={{ padding: '64px 24px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -677,10 +678,10 @@ function Hexagrams({ theme, onOpen, onTab }) {
 
       {/* feature card — start a reading */}
       <div style={{ padding: '20px 20px 0' }}>
-        <div style={{
+        <div onClick={onNew} style={{
           background: theme.paper, borderRadius: 20, padding: '20px 22px',
           border: `0.5px solid ${theme.line}`,
-          display: 'flex', alignItems: 'center', gap: 16,
+          display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer',
         }}>
           <HexagramGlyph lines={[
             { type: 'yang' }, { type: 'yin' }, { type: 'yang' },
@@ -700,11 +701,19 @@ function Hexagrams({ theme, onOpen, onTab }) {
         <div style={{ flex: 1, height: 0.5, background: theme.line }} />
       </div>
 
-      <div style={{ padding: '0 20px 120px' }}>
-        {hexes.map((h, i) => (
-          <HexCard key={h.id} hex={h} theme={theme} />
-        ))}
-      </div>
+      {list.length === 0 ? (
+        <div style={{ padding: '48px 32px', textAlign: 'center' }}>
+          <div className="serif" style={{ fontSize: 18, color: theme.textMute, letterSpacing: 3, lineHeight: 2 }}>
+            还没有卦象<br/>点上方起一卦
+          </div>
+        </div>
+      ) : (
+        <div style={{ padding: '0 20px 120px' }}>
+          {list.map((h) => (
+            <HexCard key={h.id} hex={h} theme={theme} />
+          ))}
+        </div>
+      )}
     </Screen>
   );
 }

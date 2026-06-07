@@ -25,6 +25,17 @@ async function dbSaveEntry(data) {
   return ref.id;
 }
 
+async function dbSaveHexagram(data) {
+  const { id, ...rest } = data;
+  const now = new Date().toISOString();
+  if (id) {
+    await col('hexagrams').doc(id).set({ ...rest, updatedAt: now }, { merge: true });
+    return id;
+  }
+  const ref = await col('hexagrams').add({ ...rest, createdAt: now });
+  return ref.id;
+}
+
 async function dbGetHexagrams() {
   try {
     const snap = await col('hexagrams').orderBy('createdAt', 'desc').get();
@@ -369,6 +380,151 @@ function ComposeReal({ theme, paper, onBack, onSaved }) {
   );
 }
 
+// ─── NewHexagram ────────────────────────────────────────────────
+const HEX_NAMES = ['乾','坤','屯','蒙','需','讼','师','比','小畜','履','泰','否','同人','大有','谦','豫','随','蛊','临','观','噬嗑','贲','剥','复','无妄','大畜','颐','大过','坎','离','咸','恒','遯','大壮','晋','明夷','家人','睽','蹇','解','损','益','夬','姤','萃','升','困','井','革','鼎','震','艮','渐','归妹','丰','旅','巽','兑','涣','节','中孚','小过','既济','未济'];
+
+function lineType() { return Math.random() > 0.5 ? 'yang' : 'yin'; }
+function randomLines() { return Array.from({length:6}, () => ({ type: lineType(), changing: Math.random() < 0.15 })); }
+
+function hexIndex(lines) {
+  // Simple 6-bit binary → 0-63 index
+  return lines.reduce((acc, l, i) => acc + (l.type === 'yang' ? 1 : 0) * Math.pow(2, i), 0) % 64;
+}
+
+function NewHexagram({ theme, onBack, onSaved }) {
+  const [question, setQuestion] = React.useState('');
+  const [mood, setMood] = React.useState('');
+  const [lines, setLines] = React.useState(null);
+  const [interp, setInterp] = React.useState('');
+  const [saving, setSaving] = React.useState(false);
+
+  const doToss = () => setLines(randomLines());
+  const toggleLine = (i) => setLines(prev => prev.map((l, idx) =>
+    idx === i ? { ...l, type: l.type === 'yang' ? 'yin' : 'yang' } : l
+  ));
+
+  const name = lines ? HEX_NAMES[hexIndex(lines)] : '';
+  const filled = question.trim().length > 0 && lines;
+
+  const doSave = async () => {
+    setSaving(true);
+    const now = nowInfo();
+    await onSaved({
+      date: now.date, time: now.time,
+      question: question.trim(),
+      name, lines, interp: interp.trim(), mood,
+    });
+  };
+
+  return (
+    <div style={{ width: W, height: H, background: theme.paper, display: 'flex', flexDirection: 'column', overflow: 'hidden', fontFamily: 'inherit' }}>
+      {/* top bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '58px 20px 0' }}>
+        <button onClick={onBack} style={{ border:'none', background:'transparent', cursor:'pointer', padding:8 }}>
+          <IconClose color={theme.textSoft} size={20}/>
+        </button>
+        <div className="serif" style={{ fontSize:15, color:theme.text, letterSpacing:3 }}>起 一 卦</div>
+        <div style={{ width:36 }}/>
+      </div>
+
+      <div className="no-scroll" style={{ flex:1, overflowY:'auto', padding:'20px 28px 0' }}>
+        {/* question */}
+        <div style={{ fontSize:10, letterSpacing:4, color:theme.textMute, fontWeight:600, marginBottom:10 }}>今 日 疑 问</div>
+        <textarea value={question} onChange={e=>setQuestion(e.target.value)}
+          placeholder="心里有什么想问的……"
+          style={{ width:'100%', height:80, border:`0.5px solid ${theme.line}`, borderRadius:14,
+            background:theme.surface, padding:'12px 14px', fontSize:15, color:theme.text,
+            fontFamily:"'Noto Serif SC',serif", resize:'none', outline:'none', letterSpacing:0.5, lineHeight:1.7 }}
+        />
+
+        {/* mood */}
+        <div style={{ display:'flex', alignItems:'center', gap:6, margin:'14px 0' }}>
+          <span style={{ fontSize:10.5, color:theme.textMute, letterSpacing:1.5 }}>起卦时心情</span>
+          {['焦虑','犹豫','平静','期待','低落'].map(m => (
+            <span key={m} onClick={()=>setMood(mood===m?'':m)} style={{
+              padding:'4px 10px', borderRadius:12, fontSize:12, cursor:'pointer',
+              background: mood===m ? theme.seal+'22' : theme.surface,
+              color: mood===m ? theme.seal : theme.textSoft,
+              border: `0.5px solid ${mood===m ? theme.seal+'88' : theme.line}`,
+            }}>{m}</span>
+          ))}
+        </div>
+
+        {/* toss area */}
+        <div style={{ fontSize:10, letterSpacing:4, color:theme.textMute, fontWeight:600, marginBottom:12 }}>卦 象</div>
+        {!lines ? (
+          <button onClick={doToss} style={{
+            width:'100%', height:100, borderRadius:18,
+            border:`1.5px dashed ${theme.accent}`, background:'transparent',
+            display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:8,
+            cursor:'pointer',
+          }}>
+            <span style={{ fontSize:28 }}>🪙</span>
+            <span className="serif" style={{ fontSize:15, color:theme.textSoft, letterSpacing:3 }}>点击摇卦</span>
+          </button>
+        ) : (
+          <div style={{ background:theme.surface, borderRadius:18, padding:'20px 22px', border:`0.5px solid ${theme.line}` }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+                <HexagramGlyph lines={lines} color={theme.text} size="lg"/>
+                <div>
+                  <div className="serif" style={{ fontSize:22, color:theme.text, letterSpacing:4, fontWeight:500 }}>{name}</div>
+                  <div style={{ fontSize:11, color:theme.textMute, marginTop:4 }}>点击爻线可更改</div>
+                </div>
+              </div>
+              <button onClick={doToss} style={{ border:'none', background:theme.surface, borderRadius:10,
+                padding:'6px 10px', fontSize:12, color:theme.textSoft, cursor:'pointer' }}>重摇</button>
+            </div>
+            {/* interactive lines - show bottom to top */}
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {[...lines].reverse().map((l, ri) => {
+                const i = 5 - ri;
+                return (
+                  <div key={i} onClick={()=>toggleLine(i)} style={{ display:'flex', alignItems:'center', gap:12, cursor:'pointer' }}>
+                    <span style={{ fontSize:11, color:theme.textMute, width:24, flexShrink:0 }}>
+                      {['初','二','三','四','五','上'][i]}爻
+                    </span>
+                    {l.type==='yang' ? (
+                      <div style={{ flex:1, height:5, background:l.changing?theme.seal:theme.text, borderRadius:3 }}/>
+                    ) : (
+                      <div style={{ flex:1, display:'flex', gap:8 }}>
+                        <div style={{ flex:1, height:5, background:l.changing?theme.seal:theme.text, borderRadius:3 }}/>
+                        <div style={{ flex:1, height:5, background:l.changing?theme.seal:theme.text, borderRadius:3 }}/>
+                      </div>
+                    )}
+                    {l.changing && <span style={{ fontSize:10, color:theme.seal, letterSpacing:1 }}>动</span>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* interpretation */}
+        <div style={{ fontSize:10, letterSpacing:4, color:theme.textMute, fontWeight:600, margin:'20px 0 10px' }}>自 己 的 解</div>
+        <textarea value={interp} onChange={e=>setInterp(e.target.value)}
+          placeholder="这一卦告诉我……（可以留空）"
+          style={{ width:'100%', height:80, border:`0.5px solid ${theme.line}`, borderRadius:14,
+            background:theme.surface, padding:'12px 14px', fontSize:14, color:theme.text,
+            fontFamily:"'Noto Serif SC',serif", resize:'none', outline:'none', letterSpacing:0.5, lineHeight:1.7 }}
+        />
+        <div style={{ height:120 }}/>
+      </div>
+
+      {/* save */}
+      <div style={{ padding:'12px 24px 36px', background:`linear-gradient(to top, ${theme.paper} 72%, transparent)`, position:'absolute', left:0, right:0, bottom:0 }}>
+        <button onClick={doSave} disabled={!filled||saving} style={{
+          width:'100%', height:50, borderRadius:25, border:'none',
+          background: filled&&!saving ? theme.text : theme.surfaceSoft,
+          color: filled&&!saving ? theme.bg : theme.textMute,
+          fontSize:16, fontWeight:600, letterSpacing:3, fontFamily:'inherit',
+          cursor: filled&&!saving ? 'pointer' : 'default',
+        }}>{saving ? '保存中…' : '存 此 一 卦'}</button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Main App ──────────────────────────────────────────────────────
 function AppReal() {
   const [authState, setAuthState] = React.useState('loading');
@@ -403,6 +559,13 @@ function AppReal() {
       setAuthState('welcome');
     }
   }), []);
+
+
+  const handleSignOut = async () => {
+    if (!window.confirm('确定要退出吗？数据仍保留在此设备 Firebase 里。')) return;
+    await firebase.auth().signOut();
+    setEntries([]); setHexagrams([]); setStack([{ screen: 'home', params: {} }]);
+  };
 
   if (authState === 'loading') return <SplashScreen theme={theme}/>;
   const handleStart = async () => {
@@ -442,7 +605,8 @@ function AppReal() {
 
     case 'detail': {
       const entry = entryById(params.id);
-      return entry ? <Detail theme={theme} entry={entry} onBack={pop}/> : null;
+      if (!entry) { pop(); return null; }
+      return <Detail theme={theme} entry={entry} onBack={pop}/>;
     }
 
     case 'search':
@@ -461,15 +625,22 @@ function AppReal() {
       );
 
     case 'hex':
-      return <Hexagrams theme={theme} onTab={tabHandler}/>;
+      return <Hexagrams theme={theme} hexes={hexagrams} onNew={() => push('newhex')} onTab={tabHandler}/>;
 
     case 'settings':
       return (
         <Settings theme={theme} currentThemeKey={themeKey}
           onChangeTheme={setThemeKey}
+          entriesCount={entries.length}
+          onSignOut={handleSignOut}
           onTab={tabHandler}
         />
       );
+
+    case 'newhex':
+      return <NewHexagram theme={theme} onBack={pop} onSaved={async (hex) => {
+        await dbSaveHexagram(hex); const h = await dbGetHexagrams(); setHexagrams(h); pop();
+      }}/>;
 
     default:
       return (
