@@ -195,6 +195,10 @@ function Import({ theme, onBack, onTab }) {
 // Settings
 // ──────────────────────────────────────────────────────────────────
 function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, onSignOut, onTab }) {
+  const [autoLoc, setAutoLoc_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoLoc') ?? 'true'));
+  const [autoPoem, setAutoPoem_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoPoem') ?? 'true'));
+  const [saveRej, setSaveRej_] = React.useState(() => JSON.parse(localStorage.getItem('d-saveRej') ?? 'false'));
+  const tog = (key, val, setter) => { localStorage.setItem(key, JSON.stringify(val)); setter(val); };
   return (
     <Screen theme={theme} tab="settings" onTab={onTab}>
       <div style={{ padding: '64px 24px 24px' }}>
@@ -264,12 +268,11 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, onS
         </div>
       </SettingsSection>
 
-      {/* toggles */}
       <SettingsSection theme={theme} title="写 作 与 生 诗">
-        <SettingsRow theme={theme} label="每日提醒" detail="22:00" />
-        <SettingsRow theme={theme} label="自动记录位置" toggle on={true} />
-        <SettingsRow theme={theme} label="Grok 自动生诗" toggle on={true} detail="也可手动摇签" />
-        <SettingsRow theme={theme} label="保存被否决的诗" toggle on={false} isLast />
+        <SettingsRow theme={theme} label="每日提醒" detail="22:00" onClick={() => alert('提醒功能将在 App 版本支持')} />
+        <SettingsRow theme={theme} label="自动记录位置" toggle on={autoLoc} onToggle={() => tog('d-autoLoc', !autoLoc, setAutoLoc_)} />
+        <SettingsRow theme={theme} label="日记生诗" toggle on={autoPoem} onToggle={() => tog('d-autoPoem', !autoPoem, setAutoPoem_)} detail="摇签可选" />
+        <SettingsRow theme={theme} label="保存被否决的诗" toggle on={saveRej} onToggle={() => tog('d-saveRej', !saveRej, setSaveRej_)} isLast />
       </SettingsSection>
 
       <SettingsSection theme={theme} title="导 入 与 导 出">
@@ -302,20 +305,21 @@ function SettingsSection({ theme, title, children }) {
   );
 }
 
-function SettingsRow({ theme, label, detail, toggle, on, isLast, onClick }) {
+function SettingsRow({ theme, label, detail, toggle, on, onToggle, isLast, onClick }) {
+  const handleClick = toggle ? onToggle : onClick;
   return (
-    <div onClick={onClick} style={{
+    <div onClick={handleClick} style={{
       padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12,
       borderBottom: isLast ? 'none' : `0.5px solid ${theme.line}`,
-      minHeight: 50, cursor: onClick ? 'pointer' : 'default',
+      minHeight: 50, cursor: (toggle || onClick) ? 'pointer' : 'default',
     }}>
       <div style={{ flex: 1, fontSize: 14.5, color: theme.text }}>{label}</div>
-      {detail && <div style={{ fontSize: 13, color: theme.textMute }}>{detail}</div>}
+      {detail && !toggle && <div style={{ fontSize: 13, color: theme.textMute }}>{detail}</div>}
       {toggle ? (
         <div style={{
           width: 38, height: 22, borderRadius: 11,
           background: on ? theme.accent : theme.surfaceSoft,
-          position: 'relative', transition: 'background .2s',
+          position: 'relative', transition: 'background .2s', flexShrink: 0,
         }}>
           <div style={{
             position: 'absolute', top: 2, left: on ? 18 : 2, width: 18, height: 18, borderRadius: 9,
@@ -654,7 +658,7 @@ function BookPreview({ theme, entries }) {
 // ──────────────────────────────────────────────────────────────────
 // Hexagrams (六爻) — saved divinations: question + time + hexagram + interp
 // ──────────────────────────────────────────────────────────────────
-function Hexagrams({ theme, hexes = [], onNew, onTab }) {
+function Hexagrams({ theme, hexes = [], onNew, onFollowUp, onTab }) {
   const list = hexes.length > 0 ? hexes : [];
   return (
     <Screen theme={theme} tab="hex" onTab={onTab}>
@@ -664,7 +668,7 @@ function Hexagrams({ theme, hexes = [], onNew, onTab }) {
           <div className="serif" style={{ fontSize: 30, fontWeight: 600, letterSpacing: -0.5, marginTop: 4, color: theme.text }}>卜 签</div>
           <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 6 }}>记录每一次求问 · {hexes.length} 次</div>
         </div>
-        <button style={{
+        <button onClick={onNew} style={{
           width: 40, height: 40, borderRadius: 20, border: 'none', background: theme.seal,
           color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', boxShadow: `0 4px 12px ${theme.seal}55`,
@@ -689,7 +693,7 @@ function Hexagrams({ theme, hexes = [], onNew, onTab }) {
           ]} color={theme.text} size="lg" />
           <div style={{ flex: 1 }}>
             <div className="serif" style={{ fontSize: 18, color: theme.text, fontWeight: 500, letterSpacing: 2 }}>起 一 卦</div>
-            <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 4, lineHeight: 1.5 }}>三铜钱 · 六次 · 记下今天的疑问</div>
+            <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 4, lineHeight: 1.5 }}>手动设爯 · AI 解签 · 记下今天的疑问</div>
           </div>
           <IconChevron color={theme.textMute} dir="right" size={13}/>
         </div>
@@ -710,7 +714,7 @@ function Hexagrams({ theme, hexes = [], onNew, onTab }) {
       ) : (
         <div style={{ padding: '0 20px 120px' }}>
           {list.map((h) => (
-            <HexCard key={h.id} hex={h} theme={theme} />
+            <HexCard key={h.id} hex={h} theme={theme} onFollowUp={onFollowUp}/>
           ))}
         </div>
       )}
@@ -758,7 +762,8 @@ function HexagramGlyph({ lines, color, size = 'sm' }) {
   );
 }
 
-function HexCard({ hex, theme }) {
+function HexCard({ hex, theme, onFollowUp }) {
+  const interpLines = (hex.interp || '').split('\n').filter(Boolean);
   return (
     <div style={{
       background: theme.surface, borderRadius: 16, padding: '18px 18px',
@@ -771,17 +776,33 @@ function HexCard({ hex, theme }) {
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 14.5, color: theme.text, lineHeight: 1.5, fontWeight: 500, marginBottom: 8 }}>{hex.question}</div>
-        <div className="serif" style={{
-          fontSize: 13, color: theme.textSoft, lineHeight: 1.7,
-          paddingLeft: 10, borderLeft: `1.5px solid ${theme.accent}`,
-          marginBottom: 10,
-        }}>{hex.interp}</div>
-        <div style={{ display: 'flex', gap: 10, fontSize: 11, color: theme.textMute, alignItems: 'center' }}>
-          <span>{hex.date.replace(/-/g, '.')}</span>
-          <span>·</span>
-          <span>{hex.time}</span>
-          <span>·</span>
-          <span style={{ color: theme.accent }}>{hex.mood}</span>
+        <div style={{
+          paddingLeft: 10, borderLeft: `1.5px solid ${theme.accent}`, marginBottom: 10,
+        }}>
+          {interpLines.length ? interpLines.map((ln, i) => (
+            <div key={i} className="serif" style={{
+              fontSize: 12.5, lineHeight: 1.75,
+              color: ln.startsWith('【') ? theme.seal : theme.textSoft,
+              fontWeight: ln.startsWith('【') ? 600 : 400,
+            }}>{ln}</div>
+          )) : (
+            <div className="serif" style={{ fontSize: 12.5, color: theme.textMute, lineHeight: 1.7 }}>未解</div>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ fontSize: 11, color: theme.textMute, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span>{(hex.date || '').replace(/-/g, '.')}</span>
+            <span>·</span>
+            <span>{hex.time}</span>
+            {hex.mood && <><span>·</span><span style={{ color: theme.accent }}>{hex.mood}</span></>}
+          </div>
+          {onFollowUp && (
+            <button onClick={() => onFollowUp(hex.question)} style={{
+              border: `0.5px solid ${theme.line}`, background: 'transparent',
+              borderRadius: 12, padding: '4px 12px', fontSize: 11,
+              color: theme.textSoft, cursor: 'pointer', letterSpacing: 1, flexShrink: 0,
+            }}>追 问</button>
+          )}
         </div>
       </div>
     </div>
