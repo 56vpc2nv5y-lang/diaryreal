@@ -114,7 +114,7 @@ function TabBar({ theme, active = 'home', onChange }) {
         const isActive = it.id === active;
         if (it.primary) {
           return (
-            <button key={it.id}
+            <button key={it.id} type="button" aria-label="写日记"
               onClick={() => onChange && onChange(it.id)}
               style={{
                 width: 52, height: 52, borderRadius: 26,
@@ -128,7 +128,7 @@ function TabBar({ theme, active = 'home', onChange }) {
           );
         }
         return (
-          <button key={it.id}
+          <button key={it.id} type="button" aria-label={it.label}
             onClick={() => onChange && onChange(it.id)}
             style={{
               border: 'none', background: 'transparent', cursor: 'pointer',
@@ -224,7 +224,10 @@ const IconShake = ({ color = '#fff', size = 22 }) => (
 function ImgPlaceholder({ theme, label, h = 120, w = '100%', onClick }) {
   const isImage = typeof label === 'string' && /^(https?:|data:image|blob:)/i.test(label);
   return (
-    <div onClick={onClick} style={{
+    <div onClick={onClick} role={onClick ? 'button' : undefined} tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? `查看图片 ${label || ''}` : undefined}
+      onKeyDown={e => { if (onClick && (e.key === 'Enter' || e.key === ' ')) onClick(); }}
+      style={{
       width: w, height: h, borderRadius: 14,
       background: `repeating-linear-gradient(135deg, ${theme.surfaceSoft}, ${theme.surfaceSoft} 6px, ${theme.surface} 6px, ${theme.surface} 12px)`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',

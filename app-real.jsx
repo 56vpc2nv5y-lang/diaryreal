@@ -1,5 +1,7 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
+const APP_BUILD = '2026.06.10-r5';
+
 // ─── Firebase helpers ─────────────────────────────────────────────
 function col(name) {
   const uid = firebase.auth().currentUser?.uid;
@@ -7,10 +9,35 @@ function col(name) {
   return firebase.firestore().collection('users').doc(uid).collection(name);
 }
 
+function normalizeEntry(data, id) {
+  const now = new Date(), p = n => String(n).padStart(2, '0');
+  const fallbackDate = `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
+  const poem = data?.poem && typeof data.poem.title === 'string' &&
+    Array.isArray(data.poem.lines) && data.poem.lines.length === 4
+    ? { ...data.poem, lines: data.poem.lines.map(String) }
+    : null;
+  return {
+    ...data,
+    ...(id ? { id } : {}),
+    date: typeof data?.date === 'string' ? data.date : fallbackDate,
+    weekday: typeof data?.weekday === 'string' ? data.weekday : '',
+    time: typeof data?.time === 'string' ? data.time : '',
+    place: typeof data?.place === 'string' ? data.place : '未记录地点',
+    body: typeof data?.body === 'string' ? data.body : '',
+    mood: typeof data?.mood === 'string' ? data.mood : '',
+    flag: !!data?.flag,
+    tags: Array.isArray(data?.tags) ? data.tags.map(String) : [],
+    poem,
+    notes: Array.isArray(data?.notes) ? data.notes.filter(n => n && typeof n.text === 'string') : [],
+    inlineNotes: Array.isArray(data?.inlineNotes) ? data.inlineNotes.filter(n => n && typeof n.text === 'string') : [],
+    photos: Array.isArray(data?.photos) ? data.photos.filter(p => typeof p === 'string') : [],
+  };
+}
+
 async function dbGetEntries() {
   try {
     const snap = await col('entries').orderBy('date', 'desc').get();
-    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return snap.docs.map(d => normalizeEntry(d.data(), d.id));
   } catch (e) { console.error('读取日记失败:', e); return []; }
 }
 
@@ -45,8 +72,13 @@ async function dbClearAllData() {
 }
 
 async function dbImportEntries(entries) {
-  for (const entry of entries) {
-    const { id, ...data } = entry || {};
+  const normalized = entries.map(entry => normalizeEntry(entry || {}, entry?.id)).filter(entry => entry.body.trim());
+  for (const entry of normalized) {
+    const bytes = new Blob([JSON.stringify(entry)]).size;
+    if (bytes > 900 * 1024) throw new Error(`日记“${entry.poem?.title || entry.date}”过大，无法写入 Firestore`);
+  }
+  for (const entry of normalized) {
+    const { id, ...data } = entry;
     if (!data.body?.trim()) continue;
     if (id) await dbSaveEntry({ id, ...data });
     else await dbSaveEntry(data);
@@ -79,9 +111,13 @@ async function dbGetHexagrams() {
 }
 
 async function apiPoem(diaryText) {
+  const token = await firebase.auth().currentUser?.getIdToken();
   const r = await fetch('/api/poem', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ diaryText }),
   });
   const text = await r.text();
@@ -284,6 +320,8 @@ function ComposeReal({ theme, paper, onBack, onSaved }) {
   const [err, setErr] = React.useState('');
 
   React.useEffect(() => {
+    const autoLoc = JSON.parse(localStorage.getItem('d-autoLoc') ?? 'true');
+    if (!autoLoc) { setPlace('未记录地点'); return; }
     if (!navigator.geolocation) { setPlace('当前位置'); return; }
     navigator.geolocation.getCurrentPosition(
       async p => setPlace(await geocode(p.coords.latitude, p.coords.longitude)),
@@ -320,7 +358,7 @@ function ComposeReal({ theme, paper, onBack, onSaved }) {
     return <Shake theme={theme} state="shaking" entry={fakeEntry} onCancel={() => setShake('idle')}/>;
   if (shake === 'done' && poem)
     return <Shake theme={theme} state="done" entry={{ ...fakeEntry, poem }}
-      onRegen={doShake} onAccept={() => doSave(poem)}/>;
+      onRegen={doShake} onAccept={() => doSave(poem)} saving={saving} error={err}/>;
 
   const filled = body.trim().length > 0;
   const ps = paperBg(paper, theme);
@@ -421,13 +459,33 @@ function ComposeReal({ theme, paper, onBack, onSaved }) {
 }
 
 // ─── NewHexagram ────────────────────────────────────────────────
-const HEX_NAMES = ['乾','坤','屯','蒙','需','讼','师','比','小畜','履','泰','否','同人','大有','谦','豫','随','蛊','临','观','噬嗑','贲','剥','复','无妄','大畜','颐','大过','坎','离','咸','恒','遯','大壮','晋','明夷','家人','睽','蹇','解','损','益','夬','姤','萃','升','困','井','革','鼎','震','艮','渐','归妹','丰','旅','巽','兑','涣','节','中孚','小过','既济','未济'];
-function hexIndex(lines) { return lines.reduce((a,l,i) => a+(l.type==='yang'?1:0)*Math.pow(2,i),0)%64; }
+const HEXAGRAM_BY_TRIGRAMS = {
+  '7:7':'乾', '7:3':'履', '7:5':'同人', '7:1':'无妄', '7:6':'姤', '7:2':'讼', '7:4':'遯', '7:0':'否',
+  '3:7':'夬', '3:3':'兑', '3:5':'革', '3:1':'随', '3:6':'大过', '3:2':'困', '3:4':'咸', '3:0':'萃',
+  '5:7':'大有', '5:3':'睽', '5:5':'离', '5:1':'噬嗑', '5:6':'鼎', '5:2':'未济', '5:4':'旅', '5:0':'晋',
+  '1:7':'大壮', '1:3':'归妹', '1:5':'丰', '1:1':'震', '1:6':'恒', '1:2':'解', '1:4':'小过', '1:0':'豫',
+  '6:7':'小畜', '6:3':'中孚', '6:5':'家人', '6:1':'益', '6:6':'巽', '6:2':'涣', '6:4':'渐', '6:0':'观',
+  '2:7':'需', '2:3':'节', '2:5':'既济', '2:1':'屯', '2:6':'井', '2:2':'坎', '2:4':'蹇', '2:0':'比',
+  '4:7':'大畜', '4:3':'损', '4:5':'贲', '4:1':'颐', '4:6':'蛊', '4:2':'蒙', '4:4':'艮', '4:0':'剥',
+  '0:7':'泰', '0:3':'临', '0:5':'明夷', '0:1':'复', '0:6':'升', '0:2':'师', '0:4':'谦', '0:0':'坤',
+};
+function trigramValue(lines) {
+  return lines.reduce((sum, line, i) => sum + (line?.type === 'yang' ? 1 : 0) * Math.pow(2, i), 0);
+}
+function hexNameFor(lines) {
+  const lower = trigramValue(lines.slice(0, 3));
+  const upper = trigramValue(lines.slice(3, 6));
+  return HEXAGRAM_BY_TRIGRAMS[`${upper}:${lower}`] || '未定';
+}
 
 async function apiHexagram(question, hexName, lines) {
+  const token = await firebase.auth().currentUser?.getIdToken();
   const r = await fetch('/api/hexagram', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify({ question, hexName, lines }),
   });
   const text = await r.text();
@@ -485,7 +543,7 @@ function NewHexagram({ theme, initialQuestion = '', onBack, onSaved }) {
   const [err, setErr] = React.useState('');
   const [saving, setSaving] = React.useState(false);
 
-  const hexName = React.useMemo(() => HEX_NAMES[hexIndex(lines)], [JSON.stringify(lines)]);
+  const hexName = React.useMemo(() => hexNameFor(lines), [JSON.stringify(lines)]);
 
   const changeLine = (i, field) => setLines(prev =>
     prev.map((l,idx) => idx===i ? {...l, [field]: field==='type'?(l.type==='yang'?'yin':'yang'):!l.changing} : l)
@@ -505,7 +563,7 @@ function NewHexagram({ theme, initialQuestion = '', onBack, onSaved }) {
     try {
       const info = nowInfo();
       await onSaved({ date:info.date, time:info.time, question:question.trim(), name:hexName, lines, interp, mood });
-    } catch(e) { setSaving(false); }
+    } catch(e) { setErr('保存失败：' + e.message); setSaving(false); }
   };
 
   return (
@@ -729,6 +787,10 @@ function AppReal() {
         onAddNote={text => updateEntry(entry.id, {
           notes: [...(entry.notes || []), { date: new Date().toLocaleString('zh-CN', { hour12: false }), text }],
         })}
+        onGeneratePoem={entry.body?.trim() ? async () => {
+          const poem = await apiPoem(entry.body);
+          await updateEntry(entry.id, { poem });
+        } : null}
         onDelete={async () => { await deleteEntry(entry.id); pop(); }}
       />;
     }
@@ -758,6 +820,7 @@ function AppReal() {
           entriesCount={entries.length}
           entries={entries}
           hexagrams={hexagrams}
+          buildLabel={APP_BUILD}
           onImportData={importData}
           onClearData={clearAllData}
           onSignOut={handleSignOut}
@@ -777,4 +840,28 @@ function AppReal() {
   }
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<AppReal/>);
+class AppErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  componentDidCatch(error, info) {
+    console.error('应用运行错误:', error, info);
+  }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <div style={{ width: W, minHeight: H, padding: '80px 28px', background: '#fff7f3', color: '#5b3028', fontFamily: 'sans-serif' }}>
+        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 14 }}>页面运行出错</div>
+        <div style={{ fontSize: 13, lineHeight: 1.7, wordBreak: 'break-word' }}>{this.state.error.message}</div>
+        <div style={{ fontSize: 11, marginTop: 12, opacity: .65 }}>版本 {APP_BUILD}</div>
+        <button onClick={() => location.reload()} style={{ marginTop: 24, height: 44, padding: '0 22px', border: 0, borderRadius: 22, background: '#5b3028', color: '#fff' }}>重新加载</button>
+      </div>
+    );
+  }
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<AppErrorBoundary><AppReal/></AppErrorBoundary>);

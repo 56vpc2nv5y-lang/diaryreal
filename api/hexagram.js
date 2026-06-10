@@ -1,12 +1,12 @@
 // Vercel Serverless Function — /api/hexagram
 // 接收 { question, hexName, lines[] } → 返回 { interpretation }
 
+import { authorizePersonalApp } from '../lib/api-auth.js';
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (!(await authorizePersonalApp(req, res))) return;
 
   let body = req.body || {};
   if (typeof body === 'string') {
@@ -14,6 +14,9 @@ export default async function handler(req, res) {
   }
   const { question, hexName, lines } = body;
   if (!question?.trim()) return res.status(400).json({ error: '问题不能为空' });
+  if (question.trim().length > 500) return res.status(400).json({ error: '问题不能超过 500 字' });
+  if (!Array.isArray(lines) || lines.length !== 6 || lines.some(l => !['yin', 'yang'].includes(l?.type)))
+    return res.status(400).json({ error: '卦象格式不正确' });
 
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey) return res.status(500).json({ error: 'DEEPSEEK_API_KEY 未配置' });
@@ -28,6 +31,7 @@ export default async function handler(req, res) {
     const r = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+      signal: AbortSignal.timeout(25000),
       body: JSON.stringify({
         model: 'deepseek-chat',
         messages: [
@@ -37,7 +41,7 @@ export default async function handler(req, res) {
           },
           {
             role: 'user',
-            content: `问：${question.trim()}\n\n卦：${hexName}\n各爻（初→上）：${lineDesc}` +
+            content: `问：${question.trim().slice(0, 500)}\n\n卦：${String(hexName || '未定').slice(0, 20)}\n各爻（初→上）：${lineDesc}` +
               (nChanging > 0 ? `\n（共${nChanging}个动爻，变卦需关注）` : '') +
               `\n\n请解此卦，格式严格如下，不要多余内容：\n【卦意】一句话点明此卦核心\n【解】针对问题的启示（2-3句）\n【宜】一条具体建议\n【忌】一条具体提醒`,
           },

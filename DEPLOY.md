@@ -1,0 +1,39 @@
+# 部署前清单
+
+## Vercel 环境变量
+
+必须配置：
+
+- `DEEPSEEK_API_KEY`
+
+强烈建议配置，防止公开的 AI API 被他人调用：
+
+- `ALLOWED_FIREBASE_UID`：Firebase Console -> Authentication -> Users 中当前匿名用户的 UID
+- `FIREBASE_WEB_API_KEY`：与 `firebase-config.js` 中 `apiKey` 相同
+
+修改环境变量后需要重新部署。
+
+## Firestore Rules
+
+Vercel 部署不会发布 Firestore Rules。请在 Firebase Console 中发布
+`firestore.rules` 的内容，或使用 Firebase CLI：
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+## 部署后验证
+
+1. 打开 `/api/poem` 和 `/api/hexagram`，GET 请求应返回 JSON 格式的
+   `Method not allowed`，不能返回 HTML。
+2. 新建日记并分别测试直接保存、AI 生诗。
+3. 新建卦象并测试 AI 解签。
+4. 在详情页测试图片预览、右上角菜单、修改里程碑和添加追评。
+5. 下载 JSON 备份，再导入一次确认可恢复。
+6. 确认 Firebase Console 中只有自己的 UID 能读取对应数据。
+
+## 当前限制
+
+- 当前使用匿名 Firebase 用户。清除浏览器数据、退出或换设备后，可能无法访问旧 UID 的数据。
+- 图片支持预览，但还没有实现图片上传。图片文件不应直接存入 Firestore，后续应使用 Firebase Storage。
+- 日记正文会发送给 DeepSeek 生成诗，问题和卦象会发送给 DeepSeek 解签。

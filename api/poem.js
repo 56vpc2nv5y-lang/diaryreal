@@ -2,12 +2,12 @@
 // Accepts POST { diaryText } → returns { title, form, lines[] }
 // DeepSeek API key lives in Vercel env vars (never exposed to browser).
 
+import { authorizePersonalApp } from '../lib/api-auth.js';
+
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
+  res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (!(await authorizePersonalApp(req, res))) return;
 
   let body = req.body || {};
   if (typeof body === 'string') {
@@ -16,6 +16,8 @@ export default async function handler(req, res) {
   const { diaryText } = body;
   if (!diaryText || !diaryText.trim())
     return res.status(400).json({ error: '日记内容不能为空' });
+  if (diaryText.trim().length > 10000)
+    return res.status(400).json({ error: '日记内容不能超过 10000 字' });
 
   const apiKey = process.env.DEEPSEEK_API_KEY;
   if (!apiKey)
@@ -28,6 +30,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
       },
+      signal: AbortSignal.timeout(25000),
       body: JSON.stringify({
         model: 'deepseek-chat',
         messages: [
@@ -65,7 +68,8 @@ export default async function handler(req, res) {
     content = content.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
     const poem = JSON.parse(content);
 
-    if (!poem.title || !Array.isArray(poem.lines) || poem.lines.length !== 4)
+    if (!poem.title || typeof poem.title !== 'string' || !Array.isArray(poem.lines) ||
+        poem.lines.length !== 4 || poem.lines.some(line => typeof line !== 'string' || !line.trim()))
       throw new Error('诗的格式不对');
 
     return res.status(200).json(poem);

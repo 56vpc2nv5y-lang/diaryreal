@@ -6,15 +6,17 @@
 function Home({ theme, entries, drafts = [], density = 'sparse', poemLayout = 'horizontal', onOpen, onCompose, onSearch, onTab }) {
   const today = entries[0];
   const rest = entries.slice(1);
+  const now = new Date();
+  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
   return (
     <Screen theme={theme} tab="home" onTab={onTab}>
       {/* header strip */}
       <div style={{ padding: '64px 24px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <div style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 500 }}>2026 · MAY · 15</div>
+          <div style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 500 }}>{now.getFullYear()} · {months[now.getMonth()]} · {now.getDate()}</div>
           <div className="serif" style={{ fontSize: 30, fontWeight: 600, letterSpacing: -0.5, marginTop: 4, color: theme.text }}>今日</div>
         </div>
-        <button onClick={onSearch} style={{
+        <button type="button" aria-label="搜索" onClick={onSearch} style={{
           width: 40, height: 40, borderRadius: 20, border: 'none',
           background: theme.surface, display: 'flex', alignItems: 'center', justifyContent: 'center',
           boxShadow: `0 1px 0 ${theme.line}`, cursor: 'pointer'
@@ -134,7 +136,9 @@ function TodayCard({ theme, entry, layout = 'horizontal', onClick }) {
 }
 
 function PastRow({ entry, theme, onClick, isLast, dense }) {
-  const md = entry.date.slice(5).replace('-', '.');
+  const safeDate = typeof entry?.date === 'string' ? entry.date : '';
+  const safePlace = typeof entry?.place === 'string' ? entry.place : '未记录地点';
+  const md = (safeDate.slice(5).replace('-', '.') || '01.01');
   return (
     <div onClick={onClick} style={{
       display: 'flex', alignItems: 'flex-start', gap: 16,
@@ -158,7 +162,7 @@ function PastRow({ entry, theme, onClick, isLast, dense }) {
         }}>{entry.body}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, color: theme.textMute }}>
           <IconPin color={theme.textMute} size={10} />
-          <span>{entry.place.split(' · ')[1] || entry.place}</span>
+          <span>{safePlace.split(' · ')[1] || safePlace}</span>
           {entry.photos && <span style={{ marginLeft: 4 }}>· 图 {entry.photos.length}</span>}
         </div>
       </div>
@@ -217,6 +221,11 @@ function DraftCard({ draft, theme }) {
 }
 
 function Search({ theme, entries, onClose, onOpen }) {
+  const [query, setQuery] = React.useState('');
+  const q = query.trim().toLowerCase();
+  const results = q ? entries.filter(e => [
+    e.body, e.place, e.date, e.poem?.title, ...(e.tags || []),
+  ].filter(Boolean).some(v => String(v).toLowerCase().includes(q))) : [];
   return (
     <Screen theme={theme} noTab>
       <div style={{ padding: '60px 20px 0', display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -225,7 +234,7 @@ function Search({ theme, entries, onClose, onOpen }) {
           display: 'flex', alignItems: 'center', padding: '0 14px', gap: 8
         }}>
           <IconSearch color={theme.textSoft} size={16} />
-          <input autoFocus defaultValue="海" style={{
+          <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="搜索正文、地点、日期、诗题或标签" style={{
             border: 'none', outline: 'none', background: 'transparent',
             flex: 1, color: theme.text, fontSize: 15,
             fontFamily: 'inherit'
@@ -247,10 +256,12 @@ function Search({ theme, entries, onClose, onOpen }) {
         )}
       </div>
 
-      <div style={{ padding: '24px 24px 8px', fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>2 篇 · 关于「海」</div>
+      <div style={{ padding: '24px 24px 8px', fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>
+        {q ? `${results.length} 篇 · 关于「${query.trim()}」` : '输入关键词开始搜索'}
+      </div>
 
       <div style={{ padding: '0 24px 120px' }}>
-        {entries.filter((e) => e.body.includes('海') || e.place.includes('象山') || e.poem?.title?.includes('潮')).map((e, i, arr) =>
+        {results.map((e, i, arr) =>
         <PastRow key={e.id} entry={e} theme={theme} onClick={() => onOpen(e.id)} isLast={i === arr.length - 1} />
         )}
       </div>
@@ -629,7 +640,7 @@ function QuickCapture({ theme, kind = 'photo' }) {
   );
 }
 
-function Shake({ theme, state = 'shaking', onCancel, onAccept, onRegen, entry }) {
+function Shake({ theme, state = 'shaking', onCancel, onAccept, onRegen, entry, saving = false, error = '' }) {
   // state: 'shaking' | 'done'
   const e = entry;
   const [c1, c2] = sealChars(e.poem.title);
@@ -703,6 +714,7 @@ function Shake({ theme, state = 'shaking', onCancel, onAccept, onRegen, entry })
           <div style={{ width: 32, height: 1, background: theme.accent, margin: '20px auto 28px' }} />
           <PoemBody lines={e.poem.lines} size={24} theme={theme} />
           <div style={{ fontSize: 11, color: theme.textMute, marginTop: 36, letterSpacing: 1.5 }}>根据本篇日记生成 · AI</div>
+          {error && <div style={{ marginTop: 14, color: theme.seal, fontSize: 12, lineHeight: 1.6 }}>{error}</div>}
         </div>
       }
 
@@ -713,17 +725,17 @@ function Shake({ theme, state = 'shaking', onCancel, onAccept, onRegen, entry })
         padding: '14px 20px 36px', background: theme.bg,
         display: 'flex', gap: 10
       }}>
-          <button onClick={onRegen} style={{
+          <button onClick={onRegen} disabled={saving} style={{
           flex: 1, height: 50, borderRadius: 25, border: `0.5px solid ${theme.line}`,
           background: theme.surface, color: theme.text,
           fontSize: 15, letterSpacing: 1, fontFamily: 'inherit', cursor: 'pointer'
         }}>重新摇签</button>
-          <button onClick={onAccept} style={{
+          <button onClick={onAccept} disabled={saving} style={{
           flex: 1.6, height: 50, borderRadius: 25, border: 'none',
           background: theme.text, color: theme.bg,
           fontSize: 15, letterSpacing: 1, fontFamily: 'inherit', cursor: 'pointer',
           fontWeight: 600
-        }}>就是这一首</button>
+        }}>{saving ? '保存中…' : '就是这一首'}</button>
         </div>
       }
       {state === 'shaking' &&
@@ -776,7 +788,7 @@ function renderBodyWithAnchors(body, inlineNotes, theme, selectedId, onSelect) {
   return out;
 }
 
-function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote, onDelete }) {
+function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote, onDelete, onGeneratePoem }) {
   const e = entry;
   const hasPoem = showPoem && !!e.poem;
   const [c1, c2] = sealChars(e.poem?.title || '日记');
@@ -785,25 +797,38 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
   const [noteText, setNoteText] = React.useState('');
   const [busy, setBusy] = React.useState(false);
   const [preview, setPreview] = React.useState(null);
+  const [actionError, setActionError] = React.useState('');
+  const noteNow = new Date().toLocaleString('zh-CN', { hour12: false });
 
   const addNote = async () => {
     if (!noteText.trim() || !onAddNote) return;
-    setBusy(true);
-    try { await onAddNote(noteText.trim()); setNoteText(''); setNoteOpen(false); }
+    setBusy(true); setActionError('');
+    try { await onAddNote(noteText.trim().slice(0, 2000)); setNoteText(''); setNoteOpen(false); }
+    catch (err) { setActionError('添加追评失败：' + (err?.message || '未知错误')); }
     finally { setBusy(false); }
   };
 
   const toggleFlag = async () => {
     if (!onToggleFlag) return;
-    setBusy(true);
+    setBusy(true); setActionError('');
     try { await onToggleFlag(); setMenuOpen(false); }
+    catch (err) { setActionError('修改里程碑失败：' + (err?.message || '未知错误')); }
     finally { setBusy(false); }
   };
 
   const deleteCurrent = async () => {
     if (!onDelete || !window.confirm('确定删除这篇日记吗？此操作不可撤销。')) return;
-    setBusy(true);
+    setBusy(true); setActionError('');
     try { await onDelete(); }
+    catch (err) { setActionError('删除失败：' + (err?.message || '未知错误')); }
+    finally { setBusy(false); }
+  };
+
+  const generatePoem = async () => {
+    if (!onGeneratePoem) return;
+    setBusy(true); setActionError('');
+    try { await onGeneratePoem(); }
+    catch (err) { setActionError('生成诗失败：' + (err?.message || '未知错误')); }
     finally { setBusy(false); }
   };
 
@@ -830,10 +855,10 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
     <Screen theme={theme} noTab>
       {/* top bar */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '50px 16px 0', display: 'flex', justifyContent: 'space-between', zIndex: 20 }}>
-        <button onClick={onBack} style={{ width: 40, height: 40, borderRadius: 20, border: 'none', background: theme.surface + 'dd', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+        <button type="button" aria-label="返回" onClick={onBack} style={{ width: 40, height: 40, borderRadius: 20, border: 'none', background: theme.surface + 'dd', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <IconChevron color={theme.text} dir="left" size={14} />
         </button>
-        <button onClick={() => setMenuOpen(!menuOpen)} style={{ width: 40, height: 40, borderRadius: 20, border: 'none', background: theme.surface + 'dd', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+        <button type="button" aria-label="更多操作" onClick={() => setMenuOpen(!menuOpen)} style={{ width: 40, height: 40, borderRadius: 20, border: 'none', background: theme.surface + 'dd', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
           <svg width="16" height="4" viewBox="0 0 16 4" fill={theme.text}>
             <circle cx="2" cy="2" r="1.5" /><circle cx="8" cy="2" r="1.5" /><circle cx="14" cy="2" r="1.5" />
           </svg>
@@ -888,15 +913,15 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
         }}>
             没有也没关系 —— 日记<br />本身已是这一日的诗。
           </div>
-          <button style={{
-          marginTop: 22, height: 42, padding: '0 18px', borderRadius: 21,
-          border: `1px solid ${theme.seal}88`, background: 'transparent',
-          color: theme.seal, display: 'inline-flex', alignItems: 'center', gap: 7,
-          fontSize: 13.5, letterSpacing: 1.5,
-          fontFamily: "'Noto Serif SC', serif", cursor: 'pointer'
-        }}>
+          <button type="button" onClick={generatePoem} disabled={busy || !onGeneratePoem} style={{
+            marginTop: 22, height: 42, padding: '0 18px', borderRadius: 21,
+            border: `1px solid ${theme.seal}88`, background: 'transparent',
+            color: theme.seal, display: 'inline-flex', alignItems: 'center', gap: 7,
+            fontSize: 13.5, letterSpacing: 1.5,
+            fontFamily: "'Noto Serif SC', serif", cursor: 'pointer'
+          }}>
             <IconShake color={theme.seal} size={16} />
-            现在摇一签
+            {busy ? '生成中…' : '现在摇一签'}
           </button>
         </div>)
       }
@@ -973,6 +998,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
 
       {/* revisit notes */}
       <div style={{ padding: '32px 32px 0' }}>
+        {actionError && <div style={{ marginBottom: 12, color: theme.seal, fontSize: 12, lineHeight: 1.6 }}>{actionError}</div>}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>回 看 点 评</div>
           <div style={{ fontSize: 11, color: theme.textMute }}>{(e.notes || []).length} 条</div>
@@ -993,22 +1019,23 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
         )}
 
         {/* add note */}
-        <div onClick={() => onAddNote && setNoteOpen(true)} style={{
+        <button type="button" onClick={() => onAddNote && setNoteOpen(true)} style={{
+          width: '100%', background: 'transparent', fontFamily: 'inherit', textAlign: 'left',
           marginTop: 10, padding: '14px 16px', borderRadius: 14,
           border: `0.5px dashed ${theme.line}`, color: theme.textSoft,
           fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           cursor: onAddNote ? 'pointer' : 'default',
         }}>
           <span>+ 添加这一刻的感想</span>
-          <span style={{ fontSize: 11, color: theme.textMute }}>2026.05.15 现在</span>
-        </div>
+          <span style={{ fontSize: 11, color: theme.textMute }}>{noteNow} 现在</span>
+        </button>
       </div>
 
       {noteOpen && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(20,25,22,.32)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => !busy && setNoteOpen(false)}>
           <div onClick={ev => ev.stopPropagation()} style={{ width: '100%', maxWidth: W, background: theme.paper, borderRadius: '22px 22px 0 0', padding: '22px 22px 36px' }}>
             <div className="serif" style={{ fontSize: 18, color: theme.text, letterSpacing: 2, marginBottom: 14 }}>添加这一刻的感想</div>
-            <textarea autoFocus value={noteText} onChange={ev => setNoteText(ev.target.value)} placeholder="重新读到这里，你有什么想法？" style={{
+            <textarea autoFocus value={noteText} maxLength={2000} onChange={ev => setNoteText(ev.target.value)} placeholder="重新读到这里，你有什么想法？" style={{
               width: '100%', height: 120, resize: 'none', border: `0.5px solid ${theme.line}`, borderRadius: 14,
               background: theme.surface, color: theme.text, padding: 12, outline: 'none', fontFamily: 'inherit', fontSize: 15, lineHeight: 1.7,
             }}/>

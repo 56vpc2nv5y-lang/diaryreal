@@ -194,7 +194,7 @@ function Import({ theme, onBack, onTab }) {
 // ──────────────────────────────────────────────────────────────────
 // Settings
 // ──────────────────────────────────────────────────────────────────
-function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, entries = [], hexagrams = [], onImportData, onClearData, onSignOut, onTab }) {
+function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, entries = [], hexagrams = [], buildLabel = '', onImportData, onClearData, onSignOut, onTab }) {
   const [autoLoc, setAutoLoc_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoLoc') ?? 'true'));
   const [autoPoem, setAutoPoem_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoPoem') ?? 'true'));
   const [saveRej, setSaveRej_] = React.useState(() => JSON.parse(localStorage.getItem('d-saveRej') ?? 'false'));
@@ -231,9 +231,12 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
     ev.target.value = '';
     if (!file || !onImportData) return;
     try {
+      const isJson = file.name.toLowerCase().endsWith('.json');
+      if (isJson && file.size > 10 * 1024 * 1024) throw new Error('JSON 备份文件过大，请控制在 10MB 以内');
+      if (!isJson && file.size > 700 * 1024) throw new Error('文本文件过大，请控制在 700KB 以内，避免超过 Firestore 单文档限制');
       const text = await file.text();
       let data;
-      if (file.name.toLowerCase().endsWith('.json')) {
+      if (isJson) {
         const parsed = JSON.parse(text);
         data = Array.isArray(parsed)
           ? { entries: parsed, hexagrams: [] }
@@ -256,8 +259,12 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
 
   const clearAll = async () => {
     if (!onClearData || !window.confirm('确定清除 Firestore 中的全部日记和卦象吗？此操作不可撤销。建议先备份。')) return;
-    await onClearData();
-    alert('全部日记和卦象已清除');
+    try {
+      await onClearData();
+      alert('全部日记和卦象已清除');
+    } catch (e) {
+      alert('清除失败：' + (e?.message || '未知错误'));
+    }
   };
   return (
     <Screen theme={theme} tab="settings" onTab={onTab}>
@@ -268,7 +275,8 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
 
       {/* account card */}
       <div style={{ padding: '0 20px 24px' }}>
-        <div style={{
+        <button type="button" onClick={() => alert('当前为 Firebase 匿名账户。请定期使用“数据备份”；清除浏览器数据或更换设备后，匿名账户可能无法找回。')} style={{
+          width: '100%', border: 'none', textAlign: 'left', fontFamily: 'inherit', cursor: 'pointer',
           background: theme.paper, borderRadius: 18, padding: 18,
           border: `0.5px solid ${theme.line}`,
           display: 'flex', alignItems: 'center', gap: 14,
@@ -283,7 +291,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
             <div style={{ fontSize: 11.5, color: theme.textMute, marginTop: 3, letterSpacing: 0.5 }}>已写 {entriesCount} 篇 · Firebase 匿名账户</div>
           </div>
           <IconChevron color={theme.textMute} dir="right" size={14}/>
-        </div>
+        </button>
       </div>
 
       {/* theme picker */}
@@ -352,6 +360,9 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         <SettingsRow theme={theme} label="退出" onClick={onSignOut} isLast />
       </SettingsSection>
 
+      <div style={{ textAlign: 'center', fontSize: 10.5, color: theme.textMute, letterSpacing: 1, padding: '2px 0 18px' }}>
+        版本 {buildLabel || 'prototype'}
+      </div>
       <div style={{ height: 100 }} />
     </Screen>
   );
@@ -369,7 +380,8 @@ function SettingsSection({ theme, title, children }) {
 function SettingsRow({ theme, label, detail, toggle, on, onToggle, isLast, onClick }) {
   const handleClick = toggle ? onToggle : onClick;
   return (
-    <div onClick={handleClick} style={{
+    <button type="button" onClick={handleClick} style={{
+      width: '100%', border: 'none', background: 'transparent', fontFamily: 'inherit', textAlign: 'left',
       padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 12,
       borderBottom: isLast ? 'none' : `0.5px solid ${theme.line}`,
       minHeight: 50, cursor: (toggle || onClick) ? 'pointer' : 'default',
@@ -390,7 +402,7 @@ function SettingsRow({ theme, label, detail, toggle, on, onToggle, isLast, onCli
       ) : (
         <IconChevron color={theme.textMute} dir="right" size={13}/>
       )}
-    </div>
+    </button>
   );
 }
 
@@ -729,7 +741,7 @@ function Hexagrams({ theme, hexes = [], onNew, onFollowUp, onTab }) {
           <div className="serif" style={{ fontSize: 30, fontWeight: 600, letterSpacing: -0.5, marginTop: 4, color: theme.text }}>卜 签</div>
           <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 6 }}>记录每一次求问 · {hexes.length} 次</div>
         </div>
-        <button onClick={onNew} style={{
+        <button type="button" aria-label="起一卦" onClick={onNew} style={{
           width: 40, height: 40, borderRadius: 20, border: 'none', background: theme.seal,
           color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
           cursor: 'pointer', boxShadow: `0 4px 12px ${theme.seal}55`,
