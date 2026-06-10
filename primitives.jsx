@@ -221,16 +221,20 @@ const IconShake = ({ color = '#fff', size = 22 }) => (
 );
 
 // ── Image placeholder ────────────────────────────────────────────────
-function ImgPlaceholder({ theme, label, h = 120, w = '100%' }) {
+function ImgPlaceholder({ theme, label, h = 120, w = '100%', onClick }) {
+  const isImage = typeof label === 'string' && /^(https?:|data:image|blob:)/i.test(label);
   return (
-    <div style={{
+    <div onClick={onClick} style={{
       width: w, height: h, borderRadius: 14,
       background: `repeating-linear-gradient(135deg, ${theme.surfaceSoft}, ${theme.surfaceSoft} 6px, ${theme.surface} 6px, ${theme.surface} 12px)`,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
       fontSize: 11, color: theme.textSoft, letterSpacing: 0.5,
       border: `0.5px solid ${theme.line}`,
-    }}>{label}</div>
+      overflow: 'hidden', cursor: onClick ? 'pointer' : 'default',
+    }}>
+      {isImage ? <img src={label} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}/> : label}
+    </div>
   );
 }
 

@@ -9,7 +9,11 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { diaryText } = req.body || {};
+  let body = req.body || {};
+  if (typeof body === 'string') {
+    try { body = JSON.parse(body); } catch { return res.status(400).json({ error: '请求内容不是有效 JSON' }); }
+  }
+  const { diaryText } = body;
   if (!diaryText || !diaryText.trim())
     return res.status(400).json({ error: '日记内容不能为空' });
 
@@ -48,13 +52,14 @@ export default async function handler(req, res) {
       }),
     });
 
+    const raw = await response.text();
+    let data;
+    try { data = raw ? JSON.parse(raw) : {}; }
+    catch { return res.status(502).json({ error: `DeepSeek 返回了非 JSON 内容（HTTP ${response.status}）` }); }
     if (!response.ok) {
-      const t = await response.text();
-      console.error('DeepSeek error:', response.status, t);
-      return res.status(502).json({ error: `DeepSeek API 错误 ${response.status}` });
+      console.error('DeepSeek error:', response.status, raw);
+      return res.status(502).json({ error: data.error?.message || `DeepSeek API 错误 ${response.status}` });
     }
-
-    const data = await response.json();
     let content = data.choices?.[0]?.message?.content || '';
     // Strip possible markdown fences
     content = content.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();

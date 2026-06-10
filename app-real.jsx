@@ -25,6 +25,41 @@ async function dbSaveEntry(data) {
   return ref.id;
 }
 
+async function dbDeleteEntry(id) {
+  await col('entries').doc(id).delete();
+}
+
+async function dbClearCollection(name) {
+  const snap = await col(name).get();
+  const docs = snap.docs;
+  for (let i = 0; i < docs.length; i += 400) {
+    const batch = firebase.firestore().batch();
+    docs.slice(i, i + 400).forEach(d => batch.delete(d.ref));
+    await batch.commit();
+  }
+}
+
+async function dbClearAllData() {
+  await dbClearCollection('entries');
+  await dbClearCollection('hexagrams');
+}
+
+async function dbImportEntries(entries) {
+  for (const entry of entries) {
+    const { id, ...data } = entry || {};
+    if (!data.body?.trim()) continue;
+    if (id) await dbSaveEntry({ id, ...data });
+    else await dbSaveEntry(data);
+  }
+}
+
+async function dbImportHexagrams(hexagrams) {
+  for (const hex of hexagrams) {
+    if (!hex?.question?.trim() || !Array.isArray(hex.lines)) continue;
+    await dbSaveHexagram(hex);
+  }
+}
+
 async function dbSaveHexagram(data) {
   const { id, ...rest } = data;
   const now = new Date().toISOString();
@@ -49,7 +84,12 @@ async function apiPoem(diaryText) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ diaryText }),
   });
-  const json = await r.json();
+  const text = await r.text();
+  let json;
+  try { json = text ? JSON.parse(text) : {}; }
+  catch {
+    throw new Error(`生诗服务返回了非 JSON 内容（HTTP ${r.status}）。请检查 Vercel Functions 部署和日志。`);
+  }
   if (!r.ok) throw new Error(json.error || '生诗失败');
   return json;
 }
@@ -193,7 +233,7 @@ function WelcomeScreen({ theme, onStart, loading }) {
         }}>
           {loading ? '…' : '开 始 写 今 天'}
         </button>
-        <div style={{ fontSize: 10.5, color: theme.textMute, letterSpacing: 2 }}>数据仅存于此设备</div>
+        <div style={{ fontSize: 10.5, color: theme.textMute, letterSpacing: 2 }}>数据保存在你的 Firebase 匿名账户</div>
       </div>
     </div>
   );
@@ -390,8 +430,14 @@ async function apiHexagram(question, hexName, lines) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ question, hexName, lines }),
   });
-  const d = await r.json();
+  const text = await r.text();
+  let d;
+  try { d = text ? JSON.parse(text) : {}; }
+  catch {
+    throw new Error(`解签服务返回了非 JSON 内容（HTTP ${r.status}）。请检查 Vercel Functions 部署和日志。`);
+  }
   if (!r.ok) throw new Error(d.error || 'AI解签失败');
+  if (!d.interpretation) throw new Error('AI 解签返回内容为空');
   return d.interpretation;
 }
 
@@ -595,7 +641,32 @@ function AppReal() {
 
   const tabHandler = t => t === 'compose' ? push('compose') : reset(t);
 
-  const refresh = async () => { const e = await dbGetEntries(); setEntries(e); };
+  const refresh = async () => { const e = await dbGetEntries(); setEntries(e); return e; };
+
+  const updateEntry = async (id, patch) => {
+    const current = entries.find(e => e.id === id);
+    if (!current) throw new Error('找不到这篇日记');
+    await dbSaveEntry({ ...current, ...patch, id });
+    await refresh();
+  };
+
+  const deleteEntry = async (id) => {
+    await dbDeleteEntry(id);
+    await refresh();
+  };
+
+  const importData = async data => {
+    await dbImportEntries(data.entries || []);
+    await dbImportHexagrams(data.hexagrams || []);
+    await refresh();
+    setHexagrams(await dbGetHexagrams());
+  };
+
+  const clearAllData = async () => {
+    await dbClearAllData();
+    await refresh();
+    setHexagrams([]);
+  };
 
   React.useEffect(() => firebase.auth().onAuthStateChanged(u => {
     if (u) {
@@ -609,7 +680,7 @@ function AppReal() {
 
 
   const handleSignOut = async () => {
-    if (!window.confirm('确定要退出吗？数据仍保留在此设备 Firebase 里。')) return;
+    if (!window.confirm('当前是匿名账号。退出后将生成新的匿名身份，可能无法再访问旧数据。确定仍要退出吗？')) return;
     await firebase.auth().signOut();
     setEntries([]); setHexagrams([]); setStack([{ screen: 'home', params: {} }]);
   };
@@ -629,7 +700,7 @@ function AppReal() {
   if (screen === 'home' && entries.length === 0)
     return <EmptyHomeScreen theme={theme} onCompose={() => push('compose')} onTab={tabHandler}/>;
 
-  const entryById = id => entries.find(e => e.id === id) || entries[0];
+  const entryById = id => entries.find(e => e.id === id);
 
   switch (screen) {
     case 'home':
@@ -653,7 +724,13 @@ function AppReal() {
     case 'detail': {
       const entry = entryById(params.id);
       if (!entry) { pop(); return null; }
-      return <Detail theme={theme} entry={entry} onBack={pop}/>;
+      return <Detail theme={theme} entry={entry} onBack={pop}
+        onToggleFlag={() => updateEntry(entry.id, { flag: !entry.flag })}
+        onAddNote={text => updateEntry(entry.id, {
+          notes: [...(entry.notes || []), { date: new Date().toLocaleString('zh-CN', { hour12: false }), text }],
+        })}
+        onDelete={async () => { await deleteEntry(entry.id); pop(); }}
+      />;
     }
 
     case 'search':
@@ -679,6 +756,10 @@ function AppReal() {
         <Settings theme={theme} currentThemeKey={themeKey}
           onChangeTheme={setThemeKey}
           entriesCount={entries.length}
+          entries={entries}
+          hexagrams={hexagrams}
+          onImportData={importData}
+          onClearData={clearAllData}
           onSignOut={handleSignOut}
           onTab={tabHandler}
         />

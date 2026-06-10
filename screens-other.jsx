@@ -52,7 +52,7 @@ function YearMarker({ theme, year }) {
 }
 
 function TimelineRow({ entry, theme, onClick, isFirst }) {
-  const [c1, c2] = sealChars(entry.poem.title);
+  const [c1, c2] = sealChars(entry.poem?.title || '日记');
   return (
     <div onClick={onClick} style={{ position: 'relative', paddingLeft: 56, paddingBottom: 28, cursor: 'pointer' }}>
       {/* node */}
@@ -73,7 +73,7 @@ function TimelineRow({ entry, theme, onClick, isFirst }) {
 
       {/* poem title */}
       <div className="serif" style={{ fontSize: 19, fontWeight: 500, color: theme.text, letterSpacing: 2, marginBottom: 6 }}>
-        《{entry.poem.title}》
+        《{entry.poem?.title || '无题'}》
       </div>
 
       {/* place */}
@@ -87,7 +87,7 @@ function TimelineRow({ entry, theme, onClick, isFirst }) {
         fontSize: 14, lineHeight: 1.7, color: theme.textSoft, letterSpacing: 1,
         paddingLeft: 12, borderLeft: `1.5px solid ${theme.accent}`,
         fontStyle: 'normal',
-      }}>{entry.poem.lines[entry.poem.lines.length - 1]}</div>
+      }}>{entry.poem?.lines?.[entry.poem.lines.length - 1] || entry.body?.slice(0, 28) || '这一日被记下。'}</div>
     </div>
   );
 }
@@ -107,7 +107,7 @@ function Import({ theme, onBack, onTab }) {
         <div style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 500 }}>IMPORT</div>
         <div className="serif" style={{ fontSize: 30, fontWeight: 600, letterSpacing: -0.5, marginTop: 4, color: theme.text }}>导入过去</div>
         <div style={{ fontSize: 13, color: theme.textSoft, marginTop: 8, lineHeight: 1.55 }}>
-          Grok 自动识别日期与内容，逐篇解析。每一篇旧日记，也会得到属于它的那首诗。
+          AI 自动识别日期与内容，逐篇解析。每一篇旧日记，也会得到属于它的那首诗。
         </div>
       </div>
 
@@ -194,11 +194,71 @@ function Import({ theme, onBack, onTab }) {
 // ──────────────────────────────────────────────────────────────────
 // Settings
 // ──────────────────────────────────────────────────────────────────
-function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, onSignOut, onTab }) {
+function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, entries = [], hexagrams = [], onImportData, onClearData, onSignOut, onTab }) {
   const [autoLoc, setAutoLoc_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoLoc') ?? 'true'));
   const [autoPoem, setAutoPoem_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoPoem') ?? 'true'));
   const [saveRej, setSaveRej_] = React.useState(() => JSON.parse(localStorage.getItem('d-saveRej') ?? 'false'));
+  const fileRef = React.useRef(null);
   const tog = (key, val, setter) => { localStorage.setItem(key, JSON.stringify(val)); setter(val); };
+
+  const backupText = () => JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), entries, hexagrams }, null, 2);
+
+  const downloadBackup = () => {
+    const blob = new Blob([backupText()], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `诗签备份-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  const shareBackup = async () => {
+    const name = `诗签备份-${new Date().toISOString().slice(0, 10)}.json`;
+    const file = new File([backupText()], name, { type: 'application/json' });
+    try {
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: '诗签数据备份', files: [file] });
+      } else {
+        downloadBackup();
+      }
+    } catch (e) {
+      if (e?.name !== 'AbortError') alert('分享失败：' + e.message);
+    }
+  };
+
+  const importFile = async ev => {
+    const file = ev.target.files?.[0];
+    ev.target.value = '';
+    if (!file || !onImportData) return;
+    try {
+      const text = await file.text();
+      let data;
+      if (file.name.toLowerCase().endsWith('.json')) {
+        const parsed = JSON.parse(text);
+        data = Array.isArray(parsed)
+          ? { entries: parsed, hexagrams: [] }
+          : { entries: parsed.entries || [], hexagrams: parsed.hexagrams || [] };
+        if (!Array.isArray(data.entries) || !Array.isArray(data.hexagrams)) throw new Error('备份文件格式不正确');
+      } else {
+        const d = new Date(), p = n => String(n).padStart(2, '0');
+        data = { entries: [{
+          date: `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`,
+          weekday: `周${'日一二三四五六'[d.getDay()]}`,
+          time: `${p(d.getHours())}:${p(d.getMinutes())}`,
+          place: '导入', body: text.trim(), mood: '', flag: false,
+          tags: ['导入'], poem: null, notes: [], inlineNotes: [], photos: [],
+        }], hexagrams: [] };
+      }
+      await onImportData(data);
+      alert(`已导入 ${data.entries.length} 篇日记、${data.hexagrams.length} 个卦象`);
+    } catch (e) { alert('导入失败：' + e.message); }
+  };
+
+  const clearAll = async () => {
+    if (!onClearData || !window.confirm('确定清除 Firestore 中的全部日记和卦象吗？此操作不可撤销。建议先备份。')) return;
+    await onClearData();
+    alert('全部日记和卦象已清除');
+  };
   return (
     <Screen theme={theme} tab="settings" onTab={onTab}>
       <div style={{ padding: '64px 24px 24px' }}>
@@ -220,7 +280,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, onS
           }}>林</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 16, color: theme.text, fontWeight: 500 }}>我的日记</div>
-            <div style={{ fontSize: 11.5, color: theme.textMute, marginTop: 3, letterSpacing: 0.5 }}>已写 {entriesCount} 篇 · 数据仅存于此设备</div>
+            <div style={{ fontSize: 11.5, color: theme.textMute, marginTop: 3, letterSpacing: 0.5 }}>已写 {entriesCount} 篇 · Firebase 匿名账户</div>
           </div>
           <IconChevron color={theme.textMute} dir="right" size={14}/>
         </div>
@@ -276,18 +336,19 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, onS
       </SettingsSection>
 
       <SettingsSection theme={theme} title="导 入 与 导 出">
-        <SettingsRow theme={theme} label="导入过去日记" detail=".docx · .txt · .pdf · .md" />
-        <SettingsRow theme={theme} label="导出与分享" detail="单篇 · 月集 · 年度线装" />
-        <SettingsRow theme={theme} label="数据备份" detail="JSON · 658 篇" isLast />
+        <input ref={fileRef} type="file" accept=".json,.txt,.md" onChange={importFile} style={{ display: 'none' }}/>
+        <SettingsRow theme={theme} label="导入过去日记" detail=".json · .txt · .md" onClick={() => fileRef.current?.click()} />
+        <SettingsRow theme={theme} label="导出与分享" detail="系统分享 · JSON" onClick={shareBackup} />
+        <SettingsRow theme={theme} label="数据备份" detail={`JSON · ${entriesCount} 篇`} onClick={downloadBackup} isLast />
       </SettingsSection>
 
       <SettingsSection theme={theme} title="云 同 步">
-        <SettingsRow theme={theme} label="iCloud" detail="已开启 · 13MB" />
-        <SettingsRow theme={theme} label="Android 同步" detail="未连接" isLast />
+        <SettingsRow theme={theme} label="Firestore" detail="已开启" onClick={() => alert('日记正在保存到 Firebase Firestore。')} />
+        <SettingsRow theme={theme} label="跨设备同步" detail="匿名账号不支持" onClick={() => alert('当前使用 Firebase 匿名登录。要跨设备同步，需要后续增加 Google 或邮箱登录。')} isLast />
       </SettingsSection>
 
       <SettingsSection theme={theme} title="数 据">
-        <SettingsRow theme={theme} label="清除所有数据" detail="不可撤销" />
+        <SettingsRow theme={theme} label="清除所有数据" detail="不可撤销" onClick={clearAll} />
         <SettingsRow theme={theme} label="退出" onClick={onSignOut} isLast />
       </SettingsSection>
 
