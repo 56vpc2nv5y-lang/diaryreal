@@ -249,7 +249,55 @@ function ImgPlaceholder({ theme, label, h = 120, w = '100%', onClick }) {
 //   grid     — square grid, like 田字格
 //   columns  — 朱丝栏: vertical cinnabar column lines (classic letter paper)
 //   dots     — fine dot grid
+const PAPER_LIBRARY = [
+  { id: 'plain', name: '空白', group: '基础' },
+  { id: 'ruled', name: '横格', group: '基础' },
+  { id: 'grid', name: '方格', group: '基础' },
+  { id: 'columns', name: '朱丝栏', group: '基础' },
+  { id: 'dots', name: '点阵', group: '基础' },
+  { id: 'sakura', name: '花瓣', group: '纹样' },
+  { id: 'cloud', name: '祥云', group: '纹样' },
+  { id: 'wave', name: '波纹', group: '纹样' },
+  { id: 'moon', name: '月相', group: '纹样' },
+  { id: 'art-01', name: '花猫茶歇', group: '插画' },
+  { id: 'art-02', name: '山野蘑菇', group: '插画' },
+  { id: 'art-03', name: '彩色几何', group: '插画' },
+  { id: 'art-04', name: '梦幻独角兽', group: '插画' },
+  { id: 'art-05', name: '漫画能量', group: '插画' },
+  { id: 'art-06', name: '星月航行', group: '插画' },
+  { id: 'art-07', name: '星光餐厅', group: '插画' },
+  { id: 'art-08', name: '暖色拼贴', group: '插画' },
+  { id: 'art-09', name: '像素冒险', group: '插画' },
+  { id: 'art-10', name: '月光留白', group: '插画' },
+  { id: 'art-11', name: '流光', group: '插画' },
+  { id: 'art-12', name: '复古白玫瑰', group: '插画' },
+  { id: 'art-13', name: '植物标本', group: '插画' },
+  { id: 'art-14', name: '樱花', group: '插画' },
+  { id: 'art-15', name: '邮差小熊', group: '插画' },
+  { id: 'art-16', name: '云朵', group: '插画' },
+  { id: 'art-17', name: '野餐小狗', group: '插画' },
+  { id: 'art-18', name: '巴黎午后', group: '插画' },
+  { id: 'art-19', name: '旧纸打字机', group: '插画' },
+  { id: 'art-20', name: '圣诞松枝', group: '插画' },
+  { id: 'art-21', name: '水墨梅鸟', group: '插画' },
+  { id: 'art-22', name: '故宫秋日', group: '插画' },
+  { id: 'art-23', name: '秋山', group: '插画' },
+  { id: 'art-24', name: '江南园林', group: '插画' },
+  { id: 'art-25', name: '雪中宫墙', group: '插画' },
+].map(item => item.id.startsWith('art-')
+  ? { ...item, src: `assets/papers/paper-${item.id.slice(4)}.webp`, thumb: `assets/papers/paper-${item.id.slice(4)}-thumb.webp` }
+  : item);
+
 function paperBg(kind, theme) {
+  const custom = PAPER_LIBRARY.find(item => item.id === kind && item.src);
+  if (custom) {
+    return {
+      backgroundImage: `url("${custom.src}")`,
+      backgroundSize: '100% 100%',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+    };
+  }
   const line = theme.line;
   const seal = theme.seal + '33'; // ~20% opacity
   switch (kind) {
@@ -382,5 +430,5 @@ Object.assign(window, {
   W, H, Screen, StatusBar, HomeIndicator, TabBar, Seal, FlagDot, ImgPlaceholder,
   IconHome, IconTimeline, IconPlus, IconImport, IconHex, IconUser, IconSearch,
   IconChevron, IconClose, IconCamera, IconPin, IconShake, sealChars,
-  paperBg, PoemBody,
+  paperBg, PAPER_LIBRARY, PoemBody,
 });

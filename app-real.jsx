@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.11-r8';
+const APP_BUILD = '2026.06.11-r9';
 
 // ─── Firebase helpers ─────────────────────────────────────────────
 function col(name) {
@@ -28,6 +28,7 @@ function normalizeEntry(data, id) {
     mood: typeof data?.mood === 'string' ? data.mood : '',
     flag: !!data?.flag,
     tags: Array.isArray(data?.tags) ? data.tags.map(String) : [],
+    paper: typeof data?.paper === 'string' ? data.paper : 'plain',
     poem,
     notes: Array.isArray(data?.notes) ? data.notes.filter(n => n && typeof n.text === 'string') : [],
     inlineNotes: Array.isArray(data?.inlineNotes) ? data.inlineNotes.filter(n => n && typeof n.text === 'string') : [],
@@ -313,7 +314,7 @@ function EmptyHomeScreen({ theme, onCompose, onTab }) {
 // ─── Compose Screen (real) ────────────────────────────────────────
 const MOODS_REAL = ['☕','🌙','🌸','🌊','✨','🌿','💐','😴','🥲','🎯','📖','🏃','🌳','💌','🍂'];
 
-function ComposeReal({ theme, paper, onBack, onSaved }) {
+function ComposeReal({ theme, paper, onChangePaper, onBack, onSaved }) {
   const [title, setTitle] = React.useState('');
   const [body, setBody] = React.useState('');
   const [mood, setMood] = React.useState('');
@@ -323,6 +324,7 @@ function ComposeReal({ theme, paper, onBack, onSaved }) {
   const [shake, setShake] = React.useState('idle'); // idle|gen|done
   const [poem, setPoem] = React.useState(null);
   const [saving, setSaving] = React.useState(false);
+  const [paperOpen, setPaperOpen] = React.useState(false);
   const [err, setErr] = React.useState('');
 
   React.useEffect(() => {
@@ -350,7 +352,7 @@ function ComposeReal({ theme, paper, onBack, onSaved }) {
     try {
       const id = await dbSaveEntry({
         date: info.date, weekday: info.weekday, time: info.time,
-        place, title: title.trim(), body: body.trim(), mood, flag,
+        place, title: title.trim(), body: body.trim(), mood, flag, paper,
         tags: [], poem: poemArg || null, notes: [], inlineNotes: [],
         photos: [],
       });
@@ -368,11 +370,12 @@ function ComposeReal({ theme, paper, onBack, onSaved }) {
 
   const filled = body.trim().length > 0;
   const ps = paperBg(paper, theme);
-  const paperLabel = { plain:'空 白', ruled:'横 格', grid:'方 格', columns:'朱 丝 栏', dots:'点 阵', sakura:'花 瓣', cloud:'祥 云', wave:'波 纹', moon:'月 相' };
+  const selectedPaper = window.PAPER_LIBRARY.find(item => item.id === paper) || window.PAPER_LIBRARY[0];
+  const customPaper = paper.startsWith('art-');
 
   return (
     <div style={{ width: W, height: H, background: theme.paper, position: 'relative', overflow: 'hidden', fontFamily: 'inherit' }}>
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', ...ps }}/>
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: customPaper ? 0.82 : 1, ...ps }}/>
       <div style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
 
         {/* top bar */}
@@ -381,10 +384,10 @@ function ComposeReal({ theme, paper, onBack, onSaved }) {
             <IconClose color={theme.textSoft} size={20}/>
           </button>
           <div style={{ fontSize: 12, color: theme.textSoft, fontWeight: 500 }}>新日记</div>
-          <div style={{ height: 26, padding: '0 10px', borderRadius: 13, background: theme.surface + 'cc', border: `0.5px solid ${theme.line}`, display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: theme.textSoft, letterSpacing: 1.5 }}>
+          <button type="button" onClick={() => setPaperOpen(true)} style={{ height: 28, padding: '0 10px', borderRadius: 14, background: theme.surface + 'dd', border: `0.5px solid ${theme.line}`, display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: theme.textSoft, letterSpacing: 1.5, fontFamily: 'inherit', cursor: 'pointer' }}>
             <span style={{ width: 4, height: 4, borderRadius: 2, background: theme.accent, display: 'inline-block' }}/>
-            {paperLabel[paper] || '空 白'}
-          </div>
+            {selectedPaper.name}
+          </button>
         </div>
 
         {/* meta */}
@@ -477,6 +480,39 @@ function ComposeReal({ theme, paper, onBack, onSaved }) {
           </div>
         </div>
       </div>
+      {paperOpen && (
+        <div onClick={() => setPaperOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(20,25,22,.36)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <div onClick={event => event.stopPropagation()} style={{ width: '100%', maxWidth: W, maxHeight: '72vh', background: theme.bg, borderRadius: '24px 24px 0 0', padding: '20px 16px 34px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 6px 14px' }}>
+              <div>
+                <div className="serif" style={{ fontSize: 19, color: theme.text, letterSpacing: 3 }}>选 择 信 纸</div>
+                <div style={{ fontSize: 11, color: theme.textMute, marginTop: 4 }}>基础纹样与 25 款插画信纸</div>
+              </div>
+              <button type="button" aria-label="关闭信纸选择器" onClick={() => setPaperOpen(false)} style={{ border: 'none', background: 'transparent', padding: 6, cursor: 'pointer' }}>
+                <IconClose color={theme.textSoft} size={18}/>
+              </button>
+            </div>
+            <div className="no-scroll" style={{ overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, padding: '2px 4px 12px' }}>
+              {window.PAPER_LIBRARY.map(item => {
+                const active = item.id === paper;
+                const previewStyle = item.thumb
+                  ? { backgroundImage: `url("${item.thumb}")`, backgroundSize: '100% 100%', backgroundPosition: 'center' }
+                  : paperBg(item.id, theme);
+                return (
+                  <button type="button" key={item.id} onClick={() => { onChangePaper(item.id); setPaperOpen(false); }} style={{
+                    border: active ? `2px solid ${theme.accent}` : `0.5px solid ${theme.line}`,
+                    background: active ? theme.surface : 'transparent', borderRadius: 13,
+                    padding: 5, cursor: 'pointer', fontFamily: 'inherit',
+                  }}>
+                    <div style={{ height: 116, borderRadius: 9, backgroundColor: theme.paper, overflow: 'hidden', ...previewStyle }}/>
+                    <div style={{ marginTop: 6, fontSize: 11, color: active ? theme.text : theme.textSoft, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -779,6 +815,7 @@ function AppReal() {
 
   const theme = window.THEMES[themeKey] || window.THEMES.celadon;
   const setThemeKey = k => { localStorage.setItem('diary-theme', k); setThemeKey_(k); };
+  const setPaper = k => { localStorage.setItem('diary-paper', k); setPaper_(k); };
 
   const push = (s, p = {}) => setStack(st => [...st, { screen: s, params: p }]);
   const pop  = () => setStack(st => st.length > 1 ? st.slice(0, -1) : st);
@@ -861,7 +898,7 @@ function AppReal() {
 
     case 'compose':
       return (
-        <ComposeReal theme={theme} paper={paper} onBack={pop}
+        <ComposeReal theme={theme} paper={paper} onChangePaper={setPaper} onBack={pop}
           onSaved={async ({ id, body, askHexAfterSave } = {}) => {
             await refresh();
             pop();
