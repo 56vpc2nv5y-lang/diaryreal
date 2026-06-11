@@ -28,12 +28,12 @@ firebase deploy --only firestore:rules
    `Method not allowed`，不能返回 HTML。
 2. 新建日记并分别测试直接保存、AI 生诗。
 3. 新建卦象并测试 AI 解签。
-4. 在详情页测试图片预览、右上角菜单、修改里程碑和添加追评。
+4. 在详情页测试右上角菜单、编辑日记、修改里程碑和添加追评。
 5. 下载 JSON 备份，再导入一次确认可恢复。
 6. 确认 Firebase Console 中只有自己的 UID 能读取对应数据。
 
 ## 当前限制
 
 - 当前使用匿名 Firebase 用户。清除浏览器数据、退出或换设备后，可能无法访问旧 UID 的数据。
-- 图片支持预览，但还没有实现图片上传。图片文件不应直接存入 Firestore，后续应使用 Firebase Storage。
+- 免费版不提供日记照片上传，也不启用 Firebase Storage。诗签 PNG 在浏览器本地生成。
 - 日记正文会发送给 DeepSeek 生成诗，问题和卦象会发送给 DeepSeek 解签。

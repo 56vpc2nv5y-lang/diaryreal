@@ -194,7 +194,7 @@ function Import({ theme, onBack, onTab }) {
 // ──────────────────────────────────────────────────────────────────
 // Settings
 // ──────────────────────────────────────────────────────────────────
-function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, entries = [], hexagrams = [], buildLabel = '', onImportData, onClearData, onSignOut, onTab }) {
+function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, entries = [], hexagrams = [], buildLabel = '', syncState = {}, onImportData, onClearData, onSignOut, onTab }) {
   const [autoLoc, setAutoLoc_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoLoc') ?? 'true'));
   const [autoPoem, setAutoPoem_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoPoem') ?? 'true'));
   const [saveRej, setSaveRej_] = React.useState(() => JSON.parse(localStorage.getItem('d-saveRej') ?? 'false'));
@@ -266,6 +266,13 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
       alert('清除失败：' + (e?.message || '未知错误'));
     }
   };
+  const syncDetail = !syncState.online
+    ? '离线 · 待联网同步'
+    : syncState.error
+      ? '同步失败'
+      : syncState.pending
+        ? `同步中 · ${syncState.pending} 项`
+        : '已同步';
   return (
     <Screen theme={theme} tab="settings" onTab={onTab}>
       <div style={{ padding: '64px 24px 24px' }}>
@@ -351,7 +358,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
       </SettingsSection>
 
       <SettingsSection theme={theme} title="云 同 步">
-        <SettingsRow theme={theme} label="Firestore" detail="已开启" onClick={() => alert('日记正在保存到 Firebase Firestore。')} />
+        <SettingsRow theme={theme} label="Firestore" detail={syncDetail} onClick={() => alert(syncState.error ? `最近一次同步失败：${syncState.error}` : syncDetail)} />
         <SettingsRow theme={theme} label="跨设备同步" detail="匿名账号不支持" onClick={() => alert('当前使用 Firebase 匿名登录。要跨设备同步，需要后续增加 Google 或邮箱登录。')} isLast />
       </SettingsSection>
 

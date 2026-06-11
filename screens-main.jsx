@@ -788,9 +788,90 @@ function renderBodyWithAnchors(body, inlineNotes, theme, selectedId, onSelect) {
   return out;
 }
 
-function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
+async function createPoemCardBlob(entry, theme) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1440;
+  const ctx = canvas.getContext('2d');
+  const paperItem = window.PAPER_LIBRARY.find(item => item.id === entry.paper);
+  const isArt = !!paperItem?.thumb;
+
+  ctx.fillStyle = theme.paper;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (isArt) {
+    try {
+      const image = await new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = paperItem.thumb;
+      });
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+    } catch (error) {
+      console.warn('分享图片信纸加载失败:', error);
+    }
+  } else if (entry.paper === 'ruled' || entry.paper === 'grid' || entry.paper === 'columns' || entry.paper === 'dots') {
+    ctx.strokeStyle = theme.line;
+    ctx.fillStyle = theme.line;
+    ctx.globalAlpha = 0.55;
+    for (let y = 100; y < canvas.height; y += 64) {
+      if (entry.paper === 'ruled' || entry.paper === 'grid') {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+    }
+    for (let x = 92; x < canvas.width; x += 64) {
+      if (entry.paper === 'grid' || entry.paper === 'columns') {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+    }
+    if (entry.paper === 'dots') {
+      for (let y = 80; y < canvas.height; y += 52) for (let x = 70; x < canvas.width; x += 52) {
+        ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.fillStyle = isArt ? 'rgba(255,253,247,.82)' : 'rgba(255,253,247,.58)';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(120, 180, 840, 1010, 44);
+  else ctx.rect(120, 180, 840, 1010);
+  ctx.fill();
+
+  ctx.textAlign = 'center';
+  ctx.fillStyle = theme.text;
+  ctx.font = "500 74px 'Noto Serif SC', serif";
+  ctx.fillText(entry.poem.title || '无题', 540, 360);
+  ctx.fillStyle = theme.accent;
+  ctx.fillRect(500, 414, 80, 3);
+
+  ctx.fillStyle = theme.text;
+  ctx.font = "500 52px 'Noto Serif SC', serif";
+  (entry.poem.lines || []).forEach((line, index) => ctx.fillText(line, 540, 550 + index * 120));
+
+  ctx.fillStyle = theme.textSoft;
+  ctx.font = "400 27px 'Noto Sans SC', sans-serif";
+  ctx.fillText(`${entry.date || ''}${entry.place ? ` · ${entry.place}` : ''}`, 540, 1080);
+  ctx.fillStyle = theme.seal;
+  ctx.font = "600 30px 'Noto Serif SC', serif";
+  ctx.fillText('诗 签', 540, 1270);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('生成分享图片失败')), 'image/png');
+  });
+}
+
+function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onAddNote, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
   const e = entry;
   const hasPoem = showPoem && !!e.poem;
+  const detailPaper = paperBg(e.paper || 'plain', theme);
+  const customPaper = (e.paper || '').startsWith('art-');
+  const detailContentStyle = customPaper ? {
+    ...detailPaper,
+    backgroundImage: `linear-gradient(rgba(255,253,247,.70), rgba(255,253,247,.70)), ${detailPaper.backgroundImage}`,
+    backgroundSize: `100% 100%, ${detailPaper.backgroundSize || '100% 100%'}`,
+  } : detailPaper;
   const [c1, c2] = sealChars(e.poem?.title || '日记');
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [noteOpen, setNoteOpen] = React.useState(false);
@@ -798,6 +879,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
   const [busy, setBusy] = React.useState(false);
   const [preview, setPreview] = React.useState(null);
   const [shareOpen, setShareOpen] = React.useState(false);
+  const [shareBusy, setShareBusy] = React.useState(false);
   const [actionError, setActionError] = React.useState('');
   const noteNow = new Date().toLocaleString('zh-CN', { hour12: false });
 
@@ -839,15 +921,20 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
 
   const sharePoem = async () => {
     if (!e.poem) return;
+    setShareBusy(true);
     try {
-      if (navigator.share) await navigator.share({ title: `《${e.poem.title}》`, text: poemShareText });
+      const blob = await createPoemCardBlob(e, theme);
+      const file = new File([blob], `诗签-${e.poem.title || e.date || '未命名'}.png`, { type: 'image/png' });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ title: `《${e.poem.title}》`, text: poemShareText, files: [file] });
+      } else if (navigator.share) await navigator.share({ title: `《${e.poem.title}》`, text: poemShareText });
       else if (navigator.clipboard) {
         await navigator.clipboard.writeText(poemShareText);
         alert('小诗已复制，可以粘贴分享');
       } else downloadPoem();
     } catch (err) {
       if (err?.name !== 'AbortError') alert('分享失败：' + err.message);
-    }
+    } finally { setShareBusy(false); }
   };
 
   const copyPoem = async () => {
@@ -858,18 +945,23 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
     } catch (err) { alert('复制失败：' + err.message); }
   };
 
-  const downloadPoem = () => {
+  const downloadPoem = async () => {
     if (!e.poem) return;
-    const blob = new Blob([poemShareText], { type: 'text/plain;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `诗签-${e.poem.title || e.date || '未命名'}.txt`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    setShareBusy(true);
+    try {
+      const blob = await createPoemCardBlob(e, theme);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `诗签-${e.poem.title || e.date || '未命名'}.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    } catch (error) {
+      alert('保存图片失败：' + error.message);
+    } finally { setShareBusy(false); }
   };
 
   return (
-    <Screen theme={theme} noTab>
+    <Screen theme={theme} noTab bg={customPaper ? '#fffdf7' : theme.bg} contentStyle={detailContentStyle}>
       {/* top bar */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '50px 16px 0', display: 'flex', justifyContent: 'space-between', zIndex: 20 }}>
         <button type="button" aria-label="返回" onClick={onBack} style={{ width: 40, height: 40, borderRadius: 20, border: 'none', background: theme.surface + 'dd', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
@@ -886,6 +978,10 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
             background: theme.paper, borderRadius: 14, overflow: 'hidden',
             border: `0.5px solid ${theme.line}`, boxShadow: `0 12px 32px ${theme.text}22`,
           }}>
+            <button onClick={() => { setMenuOpen(false); onEdit?.(); }} disabled={!onEdit} style={{
+              width: '100%', padding: '14px 16px', border: 'none', borderBottom: `0.5px solid ${theme.line}`,
+              background: 'transparent', color: theme.text, textAlign: 'left', fontFamily: 'inherit', fontSize: 14, cursor: onEdit ? 'pointer' : 'default',
+            }}>编辑日记</button>
             <button onClick={toggleFlag} disabled={busy || !onToggleFlag} style={{
               width: '100%', padding: '14px 16px', border: 'none', borderBottom: `0.5px solid ${theme.line}`,
               background: 'transparent', color: theme.text, textAlign: 'left', fontFamily: 'inherit', fontSize: 14, cursor: 'pointer',
@@ -908,7 +1004,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
 
       {hasPoem ? (
       /* poem block */
-      <div style={{ padding: '110px 32px 36px', background: theme.paper, borderBottom: `0.5px solid ${theme.line}`, textAlign: 'center' }}>
+      <div style={{ padding: '110px 32px 36px', background: customPaper ? 'rgba(255,253,247,.76)' : theme.paper, borderBottom: `0.5px solid ${theme.line}`, textAlign: 'center', position: 'relative' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>
               诗 签 <span style={{ marginLeft: 8, opacity: 0.7 }}>{e.poem.form || '五绝'}</span>
@@ -922,7 +1018,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
         </div>) : (
 
       /* unpoemed — soft CTA, paper kept for visual continuity */
-      <div style={{ padding: '110px 32px 28px', background: theme.paper, borderBottom: `0.5px solid ${theme.line}`, position: 'relative' }}>
+      <div style={{ padding: '110px 32px 28px', background: customPaper ? 'rgba(255,253,247,.76)' : theme.paper, borderBottom: `0.5px solid ${theme.line}`, position: 'relative' }}>
           <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>本 篇 尚 未 求 诗</div>
           <div className="serif" style={{
           fontSize: 17, lineHeight: 1.85, color: theme.textSoft,
@@ -1089,16 +1185,18 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
                 <IconClose color={theme.textSoft} size={18}/>
               </button>
             </div>
-            <div style={{ background: theme.paper, borderRadius: 18, padding: '22px 20px', border: `0.5px solid ${theme.line}`, textAlign: 'center' }}>
+            <div style={{ backgroundColor: theme.paper, borderRadius: 18, padding: '22px 20px', border: `0.5px solid ${theme.line}`, textAlign: 'center', overflow: 'hidden', ...paperBg(e.paper || 'plain', theme) }}>
+              <div style={{ background: customPaper ? 'rgba(255,253,247,.78)' : 'rgba(255,253,247,.48)', borderRadius: 14, padding: '18px 12px' }}>
               <div className="serif" style={{ fontSize: 25, color: theme.text, letterSpacing: 7, paddingLeft: 7 }}>{e.poem.title}</div>
               <div style={{ width: 26, height: 1, background: theme.accent, margin: '14px auto 18px' }}/>
               <PoemBody lines={e.poem.lines || []} size={18} theme={theme}/>
               <div style={{ fontSize: 10.5, color: theme.textMute, marginTop: 18 }}>{e.date || ''}{e.place ? ` · ${e.place}` : ''}</div>
+              </div>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
               <button type="button" onClick={copyPoem} style={{ flex: 1, height: 44, borderRadius: 22, border: `0.5px solid ${theme.line}`, background: theme.surface, color: theme.textSoft, fontFamily: 'inherit', cursor: 'pointer' }}>复制小诗</button>
-              <button type="button" onClick={downloadPoem} style={{ flex: 1, height: 44, borderRadius: 22, border: `0.5px solid ${theme.line}`, background: theme.surface, color: theme.textSoft, fontFamily: 'inherit', cursor: 'pointer' }}>保存文本</button>
-              <button type="button" onClick={sharePoem} style={{ flex: 1.25, height: 44, borderRadius: 22, border: 'none', background: theme.text, color: theme.bg, fontFamily: 'inherit', fontWeight: 600, cursor: 'pointer' }}>系统分享</button>
+              <button type="button" onClick={downloadPoem} disabled={shareBusy} style={{ flex: 1, height: 44, borderRadius: 22, border: `0.5px solid ${theme.line}`, background: theme.surface, color: theme.textSoft, fontFamily: 'inherit', cursor: 'pointer' }}>保存图片</button>
+              <button type="button" onClick={sharePoem} disabled={shareBusy} style={{ flex: 1.25, height: 44, borderRadius: 22, border: 'none', background: theme.text, color: theme.bg, fontFamily: 'inherit', fontWeight: 600, cursor: 'pointer' }}>{shareBusy ? '生成中…' : '系统分享'}</button>
             </div>
           </div>
         </div>

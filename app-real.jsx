@@ -1,6 +1,51 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.11-r9';
+const APP_BUILD = '2026.06.11-r13';
+
+const SYNC_EVENT = 'poem-diary-sync';
+const syncTracker = {
+  pending: 0,
+  error: '',
+  online: navigator.onLine,
+};
+
+function syncSnapshot() {
+  return { ...syncTracker };
+}
+
+function emitSyncState() {
+  window.dispatchEvent(new CustomEvent(SYNC_EVENT, { detail: syncSnapshot() }));
+}
+
+window.addEventListener('online', () => {
+  syncTracker.online = true;
+  emitSyncState();
+});
+window.addEventListener('offline', () => {
+  syncTracker.online = false;
+  emitSyncState();
+});
+
+function trackWrite(writePromise) {
+  syncTracker.pending += 1;
+  syncTracker.error = '';
+  emitSyncState();
+  writePromise.then(() => {
+    syncTracker.pending = Math.max(0, syncTracker.pending - 1);
+    emitSyncState();
+  }, error => {
+    syncTracker.pending = Math.max(0, syncTracker.pending - 1);
+    syncTracker.error = error?.message || '同步失败';
+    emitSyncState();
+  });
+  return syncTracker.online ? writePromise : Promise.resolve();
+}
+
+firebase.firestore().enablePersistence({ synchronizeTabs: true }).catch(error => {
+  if (error?.code !== 'failed-precondition' && error?.code !== 'unimplemented') {
+    console.warn('Firestore 离线持久化未启用:', error);
+  }
+});
 
 // ─── Firebase helpers ─────────────────────────────────────────────
 function col(name) {
@@ -46,16 +91,16 @@ async function dbGetEntries() {
 async function dbSaveEntry(data) {
   const { id, ...rest } = data;
   const now = new Date().toISOString();
-  if (id) {
-    await col('entries').doc(id).set({ ...rest, updatedAt: now }, { merge: true });
-    return id;
-  }
-  const ref = await col('entries').add({ ...rest, createdAt: now, updatedAt: now });
+  const ref = id ? col('entries').doc(id) : col('entries').doc();
+  await trackWrite(ref.set(
+    { ...rest, ...(id ? {} : { createdAt: now }), updatedAt: now },
+    { merge: true },
+  ));
   return ref.id;
 }
 
 async function dbDeleteEntry(id) {
-  await col('entries').doc(id).delete();
+  await trackWrite(col('entries').doc(id).delete());
 }
 
 async function dbClearCollection(name) {
@@ -64,7 +109,7 @@ async function dbClearCollection(name) {
   for (let i = 0; i < docs.length; i += 400) {
     const batch = firebase.firestore().batch();
     docs.slice(i, i + 400).forEach(d => batch.delete(d.ref));
-    await batch.commit();
+    await trackWrite(batch.commit());
   }
 }
 
@@ -98,10 +143,11 @@ async function dbSaveHexagram(data) {
   const { id, ...rest } = data;
   const now = new Date().toISOString();
   if (id) {
-    await col('hexagrams').doc(id).set({ ...rest, updatedAt: now }, { merge: true });
+    await trackWrite(col('hexagrams').doc(id).set({ ...rest, updatedAt: now }, { merge: true }));
     return id;
   }
-  const ref = await col('hexagrams').add({ ...rest, createdAt: now });
+  const ref = col('hexagrams').doc();
+  await trackWrite(ref.set({ ...rest, createdAt: now }));
   return ref.id;
 }
 
@@ -314,20 +360,26 @@ function EmptyHomeScreen({ theme, onCompose, onTab }) {
 // ─── Compose Screen (real) ────────────────────────────────────────
 const MOODS_REAL = ['☕','🌙','🌸','🌊','✨','🌿','💐','😴','🥲','🎯','📖','🏃','🌳','💌','🍂'];
 
-function ComposeReal({ theme, paper, onChangePaper, onBack, onSaved }) {
-  const [title, setTitle] = React.useState('');
-  const [body, setBody] = React.useState('');
-  const [mood, setMood] = React.useState('');
-  const [flag, setFlag] = React.useState(false);
+function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, onSaved }) {
+  const editing = !!entry?.id;
+  const [title, setTitle] = React.useState(entry?.title || '');
+  const [body, setBody] = React.useState(entry?.body || '');
+  const [mood, setMood] = React.useState(entry?.mood || '');
+  const [flag, setFlag] = React.useState(!!entry?.flag);
   const [askHexAfterSave, setAskHexAfterSave] = React.useState(false);
-  const [place, setPlace] = React.useState('获取位置中…');
+  const [place, setPlace] = React.useState(entry?.place || '获取位置中…');
+  const [activePaper, setActivePaper] = React.useState(entry?.paper || paper);
   const [shake, setShake] = React.useState('idle'); // idle|gen|done
-  const [poem, setPoem] = React.useState(null);
+  const [poem, setPoem] = React.useState(entry?.poem || null);
   const [saving, setSaving] = React.useState(false);
   const [paperOpen, setPaperOpen] = React.useState(false);
   const [err, setErr] = React.useState('');
+  const [draftSavedAt, setDraftSavedAt] = React.useState('');
+  const draftReady = React.useRef(false);
+  const draftKey = `diary-draft:${entry?.id || 'new'}`;
 
   React.useEffect(() => {
+    if (editing) return;
     const autoLoc = JSON.parse(localStorage.getItem('d-autoLoc') ?? 'true');
     if (!autoLoc) { setPlace('未记录地点'); return; }
     if (!navigator.geolocation) { setPlace('当前位置'); return; }
@@ -336,9 +388,58 @@ function ComposeReal({ theme, paper, onChangePaper, onBack, onSaved }) {
       () => setPlace('当前位置'),
       { timeout: 6000 }
     );
-  }, []);
+  }, [editing]);
+
+  React.useEffect(() => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (raw) {
+        const draft = JSON.parse(raw);
+        const differs = draft.title !== (entry?.title || '') || draft.body !== (entry?.body || '');
+        if (differs && (draft.title?.trim() || draft.body?.trim()) && window.confirm('发现一份未完成的本地草稿，要继续写吗？')) {
+          setTitle(draft.title || '');
+          setBody(draft.body || '');
+          setMood(draft.mood || '');
+          setFlag(!!draft.flag);
+          setPlace(draft.place || entry?.place || '未记录地点');
+          if (window.PAPER_LIBRARY.some(item => item.id === draft.paper)) setActivePaper(draft.paper);
+        }
+      }
+    } catch (error) {
+      console.warn('读取草稿失败:', error);
+    } finally {
+      draftReady.current = true;
+    }
+  }, [draftKey]);
+
+  React.useEffect(() => {
+    if (!draftReady.current) return;
+    const timer = setTimeout(() => {
+      const hasContent = title.trim() || body.trim();
+      if (!hasContent && !editing) {
+        localStorage.removeItem(draftKey);
+        setDraftSavedAt('');
+        return;
+      }
+      localStorage.setItem(draftKey, JSON.stringify({
+        title, body, mood, flag, place, paper: activePaper, savedAt: new Date().toISOString(),
+      }));
+      setDraftSavedAt(new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }));
+    }, 650);
+    return () => clearTimeout(timer);
+  }, [title, body, mood, flag, place, activePaper, draftKey, editing]);
 
   const info = nowInfo();
+  const entryInfo = editing ? {
+    date: entry.date, weekday: entry.weekday, time: entry.time,
+    label: `${(entry.date || '').replace(/-/g, '.')} · ${entry.weekday || ''} · ${entry.time || ''}`,
+  } : info;
+
+  const choosePaper = nextPaper => {
+    setActivePaper(nextPaper);
+    onChangePaper?.(nextPaper);
+    setPaperOpen(false);
+  };
 
   const doShake = async () => {
     if (!body.trim()) return;
@@ -349,13 +450,18 @@ function ComposeReal({ theme, paper, onChangePaper, onBack, onSaved }) {
 
   const doSave = async (poemArg) => {
     setSaving(true);
+    setErr('');
     try {
       const id = await dbSaveEntry({
-        date: info.date, weekday: info.weekday, time: info.time,
-        place, title: title.trim(), body: body.trim(), mood, flag, paper,
-        tags: [], poem: poemArg || null, notes: [], inlineNotes: [],
-        photos: [],
+        ...(entry || {}),
+        ...(editing ? { id: entry.id } : {}),
+        date: entryInfo.date, weekday: entryInfo.weekday, time: entryInfo.time,
+        place, title: title.trim(), body: body.trim(), mood, flag, paper: activePaper,
+        tags: entry?.tags || [], poem: poemArg || poem || null,
+        notes: entry?.notes || [], inlineNotes: entry?.inlineNotes || [],
+        photos: entry?.photos || [],
       });
+      localStorage.removeItem(draftKey);
       await onSaved({ id, body: body.trim(), askHexAfterSave });
     } catch (e) { setErr('保存失败: ' + e.message); setSaving(false); }
   };
@@ -369,9 +475,14 @@ function ComposeReal({ theme, paper, onChangePaper, onBack, onSaved }) {
       onRegen={doShake} onAccept={() => doSave(poem)} saving={saving} error={err}/>;
 
   const filled = body.trim().length > 0;
-  const ps = paperBg(paper, theme);
-  const selectedPaper = window.PAPER_LIBRARY.find(item => item.id === paper) || window.PAPER_LIBRARY[0];
-  const customPaper = paper.startsWith('art-');
+  const ps = paperBg(activePaper, theme);
+  const selectedPaper = window.PAPER_LIBRARY.find(item => item.id === activePaper) || window.PAPER_LIBRARY[0];
+  const customPaper = activePaper.startsWith('art-');
+  const paperInk = customPaper ? '#514A43' : theme.text;
+  const paperSoft = customPaper ? '#776E65' : theme.textSoft;
+  const paperMuted = customPaper ? '#9A9086' : theme.textMute;
+  const paperControl = customPaper ? 'rgba(255,253,247,.78)' : theme.surface;
+  const paperControlStrong = customPaper ? 'rgba(255,253,247,.92)' : theme.surfaceSoft;
 
   return (
     <div style={{ width: W, height: H, background: theme.paper, position: 'relative', overflow: 'hidden', fontFamily: 'inherit' }}>
@@ -383,27 +494,27 @@ function ComposeReal({ theme, paper, onChangePaper, onBack, onSaved }) {
           <button onClick={onBack} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 8 }}>
             <IconClose color={theme.textSoft} size={20}/>
           </button>
-          <div style={{ fontSize: 12, color: theme.textSoft, fontWeight: 500 }}>新日记</div>
-          <button type="button" onClick={() => setPaperOpen(true)} style={{ height: 28, padding: '0 10px', borderRadius: 14, background: theme.surface + 'dd', border: `0.5px solid ${theme.line}`, display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: theme.textSoft, letterSpacing: 1.5, fontFamily: 'inherit', cursor: 'pointer' }}>
+          <div style={{ fontSize: 12, color: theme.textSoft, fontWeight: 500 }}>{editing ? '编辑日记' : '新日记'}</div>
+          <button type="button" onClick={() => setPaperOpen(true)} style={{ height: 28, padding: '0 10px', borderRadius: 14, background: customPaper ? 'rgba(255,253,247,.76)' : theme.surface + 'dd', border: `0.5px solid ${customPaper ? 'rgba(81,74,67,.16)' : theme.line}`, backdropFilter: customPaper ? 'blur(12px)' : 'none', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: paperSoft, letterSpacing: 1.5, fontFamily: 'inherit', cursor: 'pointer' }}>
             <span style={{ width: 4, height: 4, borderRadius: 2, background: theme.accent, display: 'inline-block' }}/>
             {selectedPaper.name}
           </button>
         </div>
 
         {/* meta */}
-        <div style={{ padding: '12px 28px 0' }}>
-          <div style={{ fontSize: 12, color: theme.textMute, letterSpacing: 0.3 }}>{info.label}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: theme.textMute, marginTop: 5 }}>
-            <IconPin color={theme.textMute} size={11}/><span>{place}</span>
+        <div style={{ padding: `12px ${customPaper ? 52 : 28}px 0` }}>
+          <div style={{ fontSize: 12, color: paperMuted, letterSpacing: 0.3 }}>{entryInfo.label}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: paperMuted, marginTop: 5 }}>
+            <IconPin color={paperMuted} size={11}/><span>{place}</span>
           </div>
           {/* mood picker */}
           <div className="no-scroll" style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 5, overflowX: 'auto', paddingBottom: 2 }}>
-            <span style={{ fontSize: 10.5, color: theme.textMute, letterSpacing: 1.5, flexShrink: 0, marginRight: 2 }}>心 情</span>
+            <span style={{ fontSize: 10.5, color: paperMuted, letterSpacing: 1.5, flexShrink: 0, marginRight: 2 }}>心 情</span>
             {MOODS_REAL.map(m => (
               <span key={m} onClick={() => setMood(mood === m ? '' : m)} style={{
                 width: 30, height: 30, borderRadius: 15, cursor: 'pointer', flexShrink: 0,
                 background: mood === m ? theme.seal + '22' : 'transparent',
-                border: mood === m ? `1.5px solid ${theme.seal}` : `0.5px solid ${theme.line}`,
+                border: mood === m ? `1.5px solid ${theme.seal}` : `0.5px solid ${customPaper ? 'rgba(81,74,67,.18)' : theme.line}`,
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
                 transition: 'border .12s, background .12s',
               }}>{m}</span>
@@ -412,24 +523,24 @@ function ComposeReal({ theme, paper, onChangePaper, onBack, onSaved }) {
         </div>
 
         {/* title + text area */}
-        <div style={{ padding: '16px 28px 0' }}>
+        <div style={{ padding: `16px ${customPaper ? 52 : 28}px 0` }}>
           <input value={title} onChange={e => setTitle(e.target.value)} maxLength={80}
             placeholder="给今天起个标题（可选）"
             style={{
-              width: '100%', border: 'none', borderBottom: `0.5px solid ${theme.line}`,
-              outline: 'none', background: 'transparent', color: theme.text,
+              width: '100%', border: 'none', borderBottom: `0.5px solid ${customPaper ? 'rgba(81,74,67,.18)' : theme.line}`,
+              outline: 'none', background: 'transparent', color: paperInk,
               fontFamily: "'Noto Serif SC', serif", fontSize: 23, fontWeight: 500,
               letterSpacing: 1.5, padding: '4px 0 10px',
             }}
           />
         </div>
-        <div style={{ flex: 1, padding: '14px 28px 0', minHeight: 0 }}>
+        <div style={{ flex: 1, padding: `14px ${customPaper ? 52 : 28}px 0`, minHeight: 0 }}>
           <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="今天，"
             style={{
               width: '100%', height: '100%', border: 'none', outline: 'none', resize: 'none',
-              background: 'transparent', color: theme.text,
+              background: 'transparent', color: paperInk,
               fontFamily: "'Noto Serif SC', serif",
-              fontSize: 17, lineHeight: paper === 'ruled' ? '34px' : 1.95, letterSpacing: 0.5,
+              fontSize: 17, lineHeight: activePaper === 'ruled' ? '34px' : 1.95, letterSpacing: 0.5,
             }}
           />
         </div>
@@ -437,43 +548,56 @@ function ComposeReal({ theme, paper, onChangePaper, onBack, onSaved }) {
         {err && <div style={{ padding: '4px 28px', color: theme.seal, fontSize: 12 }}>{err}</div>}
 
         {/* bottom bar */}
-        <div style={{ padding: '8px 16px 32px', background: `linear-gradient(to top, ${theme.paper} 72%, ${theme.paper}00)` }}>
+        <div style={{
+          padding: customPaper ? '10px 10px 20px' : '8px 16px 32px',
+          margin: customPaper ? '0 12px 12px' : 0,
+          borderRadius: customPaper ? 22 : 0,
+          background: customPaper ? 'rgba(255,253,247,.78)' : `linear-gradient(to top, ${theme.paper} 72%, ${theme.paper}00)`,
+          border: customPaper ? '0.5px solid rgba(81,74,67,.14)' : 'none',
+          boxShadow: customPaper ? '0 12px 30px rgba(67,55,43,.12)' : 'none',
+          backdropFilter: customPaper ? 'blur(18px) saturate(120%)' : 'none',
+          WebkitBackdropFilter: customPaper ? 'blur(18px) saturate(120%)' : 'none',
+        }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <button onClick={() => setFlag(!flag)} style={{
               height: 34, padding: '0 12px', borderRadius: 17, border: 'none',
-              background: flag ? theme.seal + '22' : theme.surface,
-              color: flag ? theme.seal : theme.textSoft,
+              background: flag ? theme.seal + '22' : paperControl,
+              color: flag ? theme.seal : paperSoft,
               display: 'flex', alignItems: 'center', gap: 5, fontSize: 12,
               fontFamily: 'inherit', cursor: 'pointer',
             }}>
               <FlagDot theme={theme} size={10}/>里程碑
             </button>
-            <button type="button" onClick={() => setAskHexAfterSave(!askHexAfterSave)} style={{
+            {!editing && <button type="button" onClick={() => setAskHexAfterSave(!askHexAfterSave)} style={{
               height: 34, padding: '0 12px', borderRadius: 17, border: 'none',
-              background: askHexAfterSave ? theme.accent + '22' : theme.surface,
-              color: askHexAfterSave ? theme.accent : theme.textSoft,
+              background: askHexAfterSave ? (customPaper ? 'rgba(125,100,70,.16)' : theme.accent + '22') : paperControl,
+              color: askHexAfterSave ? (customPaper ? '#705C45' : theme.accent) : paperSoft,
               fontSize: 12, fontFamily: 'inherit', cursor: 'pointer',
-            }}>{askHexAfterSave ? '保存后起卦 ✓' : '保存后起卦'}</button>
+            }}>{askHexAfterSave ? '保存后起卦 ✓' : '保存后起卦'}</button>}
             <div style={{ flex: 1 }}/>
-            <span style={{ fontSize: 11, color: theme.textMute }}>{body.length > 0 ? body.length + ' 字' : ''}</span>
+            <span style={{ fontSize: 10.5, color: syncState?.error ? theme.seal : paperMuted }}>
+              {!syncState?.online ? '离线待同步' : syncState?.pending ? '同步中…' : draftSavedAt ? `草稿 ${draftSavedAt}` : ''}
+            </span>
+            <span style={{ fontSize: 11, color: paperMuted }}>{body.length > 0 ? body.length + ' 字' : ''}</span>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={doShake} disabled={!filled || saving} style={{
               flex: 1, height: 46, borderRadius: 23,
-              border: `1px solid ${filled ? theme.seal + 'aa' : theme.line}`, background: 'transparent',
-              color: filled ? theme.seal : theme.textMute,
+              border: `1px solid ${filled ? (customPaper ? 'rgba(81,74,67,.45)' : theme.seal + 'aa') : (customPaper ? 'rgba(81,74,67,.14)' : theme.line)}`,
+              background: customPaper ? paperControl : 'transparent',
+              color: filled ? (customPaper ? paperInk : theme.seal) : paperMuted,
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               fontSize: 13.5, letterSpacing: 1.5, fontFamily: "'Noto Serif SC', serif",
               cursor: filled ? 'pointer' : 'default',
             }}>
-              <IconShake color={filled ? theme.seal : theme.textMute} size={16}/>
+              <IconShake color={filled ? (customPaper ? paperInk : theme.seal) : paperMuted} size={16}/>
               摇签求诗
               <span style={{ fontSize: 9.5, opacity: 0.55 }}>可选</span>
             </button>
             <button onClick={() => doSave(null)} disabled={!filled || saving} style={{
               flex: 1, height: 46, borderRadius: 23, border: 'none',
-              background: filled && !saving ? theme.text : theme.surfaceSoft,
-              color: filled && !saving ? theme.bg : theme.textMute,
+              background: filled && !saving ? paperInk : paperControlStrong,
+              color: filled && !saving ? (customPaper ? '#FFFDF7' : theme.bg) : paperMuted,
               fontSize: 15, fontWeight: 600, letterSpacing: 3,
               fontFamily: 'inherit', cursor: filled && !saving ? 'pointer' : 'default',
             }}>{saving ? '保存中…' : '保 存'}</button>
@@ -494,12 +618,12 @@ function ComposeReal({ theme, paper, onChangePaper, onBack, onSaved }) {
             </div>
             <div className="no-scroll" style={{ overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, padding: '2px 4px 12px' }}>
               {window.PAPER_LIBRARY.map(item => {
-                const active = item.id === paper;
+                const active = item.id === activePaper;
                 const previewStyle = item.thumb
                   ? { backgroundImage: `url("${item.thumb}")`, backgroundSize: '100% 100%', backgroundPosition: 'center' }
                   : paperBg(item.id, theme);
                 return (
-                  <button type="button" key={item.id} onClick={() => { onChangePaper(item.id); setPaperOpen(false); }} style={{
+                  <button type="button" key={item.id} onClick={() => choosePaper(item.id)} style={{
                     border: active ? `2px solid ${theme.accent}` : `0.5px solid ${theme.line}`,
                     background: active ? theme.surface : 'transparent', borderRadius: 13,
                     padding: 5, cursor: 'pointer', fontFamily: 'inherit',
@@ -809,9 +933,13 @@ function AppReal() {
     () => localStorage.getItem('diary-theme') || 'celadon'
   );
   const [paper, setPaper_] = React.useState(
-    () => localStorage.getItem('diary-paper') || 'plain'
+    () => {
+      const saved = localStorage.getItem('diary-paper') || 'plain';
+      return window.PAPER_LIBRARY.some(item => item.id === saved) ? saved : 'plain';
+    }
   );
   const [startLoading, setStartLoading] = React.useState(false);
+  const [syncState, setSyncState] = React.useState(() => syncSnapshot());
 
   const theme = window.THEMES[themeKey] || window.THEMES.celadon;
   const setThemeKey = k => { localStorage.setItem('diary-theme', k); setThemeKey_(k); };
@@ -860,6 +988,12 @@ function AppReal() {
     }
   }), []);
 
+  React.useEffect(() => {
+    const update = event => setSyncState(event.detail || syncSnapshot());
+    window.addEventListener(SYNC_EVENT, update);
+    return () => window.removeEventListener(SYNC_EVENT, update);
+  }, []);
+
 
   const handleSignOut = async () => {
     if (!window.confirm('当前是匿名账号。退出后将生成新的匿名身份，可能无法再访问旧数据。确定仍要退出吗？')) return;
@@ -898,7 +1032,7 @@ function AppReal() {
 
     case 'compose':
       return (
-        <ComposeReal theme={theme} paper={paper} onChangePaper={setPaper} onBack={pop}
+        <ComposeReal theme={theme} paper={paper} syncState={syncState} onChangePaper={setPaper} onBack={pop}
           onSaved={async ({ id, body, askHexAfterSave } = {}) => {
             await refresh();
             pop();
@@ -907,10 +1041,24 @@ function AppReal() {
         />
       );
 
+    case 'edit': {
+      const entry = entryById(params.id);
+      if (!entry) { pop(); return null; }
+      return (
+        <ComposeReal theme={theme} paper={paper} entry={entry} syncState={syncState} onChangePaper={setPaper} onBack={pop}
+          onSaved={async () => {
+            await refresh();
+            pop();
+          }}
+        />
+      );
+    }
+
     case 'detail': {
       const entry = entryById(params.id);
       if (!entry) { pop(); return null; }
       return <Detail theme={theme} entry={entry} onBack={pop}
+        onEdit={() => push('edit', { id: entry.id })}
         onToggleFlag={() => updateEntry(entry.id, { flag: !entry.flag })}
         onAddNote={text => updateEntry(entry.id, {
           notes: [...(entry.notes || []), { date: new Date().toLocaleString('zh-CN', { hour12: false }), text }],
@@ -958,6 +1106,7 @@ function AppReal() {
           entries={entries}
           hexagrams={hexagrams}
           buildLabel={APP_BUILD}
+          syncState={syncState}
           onImportData={importData}
           onClearData={clearAllData}
           onSignOut={handleSignOut}

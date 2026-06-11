@@ -3,7 +3,7 @@
 
 const W = 390, H = 844;
 
-function Screen({ theme, children, statusDark = false, bg, noTab = false, tab, onTab }) {
+function Screen({ theme, children, statusDark = false, bg, contentStyle, noTab = false, tab, onTab }) {
   return (
     <div style={{
       width: W, height: H, position: 'relative', overflow: 'hidden',
@@ -13,6 +13,7 @@ function Screen({ theme, children, statusDark = false, bg, noTab = false, tab, o
       <div className="no-scroll" style={{
         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
         overflowY: 'auto',
+        ...contentStyle,
       }}>
         {children}
       </div>
@@ -23,29 +24,7 @@ function Screen({ theme, children, statusDark = false, bg, noTab = false, tab, o
 }
 
 function StatusBar({ theme, dark = false }) {
-  const c = dark ? '#fff' : theme.text;
-  return (
-    <div style={{
-      position: 'absolute', top: 0, left: 0, right: 0, height: 54,
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '18px 32px 0', zIndex: 30, pointerEvents: 'none',
-    }}>
-      <div style={{ fontSize: 15, fontWeight: 600, color: c, letterSpacing: 0.2 }}>9:41</div>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-        <svg width="17" height="11" viewBox="0 0 17 11" fill={c}>
-          <rect x="0" y="6" width="3" height="4" rx="0.6"/>
-          <rect x="4.5" y="4" width="3" height="6" rx="0.6"/>
-          <rect x="9" y="2" width="3" height="8" rx="0.6"/>
-          <rect x="13.5" y="0" width="3" height="10" rx="0.6"/>
-        </svg>
-        <svg width="24" height="11" viewBox="0 0 24 11">
-          <rect x="0.5" y="0.5" width="20" height="10" rx="2.5" fill="none" stroke={c} strokeOpacity="0.4"/>
-          <rect x="2" y="2" width="17" height="7" rx="1.5" fill={c}/>
-          <path d="M22 3.5v4c.7-.2 1.2-.9 1.2-2s-.5-1.8-1.2-2z" fill={c} fillOpacity="0.5"/>
-        </svg>
-      </div>
-    </div>
-  );
+  return null;
 }
 
 function HomeIndicator({ theme }) {
@@ -255,15 +234,11 @@ const PAPER_LIBRARY = [
   { id: 'grid', name: '方格', group: '基础' },
   { id: 'columns', name: '朱丝栏', group: '基础' },
   { id: 'dots', name: '点阵', group: '基础' },
-  { id: 'sakura', name: '花瓣', group: '纹样' },
   { id: 'cloud', name: '祥云', group: '纹样' },
-  { id: 'wave', name: '波纹', group: '纹样' },
-  { id: 'moon', name: '月相', group: '纹样' },
   { id: 'art-01', name: '花猫茶歇', group: '插画' },
   { id: 'art-02', name: '山野蘑菇', group: '插画' },
   { id: 'art-03', name: '彩色几何', group: '插画' },
   { id: 'art-04', name: '梦幻独角兽', group: '插画' },
-  { id: 'art-05', name: '漫画能量', group: '插画' },
   { id: 'art-06', name: '星月航行', group: '插画' },
   { id: 'art-07', name: '星光餐厅', group: '插画' },
   { id: 'art-08', name: '暖色拼贴', group: '插画' },

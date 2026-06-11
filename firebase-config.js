@@ -6,7 +6,6 @@ const firebaseConfig = {
   apiKey: "AIzaSyAmfYyuM_tv9Ndd1UTVBO6UyD0-Zp7sQgw",
   authDomain: "diaryreal-de0e6.firebaseapp.com",
   projectId: "diaryreal-de0e6",
-  storageBucket: "diaryreal-de0e6.firebasestorage.app",
   messagingSenderId: "657494413513",
   appId: "1:657494413513:web:58207962a34cd2e749bd18",
 };

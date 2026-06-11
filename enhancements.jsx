@@ -1,37 +1,5 @@
 // Interaction fixes layered after the shared screens.
 
-(function installLiveStatusClock() {
-  const clocks = new Set();
-  const discover = () => {
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-    let node;
-    while ((node = walker.nextNode())) {
-      if ((node.nodeValue || '').trim() === '9:41' || node.parentElement?.matches('[data-live-clock="true"]')) {
-        clocks.add(node);
-        node.parentElement?.setAttribute('data-live-clock', 'true');
-      }
-    }
-  };
-  const update = () => {
-    discover();
-    const now = new Date();
-    const value = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-    clocks.forEach(node => {
-      if (node.isConnected && (node.nodeValue || '').trim() !== value) {
-        node.nodeValue = value;
-      }
-    });
-  };
-  const observer = new MutationObserver(update);
-  const start = () => {
-    update();
-    observer.observe(document.body, { childList: true, subtree: true });
-    setInterval(update, 15000);
-  };
-  if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', start, { once: true });
-  else start();
-})();
-
 function EnhancedSearch({ theme, entries, onClose, onOpen }) {
   const [query, setQuery] = React.useState('');
   const [filter, setFilter] = React.useState('全部');
