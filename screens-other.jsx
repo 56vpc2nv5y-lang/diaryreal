@@ -248,7 +248,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
           date: `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`,
           weekday: `周${'日一二三四五六'[d.getDay()]}`,
           time: `${p(d.getHours())}:${p(d.getMinutes())}`,
-          place: '导入', body: text.trim(), mood: '', flag: false,
+          place: '导入', title: file.name.replace(/\.[^.]+$/, ''), body: text.trim(), mood: '', flag: false,
           tags: ['导入'], poem: null, notes: [], inlineNotes: [], photos: [],
         }], hexagrams: [] };
       }

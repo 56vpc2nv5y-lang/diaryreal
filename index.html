@@ -6,7 +6,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="诗签">
 <meta name="theme-color" content="#E2EDE5">
+<link rel="manifest" href="manifest.webmanifest?v=20260611-r8">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=20260611-r8">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=20260611-r8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
@@ -73,7 +78,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- ── Your Firebase config (edit firebase-config.js) ────────── -->
-<script src="firebase-config.js?v=20260611-r6"></script>
+<script src="firebase-config.js?v=20260611-r8"></script>
 
 <!-- ── React + Babel ─────────────────────────────────────────── -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -81,16 +86,26 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- ── Shared data (THEMES, HEXAGRAMS, TAGS) ─────────────────── -->
-<script src="data.js?v=20260611-r6"></script>
+<script src="data.js?v=20260611-r8"></script>
 
 <!-- ── UI components (load order matters) ────────────────────── -->
-<script type="text/babel" src="primitives.jsx?v=20260611-r6"></script>
-<script type="text/babel" src="screens-main.jsx?v=20260611-r6"></script>
-<script type="text/babel" src="screens-other.jsx?v=20260611-r6"></script>
-<script type="text/babel" src="enhancements.jsx?v=20260611-r6"></script>
+<script type="text/babel" src="primitives.jsx?v=20260611-r8"></script>
+<script type="text/babel" src="screens-main.jsx?v=20260611-r8"></script>
+<script type="text/babel" src="screens-other.jsx?v=20260611-r8"></script>
+<script type="text/babel" src="enhancements.jsx?v=20260611-r8"></script>
 
 <!-- ── Real app ──────────────────────────────────────────────── -->
-<script type="text/babel" src="app-real.jsx?v=20260611-r6"></script>
+<script type="text/babel" src="app-real.jsx?v=20260611-r8"></script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js').catch(error => {
+        console.warn('Service worker registration failed:', error);
+      });
+    });
+  }
+</script>
 
 </body>
 </html>

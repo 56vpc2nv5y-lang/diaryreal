@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   }
   const {
     question, hexName, changedHexName, lines, diaryContext, trigrams,
-    mode = 'reading', originalQuestion, previousInterpretation,
+    mode = 'reading', originalQuestion, previousInterpretation, parentContext,
   } = body;
   if (!question?.trim()) return res.status(400).json({ error: '问题不能为空' });
   if (question.trim().length > 500) return res.status(400).json({ error: '问题不能超过 500 字' });
@@ -31,6 +31,7 @@ export default async function handler(req, res) {
   const nChanging = (lines || []).filter(l => l.changing).length;
   const movingLines = (lines || []).map((l, i) => l.changing ? names[i] : '').filter(Boolean).join('、') || '无动爻';
   const isFollowUp = mode === 'followup';
+  const isLinkedReading = mode === 'linked-reading';
 
   try {
     const r = await fetch('https://api.deepseek.com/chat/completions', {
@@ -64,7 +65,8 @@ export default async function handler(req, res) {
                 `关联日记背景：${String(diaryContext || '无').slice(0, 800)}\n` +
                 `追问：${question.trim().slice(0, 500)}\n\n` +
                 `请延续原解签回答追问。格式：\n【承接】说明追问与原卦哪一点相关\n【判断】直接回答，不模棱两可\n【依据】用本卦、动爻或变卦说明\n【行动】给出一条可执行建议`
-              : `问题：${question.trim().slice(0, 500)}\n` +
+              : `${isLinkedReading ? `这是一次追问后重新起出的新卦。它与父卦有关联，但必须以本次新卦为主要判断依据，不可复制父卦结论。\n父卦上下文：${String(parentContext || '').slice(0, 1400)}\n\n` : ''}` +
+                `问题：${question.trim().slice(0, 500)}\n` +
                 `关联日记背景：${String(diaryContext || '无').slice(0, 800)}\n\n` +
                 `本卦：${String(hexName || '未定').slice(0, 20)}\n` +
                 `变卦：${String(changedHexName || hexName || '未定').slice(0, 20)}\n` +

@@ -154,7 +154,7 @@ function PastRow({ entry, theme, onClick, isLast, dense }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
           {entry.mood && <span style={{ fontSize: 13, lineHeight: 1 }}>{entry.mood}</span>}
           {entry.flag && <FlagDot theme={theme} size={10} />}
-          <div className="serif" style={{ fontSize: 18, fontWeight: 500, color: theme.text, letterSpacing: 1 }}>{entry.poem?.title || entry.body?.slice(0, 10) || '无题'}</div>
+          <div className="serif" style={{ fontSize: 18, fontWeight: 500, color: theme.text, letterSpacing: 1 }}>{entry.title || entry.poem?.title || entry.body?.slice(0, 10) || '无题'}</div>
         </div>
         <div style={{
           fontSize: 13, color: theme.textSoft, lineHeight: 1.55,
@@ -224,7 +224,7 @@ function Search({ theme, entries, onClose, onOpen }) {
   const [query, setQuery] = React.useState('');
   const q = query.trim().toLowerCase();
   const results = q ? entries.filter(e => [
-    e.body, e.place, e.date, e.poem?.title, ...(e.tags || []),
+    e.title, e.body, e.place, e.date, e.poem?.title, ...(e.tags || []),
   ].filter(Boolean).some(v => String(v).toLowerCase().includes(q))) : [];
   return (
     <Screen theme={theme} noTab>
@@ -797,6 +797,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
   const [noteText, setNoteText] = React.useState('');
   const [busy, setBusy] = React.useState(false);
   const [preview, setPreview] = React.useState(null);
+  const [shareOpen, setShareOpen] = React.useState(false);
   const [actionError, setActionError] = React.useState('');
   const noteNow = new Date().toLocaleString('zh-CN', { hour12: false });
 
@@ -832,23 +833,39 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
     finally { setBusy(false); }
   };
 
-  const shareCurrent = async () => {
-    const poemText = e.poem ? `\n\n《${e.poem.title}》\n${(e.poem.lines || []).join('\n')}` : '';
-    const text = `${e.date || ''} ${e.time || ''}\n${e.place || ''}\n\n${e.body || ''}${poemText}`;
+  const poemShareText = e.poem
+    ? `《${e.poem.title}》\n${(e.poem.lines || []).join('\n')}\n\n${e.date || ''}${e.place ? ` · ${e.place}` : ''}\n来自「诗签」`
+    : '';
+
+  const sharePoem = async () => {
+    if (!e.poem) return;
     try {
-      if (navigator.share) await navigator.share({ title: e.poem?.title || '日记', text });
-      else {
-        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `日记-${e.date || '未命名'}.txt`;
-        a.click();
-        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-      }
+      if (navigator.share) await navigator.share({ title: `《${e.poem.title}》`, text: poemShareText });
+      else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(poemShareText);
+        alert('小诗已复制，可以粘贴分享');
+      } else downloadPoem();
     } catch (err) {
-      if (err?.name !== 'AbortError') alert('导出失败：' + err.message);
+      if (err?.name !== 'AbortError') alert('分享失败：' + err.message);
     }
-    setMenuOpen(false);
+  };
+
+  const copyPoem = async () => {
+    if (!e.poem) return;
+    try {
+      await navigator.clipboard.writeText(poemShareText);
+      alert('小诗已复制');
+    } catch (err) { alert('复制失败：' + err.message); }
+  };
+
+  const downloadPoem = () => {
+    if (!e.poem) return;
+    const blob = new Blob([poemShareText], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `诗签-${e.poem.title || e.date || '未命名'}.txt`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   };
 
   return (
@@ -877,10 +894,10 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
               width: '100%', padding: '14px 16px', border: 'none', borderBottom: `0.5px solid ${theme.line}`,
               background: 'transparent', color: theme.text, textAlign: 'left', fontFamily: 'inherit', fontSize: 14, cursor: 'pointer',
             }}>添加回看点评</button>
-            <button onClick={shareCurrent} style={{
+            <button onClick={() => { setMenuOpen(false); setShareOpen(true); }} disabled={!e.poem} style={{
               width: '100%', padding: '14px 16px', border: 'none', borderBottom: `0.5px solid ${theme.line}`,
-              background: 'transparent', color: theme.text, textAlign: 'left', fontFamily: 'inherit', fontSize: 14, cursor: 'pointer',
-            }}>分享 / 导出本篇</button>
+              background: 'transparent', color: e.poem ? theme.text : theme.textMute, textAlign: 'left', fontFamily: 'inherit', fontSize: 14, cursor: e.poem ? 'pointer' : 'default',
+            }}>分享小诗</button>
             <button onClick={deleteCurrent} disabled={busy || !onDelete} style={{
               width: '100%', padding: '14px 16px', border: 'none',
               background: 'transparent', color: theme.seal, textAlign: 'left', fontFamily: 'inherit', fontSize: 14, cursor: 'pointer',
@@ -925,6 +942,13 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
           </button>
         </div>)
       }
+
+      {e.title && (
+        <div style={{ padding: '24px 32px 0' }}>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginBottom: 10 }}>日 记 标 题</div>
+          <div className="serif" style={{ fontSize: 24, lineHeight: 1.5, color: theme.text, letterSpacing: 2, fontWeight: 500 }}>{e.title}</div>
+        </div>
+      )}
 
       {/* meta strip */}
       <div style={{ padding: '20px 32px 0', display: 'flex', flexWrap: 'wrap', gap: '6px 16px', fontSize: 12, color: theme.textSoft, alignItems: 'center' }}>
@@ -1053,6 +1077,30 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
           {/^(https?:|data:image|blob:)/i.test(preview)
             ? <img src={preview} alt="" style={{ maxWidth: '100%', maxHeight: '80%', borderRadius: 12, objectFit: 'contain' }}/>
             : <div style={{ color: '#fff', fontSize: 14 }}>{preview}</div>}
+        </div>
+      )}
+
+      {shareOpen && e.poem && (
+        <div onClick={() => setShareOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 75, background: 'rgba(20,25,22,.42)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <div onClick={ev => ev.stopPropagation()} style={{ width: '100%', maxWidth: W, background: theme.bg, borderRadius: '24px 24px 0 0', padding: '22px 20px 36px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div className="serif" style={{ fontSize: 19, color: theme.text, letterSpacing: 3 }}>分 享 小 诗</div>
+              <button type="button" onClick={() => setShareOpen(false)} aria-label="关闭分享窗口" style={{ border: 'none', background: 'transparent', padding: 6, cursor: 'pointer' }}>
+                <IconClose color={theme.textSoft} size={18}/>
+              </button>
+            </div>
+            <div style={{ background: theme.paper, borderRadius: 18, padding: '22px 20px', border: `0.5px solid ${theme.line}`, textAlign: 'center' }}>
+              <div className="serif" style={{ fontSize: 25, color: theme.text, letterSpacing: 7, paddingLeft: 7 }}>{e.poem.title}</div>
+              <div style={{ width: 26, height: 1, background: theme.accent, margin: '14px auto 18px' }}/>
+              <PoemBody lines={e.poem.lines || []} size={18} theme={theme}/>
+              <div style={{ fontSize: 10.5, color: theme.textMute, marginTop: 18 }}>{e.date || ''}{e.place ? ` · ${e.place}` : ''}</div>
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+              <button type="button" onClick={copyPoem} style={{ flex: 1, height: 44, borderRadius: 22, border: `0.5px solid ${theme.line}`, background: theme.surface, color: theme.textSoft, fontFamily: 'inherit', cursor: 'pointer' }}>复制小诗</button>
+              <button type="button" onClick={downloadPoem} style={{ flex: 1, height: 44, borderRadius: 22, border: `0.5px solid ${theme.line}`, background: theme.surface, color: theme.textSoft, fontFamily: 'inherit', cursor: 'pointer' }}>保存文本</button>
+              <button type="button" onClick={sharePoem} style={{ flex: 1.25, height: 44, borderRadius: 22, border: 'none', background: theme.text, color: theme.bg, fontFamily: 'inherit', fontWeight: 600, cursor: 'pointer' }}>系统分享</button>
+            </div>
+          </div>
         </div>
       )}
 
