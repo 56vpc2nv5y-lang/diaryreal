@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.10-r5';
+const APP_BUILD = '2026.06.11-r6';
 
 // ─── Firebase helpers ─────────────────────────────────────────────
 function col(name) {
@@ -313,6 +313,7 @@ function ComposeReal({ theme, paper, onBack, onSaved }) {
   const [body, setBody] = React.useState('');
   const [mood, setMood] = React.useState('');
   const [flag, setFlag] = React.useState(false);
+  const [askHexAfterSave, setAskHexAfterSave] = React.useState(false);
   const [place, setPlace] = React.useState('获取位置中…');
   const [shake, setShake] = React.useState('idle'); // idle|gen|done
   const [poem, setPoem] = React.useState(null);
@@ -342,13 +343,13 @@ function ComposeReal({ theme, paper, onBack, onSaved }) {
   const doSave = async (poemArg) => {
     setSaving(true);
     try {
-      await dbSaveEntry({
+      const id = await dbSaveEntry({
         date: info.date, weekday: info.weekday, time: info.time,
         place, body: body.trim(), mood, flag,
         tags: [], poem: poemArg || null, notes: [], inlineNotes: [],
         photos: [],
       });
-      await onSaved();
+      await onSaved({ id, body: body.trim(), askHexAfterSave });
     } catch (e) { setErr('保存失败: ' + e.message); setSaving(false); }
   };
 
@@ -428,6 +429,12 @@ function ComposeReal({ theme, paper, onBack, onSaved }) {
             }}>
               <FlagDot theme={theme} size={10}/>里程碑
             </button>
+            <button type="button" onClick={() => setAskHexAfterSave(!askHexAfterSave)} style={{
+              height: 34, padding: '0 12px', borderRadius: 17, border: 'none',
+              background: askHexAfterSave ? theme.accent + '22' : theme.surface,
+              color: askHexAfterSave ? theme.accent : theme.textSoft,
+              fontSize: 12, fontFamily: 'inherit', cursor: 'pointer',
+            }}>{askHexAfterSave ? '保存后起卦 ✓' : '保存后起卦'}</button>
             <div style={{ flex: 1 }}/>
             <span style={{ fontSize: 11, color: theme.textMute }}>{body.length > 0 ? body.length + ' 字' : ''}</span>
           </div>
@@ -477,8 +484,15 @@ function hexNameFor(lines) {
   const upper = trigramValue(lines.slice(3, 6));
   return HEXAGRAM_BY_TRIGRAMS[`${upper}:${lower}`] || '未定';
 }
+const TRIGRAM_NAME_BY_VALUE = { 7:'乾', 3:'兑', 5:'离', 1:'震', 6:'巽', 2:'坎', 4:'艮', 0:'坤' };
+function trigramNamesFor(lines) {
+  return {
+    lower: TRIGRAM_NAME_BY_VALUE[trigramValue(lines.slice(0, 3))] || '未定',
+    upper: TRIGRAM_NAME_BY_VALUE[trigramValue(lines.slice(3, 6))] || '未定',
+  };
+}
 
-async function apiHexagram(question, hexName, lines) {
+async function apiHexagram(question, hexName, lines, context = {}) {
   const token = await firebase.auth().currentUser?.getIdToken();
   const r = await fetch('/api/hexagram', {
     method: 'POST',
@@ -486,7 +500,7 @@ async function apiHexagram(question, hexName, lines) {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({ question, hexName, lines }),
+    body: JSON.stringify({ question, hexName, lines, ...context }),
   });
   const text = await r.text();
   let d;
@@ -534,7 +548,7 @@ function YaoRow({ line, idx, theme, onChange }) {
   );
 }
 
-function NewHexagram({ theme, initialQuestion = '', onBack, onSaved }) {
+function NewHexagram({ theme, initialQuestion = '', entryId = '', diaryContext = '', onBack, onSaved }) {
   const [question, setQuestion] = React.useState(initialQuestion);
   const [mood, setMood] = React.useState('');
   const [lines, setLines] = React.useState(Array(6).fill(null).map(() => ({ type:'yang', changing:false })));
@@ -544,6 +558,11 @@ function NewHexagram({ theme, initialQuestion = '', onBack, onSaved }) {
   const [saving, setSaving] = React.useState(false);
 
   const hexName = React.useMemo(() => hexNameFor(lines), [JSON.stringify(lines)]);
+  const changedHexName = React.useMemo(() => hexNameFor(lines.map(line => ({
+    ...line,
+    type: line.changing ? (line.type === 'yang' ? 'yin' : 'yang') : line.type,
+  }))), [JSON.stringify(lines)]);
+  const trigrams = React.useMemo(() => trigramNamesFor(lines), [JSON.stringify(lines)]);
 
   const changeLine = (i, field) => setLines(prev =>
     prev.map((l,idx) => idx===i ? {...l, [field]: field==='type'?(l.type==='yang'?'yin':'yang'):!l.changing} : l)
@@ -553,7 +572,7 @@ function NewHexagram({ theme, initialQuestion = '', onBack, onSaved }) {
     if (!question.trim()) { setErr('请先写下问题'); return; }
     setStep('loading'); setErr('');
     try {
-      const result = await apiHexagram(question.trim(), hexName, lines);
+      const result = await apiHexagram(question.trim(), hexName, lines, { changedHexName, diaryContext, trigrams });
       setInterp(result); setStep('done');
     } catch(e) { setErr(e.message); setStep('setup'); }
   };
@@ -562,7 +581,10 @@ function NewHexagram({ theme, initialQuestion = '', onBack, onSaved }) {
     setSaving(true);
     try {
       const info = nowInfo();
-      await onSaved({ date:info.date, time:info.time, question:question.trim(), name:hexName, lines, interp, mood });
+      await onSaved({
+        date:info.date, time:info.time, question:question.trim(), name:hexName,
+        changedHexName, trigrams, lines, interp, mood, entryId, diaryContext, followUps: [],
+      });
     } catch(e) { setErr('保存失败：' + e.message); setSaving(false); }
   };
 
@@ -726,6 +748,27 @@ function AppReal() {
     setHexagrams([]);
   };
 
+  const followUpHexagram = async (hex, followQuestion) => {
+    const interpretation = await apiHexagram(followQuestion, hex.name, hex.lines, {
+      mode: 'followup',
+      originalQuestion: hex.question,
+      previousInterpretation: hex.interp,
+      changedHexName: hex.changedHexName,
+      trigrams: hex.trigrams,
+      diaryContext: hex.diaryContext,
+    });
+    await dbSaveHexagram({
+      ...hex,
+      id: hex.id,
+      followUps: [
+        ...(Array.isArray(hex.followUps) ? hex.followUps : []),
+        { question: followQuestion, interpretation, createdAt: new Date().toISOString() },
+      ].slice(-30),
+    });
+    setHexagrams(await dbGetHexagrams());
+    return interpretation;
+  };
+
   React.useEffect(() => firebase.auth().onAuthStateChanged(u => {
     if (u) {
       setAuthState('auth');
@@ -775,7 +818,11 @@ function AppReal() {
     case 'compose':
       return (
         <ComposeReal theme={theme} paper={paper} onBack={pop}
-          onSaved={async () => { await refresh(); pop(); }}
+          onSaved={async ({ id, body, askHexAfterSave } = {}) => {
+            await refresh();
+            pop();
+            if (askHexAfterSave && id) push('newhex', { entryId: id, diaryContext: body });
+          }}
         />
       );
 
@@ -791,13 +838,15 @@ function AppReal() {
           const poem = await apiPoem(entry.body);
           await updateEntry(entry.id, { poem });
         } : null}
+        linkedHexagrams={hexagrams.filter(hex => hex.entryId === entry.id)}
+        onStartHexagram={() => push('newhex', { entryId: entry.id, diaryContext: entry.body })}
         onDelete={async () => { await deleteEntry(entry.id); pop(); }}
       />;
     }
 
     case 'search':
       return (
-        <Search theme={theme} entries={entries} onClose={pop}
+        <EnhancedSearch theme={theme} entries={entries} onClose={pop}
           onOpen={id => { pop(); push('detail', { id }); }}
         />
       );
@@ -811,7 +860,7 @@ function AppReal() {
       );
 
     case 'hex':
-      return <Hexagrams theme={theme} hexes={hexagrams} onNew={() => push('newhex', {})} onFollowUp={(q) => push('newhex', { question: q })} onTab={tabHandler}/>;
+      return <EnhancedHexagrams theme={theme} hexes={hexagrams} onNew={() => push('newhex', {})} onFollowUp={followUpHexagram} onTab={tabHandler}/>;
 
     case 'settings':
       return (
@@ -829,7 +878,7 @@ function AppReal() {
       );
 
     case 'newhex':
-      return <NewHexagram theme={theme} initialQuestion={params.question || ''} onBack={pop} onSaved={async (hex) => {
+      return <NewHexagram theme={theme} initialQuestion={params.question || ''} entryId={params.entryId || ''} diaryContext={params.diaryContext || ''} onBack={pop} onSaved={async (hex) => {
         await dbSaveHexagram(hex); const h = await dbGetHexagrams(); setHexagrams(h); pop();
       }}/>;
 

@@ -766,7 +766,7 @@ function Hexagrams({ theme, hexes = [], onNew, onFollowUp, onTab }) {
           ]} color={theme.text} size="lg" />
           <div style={{ flex: 1 }}>
             <div className="serif" style={{ fontSize: 18, color: theme.text, fontWeight: 500, letterSpacing: 2 }}>起 一 卦</div>
-            <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 4, lineHeight: 1.5 }}>手动设爯 · AI 解签 · 记下今天的疑问</div>
+            <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 4, lineHeight: 1.5 }}>手动设爻 · AI 解签 · 记下今天的疑问</div>
           </div>
           <IconChevron color={theme.textMute} dir="right" size={13}/>
         </div>

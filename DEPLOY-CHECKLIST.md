@@ -1,12 +1,15 @@
 # Vercel 同步部署检查
 
-这次修复后的页面版本是 `2026.06.10-r5`。
+这次修复后的页面版本是 `2026.06.11-r6`。
 
 ## 必须一起部署
 
 - 部署根目录必须是包含 `index.html`、`api/`、`lib/`、`vercel.json` 的本目录。
 - 必须部署到 Production，而不只是生成 Preview Deployment。
 - 不要只上传静态 HTML；`api/poem.js` 和 `api/hexagram.js` 必须作为 Vercel Functions 一起部署。
+- GitHub Pages 只能展示静态前端，不能运行本项目的 `/api/poem` 和 `/api/hexagram`。日常使用请打开 Vercel Production 域名。
+
+当前是适配手机界面的 Web App，不是 iOS/Android 原生 App。页面顶部状态栏属于界面模拟，现在会显示设备本地时间；浏览器和手机系统自己的状态栏不受网页控制。
 
 ## Vercel 环境变量
 
@@ -25,11 +28,11 @@
 {
   "ok": true,
   "deepseekConfigured": true,
-  "build": "2026.06.10-r5"
+  "build": "2026.06.11-r6"
 }
 ```
 
-3. 打开应用设置页底部，应显示 `版本 2026.06.10-r5`。
+3. 打开应用设置页底部，应显示 `版本 2026.06.11-r6`。
 4. 如果仍显示 `iCloud`、`Android 同步` 或 `.docx · .txt · .pdf · .md`，说明当前域名仍指向旧部署或 Vercel 项目的 Root Directory 配错。
 
 ## Firestore

@@ -788,7 +788,7 @@ function renderBodyWithAnchors(body, inlineNotes, theme, selectedId, onSelect) {
   return out;
 }
 
-function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote, onDelete, onGeneratePoem }) {
+function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
   const e = entry;
   const hasPoem = showPoem && !!e.poem;
   const [c1, c2] = sealChars(e.poem?.title || '日记');
@@ -1055,6 +1055,24 @@ function Detail({ theme, entry, onBack, showPoem = true, onToggleFlag, onAddNote
             : <div style={{ color: '#fff', fontSize: 14 }}>{preview}</div>}
         </div>
       )}
+
+      <div style={{ padding: '28px 32px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>关 联 卦 象</div>
+          <div style={{ fontSize: 11, color: theme.textMute }}>{linkedHexagrams.length} 卦</div>
+        </div>
+        {linkedHexagrams.map(hex => (
+          <div key={hex.id} style={{ padding: '12px 14px', borderRadius: 12, background: theme.surface, marginBottom: 8, border: `0.5px solid ${theme.line}` }}>
+            <div className="serif" style={{ fontSize: 14, color: theme.text, letterSpacing: 1 }}>{hex.question || '未命名问题'}</div>
+            <div style={{ marginTop: 4, fontSize: 11, color: theme.textMute }}>{hex.name || '未定'}{hex.changedHexName && hex.changedHexName !== hex.name ? ` → ${hex.changedHexName}` : ''}</div>
+          </div>
+        ))}
+        <button type="button" onClick={onStartHexagram} disabled={!onStartHexagram} style={{
+          width: '100%', height: 44, marginTop: 4, borderRadius: 22,
+          border: `0.5px solid ${theme.line}`, background: 'transparent',
+          color: theme.textSoft, fontFamily: 'inherit', cursor: onStartHexagram ? 'pointer' : 'default',
+        }}>基于本篇日记起一卦</button>
+      </div>
 
       <div style={{ height: 80 }} />
     </Screen>);
