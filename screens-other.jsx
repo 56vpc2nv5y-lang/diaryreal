@@ -5,14 +5,55 @@
 // ──────────────────────────────────────────────────────────────────
 function Timeline({ theme, entries, onOpen, onTab }) {
   const flagged = entries.filter(e => e.flag);
+  const poems = entries.filter(e => e.poem && e.poemCollected !== false);
+  const quotes = entries.flatMap(entry => (entry.collectedQuotes || []).map(quote => ({ quote, entry })));
+  const [view, setView] = React.useState('poems');
   return (
     <Screen theme={theme} tab="timeline" onTab={onTab}>
       <div style={{ padding: '64px 24px 8px' }}>
-        <div style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 500 }}>MILESTONES</div>
-        <div className="serif" style={{ fontSize: 30, fontWeight: 600, letterSpacing: -0.5, marginTop: 4, color: theme.text }}>时间线</div>
-        <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 6 }}>只显示被标记的里程碑日记 · {flagged.length} 个时刻</div>
+        <div style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 500 }}>COLLECTIONS</div>
+        <div className="serif" style={{ fontSize: 30, fontWeight: 600, letterSpacing: -0.5, marginTop: 4, color: theme.text }}>藏 册</div>
+        <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 6 }}>诗、句子与被记住的时刻</div>
       </div>
 
+      <div style={{ display: 'flex', gap: 8, padding: '14px 20px 2px' }}>
+        {[['poems','诗册',poems.length],['quotes','拾句册',quotes.length],['milestones','里程碑',flagged.length]].map(([id,label,count]) => (
+          <button key={id} type="button" onClick={() => setView(id)} style={{
+            flex: 1, height: 38, borderRadius: 19, border: `0.5px solid ${view === id ? theme.text : theme.line}`,
+            background: view === id ? theme.text : theme.surface, color: view === id ? theme.bg : theme.textSoft,
+            fontFamily: 'inherit', cursor: 'pointer', fontSize: 12,
+          }}>{label} · {count}</button>
+        ))}
+      </div>
+
+      {view === 'poems' && <div style={{ padding: '24px 20px 120px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
+        {poems.map(entry => <button type="button" key={entry.id} onClick={() => onOpen(entry.id)} style={{
+          minHeight: 260, borderRadius: 18, border: `0.5px solid ${theme.line}`, padding: '20px 18px',
+          backgroundColor: theme.paper, ...paperBg(entry.paper || 'plain', theme),
+          fontFamily: 'inherit', cursor: 'pointer', overflow: 'hidden',
+        }}>
+          <div style={{ background: 'rgba(255,253,247,.84)', borderRadius: 14, padding: '18px 12px', height: '100%' }}>
+            <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 5 }}>{entry.poem.title}</div>
+            <div style={{ width: 24, height: 1, background: theme.accent, margin: '12px auto' }}/>
+            <PoemBody lines={entry.poem.lines || []} size={14} theme={theme}/>
+            <div style={{ marginTop: 12, fontSize: 10.5, color: theme.textMute }}>{entry.date}</div>
+          </div>
+        </button>)}
+        {!poems.length && <div className="serif" style={{ color: theme.textMute, padding: 40, textAlign: 'center' }}>摇出的诗会自动收入这里</div>}
+      </div>}
+
+      {view === 'quotes' && <div style={{ padding: '24px 20px 120px' }}>
+        {quotes.map(({ quote, entry }, index) => <button type="button" key={`${entry.id}-${index}`} onClick={() => onOpen(entry.id)} style={{
+          width: '100%', textAlign: 'left', marginBottom: 10, padding: '17px 18px', borderRadius: 15,
+          border: `0.5px solid ${theme.line}`, background: theme.surface, fontFamily: 'inherit', cursor: 'pointer',
+        }}>
+          <div className="serif" style={{ fontSize: 16, color: theme.text, lineHeight: 1.75 }}>“{quote}”</div>
+          <div style={{ marginTop: 7, fontSize: 11, color: theme.textMute }}>{entry.date} · {entry.title || entry.poem?.title || '日记'}</div>
+        </button>)}
+        {!quotes.length && <div className="serif" style={{ color: theme.textMute, padding: 40, textAlign: 'center' }}>在日记详情中确认 AI 拾句建议</div>}
+      </div>}
+
+      {view === 'milestones' &&
       <div style={{ padding: '32px 0 120px', position: 'relative' }}>
         {/* year header */}
         <YearMarker theme={theme} year="2026" />
@@ -37,7 +78,7 @@ function Timeline({ theme, entries, onOpen, onTab }) {
             <div style={{ fontSize: 11, color: theme.textMute, letterSpacing: 2 }}>开 始 ·  2026.03</div>
           </div>
         </div>
-      </div>
+      </div>}
     </Screen>
   );
 }
@@ -87,7 +128,7 @@ function TimelineRow({ entry, theme, onClick, isFirst }) {
         fontSize: 14, lineHeight: 1.7, color: theme.textSoft, letterSpacing: 1,
         paddingLeft: 12, borderLeft: `1.5px solid ${theme.accent}`,
         fontStyle: 'normal',
-      }}>{entry.poem?.lines?.[entry.poem.lines.length - 1] || entry.body?.slice(0, 28) || '这一日被记下。'}</div>
+      }}>{entry.sign?.timelineLine || entry.poem?.lines?.[entry.poem.lines.length - 1] || entry.body?.slice(0, 28) || '这一日被记下。'}</div>
     </div>
   );
 }

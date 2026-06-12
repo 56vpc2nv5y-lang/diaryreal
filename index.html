@@ -9,9 +9,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="诗签">
 <meta name="theme-color" content="#E2EDE5">
-<link rel="manifest" href="manifest.webmanifest?v=20260611-r13">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=20260611-r13">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=20260611-r13">
+<link rel="manifest" href="manifest.webmanifest?v=20260612-r20">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=20260612-r20">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=20260612-r20">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
@@ -67,6 +67,143 @@
     80% { transform: rotate(1deg); }
   }
   .anim-shake { animation: shake-tilt 0.55s ease-in-out infinite; }
+
+  /* Desktop layout: same app and data, roomier navigation and writing canvas. */
+  @media (min-width: 900px) {
+    html, body { background: #e7e2d8; }
+    #root { align-items: stretch; }
+    #root > div {
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+    }
+
+    .app-screen { border-radius: 0; }
+    .app-screen:not(.app-screen-no-tab) .app-scroll {
+      left: 112px !important;
+      right: 28px !important;
+      max-width: 1040px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .app-screen-no-tab .app-scroll {
+      left: 28px !important;
+      right: 28px !important;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+      border-left: 0.5px solid rgba(80,70,60,.08);
+      border-right: 0.5px solid rgba(80,70,60,.08);
+    }
+    .app-tabbar {
+      top: 0 !important;
+      right: auto !important;
+      bottom: 0 !important;
+      width: 88px !important;
+      height: 100% !important;
+      padding: 28px 12px !important;
+      flex-direction: column;
+      justify-content: center !important;
+      gap: 18px;
+      background: rgba(255,255,255,.28) !important;
+      border-right: 0.5px solid rgba(80,70,60,.10);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .app-tab-item {
+      width: 64px;
+      min-height: 52px;
+      border-radius: 18px !important;
+      transition: background .18s, transform .18s;
+    }
+    .app-tab-item:hover { background: rgba(255,255,255,.48) !important; transform: translateY(-1px); }
+    .app-tab-primary { margin: 6px 0; }
+    .home-indicator { display: none !important; }
+
+    .compose-screen { width: 100vw !important; height: 100dvh !important; }
+    .compose-paper-bg {
+      left: 50% !important;
+      right: auto !important;
+      width: min(820px, 100vw) !important;
+      transform: translateX(-50%);
+      box-shadow: 0 0 50px rgba(72,61,48,.10);
+    }
+    .compose-shell {
+      width: min(820px, 100%);
+      margin: 0 auto;
+      box-shadow: 0 0 50px rgba(72,61,48,.08);
+    }
+    .paper-picker-sheet {
+      max-width: 900px !important;
+      max-height: 82vh !important;
+      border-radius: 24px 24px 0 0 !important;
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .compose-paper-bg { width: 1120px !important; }
+    .compose-shell {
+      width: 100%;
+      max-width: none;
+      display: grid !important;
+      grid-template-columns: 250px minmax(0, 780px);
+      grid-template-rows: 56px auto minmax(0, 1fr) auto auto;
+      justify-content: center;
+      column-gap: 30px;
+      padding: 24px 32px 28px;
+      box-shadow: none;
+    }
+    .compose-topbar {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      padding: 0 8px !important;
+    }
+    .compose-meta {
+      grid-column: 1;
+      grid-row: 2 / 4;
+      align-self: start;
+      padding: 22px 18px !important;
+      margin-top: 14px;
+      border-radius: 22px;
+      background: rgba(255,253,247,.72);
+      border: 0.5px solid rgba(80,70,60,.12);
+      box-shadow: 0 12px 34px rgba(72,61,48,.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .compose-meta .no-scroll {
+      flex-wrap: wrap;
+      overflow: visible !important;
+    }
+    .compose-title {
+      grid-column: 2;
+      grid-row: 2;
+      padding: 16px 28px 0 !important;
+    }
+    .compose-title input { font-size: 28px !important; }
+    .compose-body {
+      grid-column: 2;
+      grid-row: 3;
+      padding: 18px 28px 0 !important;
+    }
+    .compose-body textarea { font-size: 18px !important; line-height: 2 !important; }
+    .compose-error { grid-column: 2; grid-row: 4; }
+    .compose-actions {
+      grid-column: 1 / -1;
+      grid-row: 5;
+      width: min(1060px, 100%);
+      margin: 0 auto !important;
+      padding: 10px 18px !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+    .paper-picker-sheet {
+      border-radius: 24px !important;
+      margin-bottom: 28px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -78,7 +215,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- ── Your Firebase config (edit firebase-config.js) ────────── -->
-<script src="firebase-config.js?v=20260611-r13"></script>
+<script src="firebase-config.js?v=20260612-r20"></script>
 
 <!-- ── React + Babel ─────────────────────────────────────────── -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -86,16 +223,16 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- ── Shared data (THEMES, HEXAGRAMS, TAGS) ─────────────────── -->
-<script src="data.js?v=20260611-r13"></script>
+<script src="data.js?v=20260612-r20"></script>
 
 <!-- ── UI components (load order matters) ────────────────────── -->
-<script type="text/babel" src="primitives.jsx?v=20260611-r13"></script>
-<script type="text/babel" src="screens-main.jsx?v=20260611-r13"></script>
-<script type="text/babel" src="screens-other.jsx?v=20260611-r13"></script>
-<script type="text/babel" src="enhancements.jsx?v=20260611-r13"></script>
+<script type="text/babel" src="primitives.jsx?v=20260612-r20"></script>
+<script type="text/babel" src="screens-main.jsx?v=20260612-r20"></script>
+<script type="text/babel" src="screens-other.jsx?v=20260612-r20"></script>
+<script type="text/babel" src="enhancements.jsx?v=20260612-r20"></script>
 
 <!-- ── Real app ──────────────────────────────────────────────── -->
-<script type="text/babel" src="app-real.jsx?v=20260611-r13"></script>
+<script type="text/babel" src="app-real.jsx?v=20260612-r20"></script>
 
 <script>
   if ('serviceWorker' in navigator) {

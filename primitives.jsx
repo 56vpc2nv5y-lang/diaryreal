@@ -5,12 +5,12 @@ const W = 390, H = 844;
 
 function Screen({ theme, children, statusDark = false, bg, contentStyle, noTab = false, tab, onTab }) {
   return (
-    <div style={{
+    <div className={`app-screen${noTab ? ' app-screen-no-tab' : ''}`} style={{
       width: W, height: H, position: 'relative', overflow: 'hidden',
       background: bg || theme.bg, color: theme.text,
     }}>
       <StatusBar theme={theme} dark={statusDark} />
-      <div className="no-scroll" style={{
+      <div className="no-scroll app-scroll" style={{
         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
         overflowY: 'auto',
         ...contentStyle,
@@ -29,7 +29,7 @@ function StatusBar({ theme, dark = false }) {
 
 function HomeIndicator({ theme }) {
   return (
-    <div style={{
+    <div className="home-indicator" style={{
       position: 'absolute', bottom: 0, left: 0, right: 0, height: 34,
       display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
       paddingBottom: 8, zIndex: 40, pointerEvents: 'none',
@@ -75,13 +75,13 @@ function FlagDot({ theme, size = 12 }) {
 function TabBar({ theme, active = 'home', onChange }) {
   const items = [
     { id: 'home', label: '今日', icon: IconHome },
-    { id: 'timeline', label: '时间线', icon: IconTimeline },
+    { id: 'timeline', label: '藏册', icon: IconTimeline },
     { id: 'compose', label: '', icon: IconPlus, primary: true },
-    { id: 'hex', label: '卜', icon: IconHex },
+    { id: 'hex', label: '问', icon: IconHex },
     { id: 'settings', label: '我', icon: IconUser },
   ];
   return (
-    <div style={{
+    <div className="app-tabbar" style={{
       position: 'absolute', bottom: 0, left: 0, right: 0, height: 82,
       paddingBottom: 24, zIndex: 25,
       background: `linear-gradient(to top, ${theme.bg} 60%, transparent)`,
@@ -94,6 +94,7 @@ function TabBar({ theme, active = 'home', onChange }) {
         if (it.primary) {
           return (
             <button key={it.id} type="button" aria-label="写日记"
+              className="app-tab-item app-tab-primary"
               onClick={() => onChange && onChange(it.id)}
               style={{
                 width: 52, height: 52, borderRadius: 26,
@@ -108,6 +109,7 @@ function TabBar({ theme, active = 'home', onChange }) {
         }
         return (
           <button key={it.id} type="button" aria-label={it.label}
+            className="app-tab-item"
             onClick={() => onChange && onChange(it.id)}
             style={{
               border: 'none', background: 'transparent', cursor: 'pointer',
@@ -259,6 +261,33 @@ const PAPER_LIBRARY = [
   { id: 'art-23', name: '秋山', group: '插画' },
   { id: 'art-24', name: '江南园林', group: '插画' },
   { id: 'art-25', name: '雪中宫墙', group: '插画' },
+  { id: 'art-26', name: '云海浦江', group: '新信纸' },
+  { id: 'art-27', name: '花窗旧巷', group: '新信纸' },
+  { id: 'art-28', name: '单车朱门', group: '新信纸' },
+  { id: 'art-29', name: '荷亭烟水', group: '新信纸' },
+  { id: 'art-30', name: '欧陆花街', group: '新信纸' },
+  { id: 'art-31', name: '岭南花窗', group: '新信纸' },
+  { id: 'art-32', name: '电车花城', group: '新信纸' },
+  { id: 'art-33', name: '京华扇影', group: '新信纸' },
+  { id: 'art-34', name: '灯笼家宴', group: '新信纸' },
+  { id: 'art-35', name: '港味早茶', group: '新信纸' },
+  { id: 'art-36', name: '海棠茶点', group: '新信纸' },
+  { id: 'art-37', name: '海棠书案', group: '新信纸' },
+  { id: 'art-38', name: '水城贡多拉', group: '新信纸' },
+  { id: 'art-39', name: '雨巷花桥', group: '新信纸' },
+  { id: 'art-40', name: '塔影湖畔', group: '新信纸' },
+  { id: 'art-41', name: '水墨云山', group: '新信纸' },
+  { id: 'art-42', name: '荷塘远山', group: '新信纸' },
+  { id: 'art-43', name: '枫亭秋色', group: '新信纸' },
+  { id: 'art-44', name: '富士秋日', group: '新信纸' },
+  { id: 'art-45', name: '爱琴海岛', group: '新信纸' },
+  { id: 'art-46', name: '月门水墨', group: '新信纸' },
+  { id: 'art-47', name: '竹林飞瀑', group: '新信纸' },
+  { id: 'art-48', name: '尼罗河畔', group: '新信纸' },
+  { id: 'art-49', name: '峡谷落日', group: '新信纸' },
+  { id: 'art-50', name: '沙漠月夜', group: '新信纸' },
+  { id: 'art-51', name: '草原金树', group: '新信纸' },
+  { id: 'art-52', name: '雪山晨光', group: '新信纸' },
 ].map(item => item.id.startsWith('art-')
   ? { ...item, src: `assets/papers/paper-${item.id.slice(4)}.webp`, thumb: `assets/papers/paper-${item.id.slice(4)}-thumb.webp` }
   : item);
@@ -377,16 +406,34 @@ function paperBg(kind, theme) {
 // ── Classical poem block — centered, generous letter-spacing ─────────
 // Renders 4-line 五绝 / 七绝 in modern horizontal typesetting that still
 // reads like a 古诗 — each character clearly spaced, centered, serif.
+function splitPoemLines(lines) {
+  return (lines || []).flatMap(line => {
+    const text = String(line || '').trim();
+    const comma = text.indexOf('，');
+    if (comma < 0 || comma === text.length - 1) return [text];
+    return [text.slice(0, comma + 1), text.slice(comma + 1)];
+  }).filter(Boolean);
+}
+
 function PoemBody({ lines, size = 22, theme, color, weight = 500 }) {
+  const displayLines = splitPoemLines(lines);
+  const longest = Math.max(1, ...displayLines.map(line => Array.from(line).length));
+  const fittedSize = longest > 8
+    ? Math.max(13, Math.min(size, Math.floor(size * 8.2 / longest)))
+    : size;
+  const spacing = longest >= 12 ? '0.16em' : longest > 8 ? '0.25em' : '0.42em';
   return (
     <div className="serif" style={{
       textAlign: 'center', color: color || theme.text, fontWeight: weight,
+      width: '100%', overflow: 'visible',
     }}>
-      {lines.map((ln, i) => (
+      {displayLines.map((ln, i) => (
         <div key={i} style={{
-          fontSize: size, letterSpacing: '0.45em',
-          lineHeight: 2.0,
-          paddingLeft: '0.45em', // optical-center compensation for letter-spacing
+          fontSize: fittedSize, letterSpacing: spacing,
+          lineHeight: longest > 8 ? 2.15 : 2.0,
+          paddingLeft: spacing,
+          whiteSpace: 'nowrap',
+          wordBreak: 'keep-all',
         }}>{ln}</div>
       ))}
     </div>
@@ -405,5 +452,5 @@ Object.assign(window, {
   W, H, Screen, StatusBar, HomeIndicator, TabBar, Seal, FlagDot, ImgPlaceholder,
   IconHome, IconTimeline, IconPlus, IconImport, IconHex, IconUser, IconSearch,
   IconChevron, IconClose, IconCamera, IconPin, IconShake, sealChars,
-  paperBg, PAPER_LIBRARY, PoemBody,
+  paperBg, PAPER_LIBRARY, PoemBody, splitPoemLines,
 });

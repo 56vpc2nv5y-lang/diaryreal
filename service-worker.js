@@ -1,4 +1,4 @@
-const CACHE_NAME = 'poem-diary-r13';
+const CACHE_NAME = 'poem-diary-r20';
 const APP_SHELL = [
   '/',
   '/index.html',

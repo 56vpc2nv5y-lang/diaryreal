@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.11-r13';
+const APP_BUILD = '2026.06.12-r20';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -75,6 +75,18 @@ function normalizeEntry(data, id) {
     tags: Array.isArray(data?.tags) ? data.tags.map(String) : [],
     paper: typeof data?.paper === 'string' ? data.paper : 'plain',
     poem,
+    sign: data?.sign && typeof data.sign === 'object' ? {
+      title: typeof data.sign.title === 'string' ? data.sign.title : '',
+      motif: typeof data.sign.motif === 'string' ? data.sign.motif : '',
+      judgmentLines: Array.isArray(data.sign.judgmentLines) ? data.sign.judgmentLines.map(String) : [],
+      interpretation: typeof data.sign.interpretation === 'string' ? data.sign.interpretation : '',
+      timelineLine: typeof data.sign.timelineLine === 'string' ? data.sign.timelineLine : '',
+    } : null,
+    quoteSuggestions: Array.isArray(data?.quoteSuggestions)
+      ? data.quoteSuggestions.filter(item => item && typeof item.quote === 'string')
+      : [],
+    collectedQuotes: Array.isArray(data?.collectedQuotes) ? data.collectedQuotes.map(String) : [],
+    poemCollected: data?.poemCollected !== false && !!poem,
     notes: Array.isArray(data?.notes) ? data.notes.filter(n => n && typeof n.text === 'string') : [],
     inlineNotes: Array.isArray(data?.inlineNotes) ? data.inlineNotes.filter(n => n && typeof n.text === 'string') : [],
     photos: Array.isArray(data?.photos) ? data.photos.filter(p => typeof p === 'string') : [],
@@ -176,6 +188,21 @@ async function apiPoem(diaryText) {
   }
   if (!r.ok) throw new Error(json.error || '生诗失败');
   return json;
+}
+
+async function apiQuestion(question) {
+  const token = await firebase.auth().currentUser?.getIdToken();
+  const response = await fetch('/api/question', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ question }),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || '理问失败');
+  return data.analysis;
 }
 
 async function geocode(lat, lng) {
@@ -366,7 +393,6 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
   const [body, setBody] = React.useState(entry?.body || '');
   const [mood, setMood] = React.useState(entry?.mood || '');
   const [flag, setFlag] = React.useState(!!entry?.flag);
-  const [askHexAfterSave, setAskHexAfterSave] = React.useState(false);
   const [place, setPlace] = React.useState(entry?.place || '获取位置中…');
   const [activePaper, setActivePaper] = React.useState(entry?.paper || paper);
   const [shake, setShake] = React.useState('idle'); // idle|gen|done
@@ -462,7 +488,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
         photos: entry?.photos || [],
       });
       localStorage.removeItem(draftKey);
-      await onSaved({ id, body: body.trim(), askHexAfterSave });
+      await onSaved({ id, body: body.trim(), editing });
     } catch (e) { setErr('保存失败: ' + e.message); setSaving(false); }
   };
 
@@ -479,18 +505,24 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
   const selectedPaper = window.PAPER_LIBRARY.find(item => item.id === activePaper) || window.PAPER_LIBRARY[0];
   const customPaper = activePaper.startsWith('art-');
   const paperInk = customPaper ? '#514A43' : theme.text;
-  const paperSoft = customPaper ? '#776E65' : theme.textSoft;
-  const paperMuted = customPaper ? '#9A9086' : theme.textMute;
-  const paperControl = customPaper ? 'rgba(255,253,247,.78)' : theme.surface;
-  const paperControlStrong = customPaper ? 'rgba(255,253,247,.92)' : theme.surfaceSoft;
+  const paperSoft = customPaper ? '#625A52' : theme.textSoft;
+  const paperMuted = customPaper ? '#756B61' : theme.textMute;
+  const paperControl = customPaper ? 'rgba(255,253,247,.72)' : theme.surface;
+  const paperControlStrong = customPaper ? 'rgba(255,253,247,.82)' : theme.surfaceSoft;
+  const floatingControlShadow = customPaper ? '0 5px 16px rgba(67,55,43,.10)' : 'none';
 
   return (
-    <div style={{ width: W, height: H, background: theme.paper, position: 'relative', overflow: 'hidden', fontFamily: 'inherit' }}>
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: customPaper ? 0.82 : 1, ...ps }}/>
-      <div style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="compose-screen" style={{ width: W, height: H, background: theme.paper, position: 'relative', overflow: 'hidden', fontFamily: 'inherit' }}>
+      <div className="compose-paper-bg" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: customPaper ? 0.82 : 1, ...ps }}/>
+      {customPaper && <div className="compose-paper-veil" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'rgba(255,253,247,.34)' }}/>}
+      <div className="compose-shell" style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
 
         {/* top bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '60px 20px 0' }}>
+        <div className="compose-topbar" style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '60px 20px 0',
+          background: customPaper ? 'linear-gradient(to bottom, rgba(255,253,247,.38), rgba(255,253,247,0))' : 'transparent',
+          position: 'relative', zIndex: 2,
+        }}>
           <button onClick={onBack} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 8 }}>
             <IconClose color={theme.textSoft} size={20}/>
           </button>
@@ -502,28 +534,45 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
         </div>
 
         {/* meta */}
-        <div style={{ padding: `12px ${customPaper ? 52 : 28}px 0` }}>
+        <div className="compose-meta" style={{
+          padding: `${customPaper ? 26 : 14}px ${customPaper ? 52 : 28}px 18px`,
+          background: 'transparent',
+          margin: customPaper ? '-12px 2px 0' : 0,
+          position: 'relative',
+        }}>
+          {customPaper && <div style={{
+            position: 'absolute', inset: '-44px -24px -34px', pointerEvents: 'none',
+            background: 'radial-gradient(ellipse 78% 68% at 38% 45%, rgba(255,253,247,.82) 0%, rgba(255,253,247,.54) 52%, rgba(255,253,247,.14) 76%, rgba(255,253,247,0) 100%)',
+          }}/>}
+          <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ fontSize: 12, color: paperMuted, letterSpacing: 0.3 }}>{entryInfo.label}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: paperMuted, marginTop: 5 }}>
             <IconPin color={paperMuted} size={11}/><span>{place}</span>
           </div>
           {/* mood picker */}
-          <div className="no-scroll" style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 5, overflowX: 'auto', paddingBottom: 2 }}>
+          <div className="no-scroll compose-moods" style={{
+            marginTop: 10, display: 'flex', alignItems: 'center', gap: 6, overflowX: 'auto',
+            padding: '2px 28px 4px 0',
+            WebkitMaskImage: customPaper ? 'linear-gradient(to right, #000 0%, #000 88%, transparent 100%)' : 'none',
+            maskImage: customPaper ? 'linear-gradient(to right, #000 0%, #000 88%, transparent 100%)' : 'none',
+          }}>
             <span style={{ fontSize: 10.5, color: paperMuted, letterSpacing: 1.5, flexShrink: 0, marginRight: 2 }}>心 情</span>
             {MOODS_REAL.map(m => (
               <span key={m} onClick={() => setMood(mood === m ? '' : m)} style={{
                 width: 30, height: 30, borderRadius: 15, cursor: 'pointer', flexShrink: 0,
-                background: mood === m ? theme.seal + '22' : 'transparent',
+                background: mood === m ? theme.seal + '22' : (customPaper ? 'rgba(255,253,247,.48)' : 'transparent'),
                 border: mood === m ? `1.5px solid ${theme.seal}` : `0.5px solid ${customPaper ? 'rgba(81,74,67,.18)' : theme.line}`,
                 display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
+                boxShadow: customPaper ? '0 2px 8px rgba(70,60,50,.05)' : 'none',
                 transition: 'border .12s, background .12s',
               }}>{m}</span>
             ))}
           </div>
+          </div>
         </div>
 
         {/* title + text area */}
-        <div style={{ padding: `16px ${customPaper ? 52 : 28}px 0` }}>
+        <div className="compose-title" style={{ padding: `16px ${customPaper ? 52 : 28}px 0` }}>
           <input value={title} onChange={e => setTitle(e.target.value)} maxLength={80}
             placeholder="给今天起个标题（可选）"
             style={{
@@ -534,7 +583,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
             }}
           />
         </div>
-        <div style={{ flex: 1, padding: `14px ${customPaper ? 52 : 28}px 0`, minHeight: 0 }}>
+        <div className="compose-body" style={{ flex: 1, padding: `14px ${customPaper ? 52 : 28}px 0`, minHeight: 0 }}>
           <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="今天，"
             style={{
               width: '100%', height: '100%', border: 'none', outline: 'none', resize: 'none',
@@ -545,18 +594,16 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
           />
         </div>
 
-        {err && <div style={{ padding: '4px 28px', color: theme.seal, fontSize: 12 }}>{err}</div>}
+        {err && <div className="compose-error" style={{ padding: '4px 28px', color: theme.seal, fontSize: 12 }}>{err}</div>}
 
         {/* bottom bar */}
-        <div style={{
+        <div className="compose-actions" style={{
           padding: customPaper ? '10px 10px 20px' : '8px 16px 32px',
-          margin: customPaper ? '0 12px 12px' : 0,
-          borderRadius: customPaper ? 22 : 0,
-          background: customPaper ? 'rgba(255,253,247,.78)' : `linear-gradient(to top, ${theme.paper} 72%, ${theme.paper}00)`,
-          border: customPaper ? '0.5px solid rgba(81,74,67,.14)' : 'none',
-          boxShadow: customPaper ? '0 12px 30px rgba(67,55,43,.12)' : 'none',
-          backdropFilter: customPaper ? 'blur(18px) saturate(120%)' : 'none',
-          WebkitBackdropFilter: customPaper ? 'blur(18px) saturate(120%)' : 'none',
+          margin: customPaper ? '0 10px 8px' : 0,
+          borderRadius: 0,
+          background: customPaper ? 'transparent' : `linear-gradient(to top, ${theme.paper} 72%, ${theme.paper}00)`,
+          border: 'none',
+          boxShadow: 'none',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <button onClick={() => setFlag(!flag)} style={{
@@ -565,15 +612,12 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
               color: flag ? theme.seal : paperSoft,
               display: 'flex', alignItems: 'center', gap: 5, fontSize: 12,
               fontFamily: 'inherit', cursor: 'pointer',
+              border: customPaper ? '0.5px solid rgba(81,74,67,.10)' : 'none',
+              boxShadow: floatingControlShadow,
+              backdropFilter: customPaper ? 'blur(14px)' : 'none',
             }}>
               <FlagDot theme={theme} size={10}/>里程碑
             </button>
-            {!editing && <button type="button" onClick={() => setAskHexAfterSave(!askHexAfterSave)} style={{
-              height: 34, padding: '0 12px', borderRadius: 17, border: 'none',
-              background: askHexAfterSave ? (customPaper ? 'rgba(125,100,70,.16)' : theme.accent + '22') : paperControl,
-              color: askHexAfterSave ? (customPaper ? '#705C45' : theme.accent) : paperSoft,
-              fontSize: 12, fontFamily: 'inherit', cursor: 'pointer',
-            }}>{askHexAfterSave ? '保存后起卦 ✓' : '保存后起卦'}</button>}
             <div style={{ flex: 1 }}/>
             <span style={{ fontSize: 10.5, color: syncState?.error ? theme.seal : paperMuted }}>
               {!syncState?.online ? '离线待同步' : syncState?.pending ? '同步中…' : draftSavedAt ? `草稿 ${draftSavedAt}` : ''}
@@ -581,36 +625,25 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
             <span style={{ fontSize: 11, color: paperMuted }}>{body.length > 0 ? body.length + ' 字' : ''}</span>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button onClick={doShake} disabled={!filled || saving} style={{
-              flex: 1, height: 46, borderRadius: 23,
-              border: `1px solid ${filled ? (customPaper ? 'rgba(81,74,67,.45)' : theme.seal + 'aa') : (customPaper ? 'rgba(81,74,67,.14)' : theme.line)}`,
-              background: customPaper ? paperControl : 'transparent',
-              color: filled ? (customPaper ? paperInk : theme.seal) : paperMuted,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-              fontSize: 13.5, letterSpacing: 1.5, fontFamily: "'Noto Serif SC', serif",
-              cursor: filled ? 'pointer' : 'default',
-            }}>
-              <IconShake color={filled ? (customPaper ? paperInk : theme.seal) : paperMuted} size={16}/>
-              摇签求诗
-              <span style={{ fontSize: 9.5, opacity: 0.55 }}>可选</span>
-            </button>
             <button onClick={() => doSave(null)} disabled={!filled || saving} style={{
-              flex: 1, height: 46, borderRadius: 23, border: 'none',
+              width: '100%', height: 48, borderRadius: 24, border: 'none',
               background: filled && !saving ? paperInk : paperControlStrong,
               color: filled && !saving ? (customPaper ? '#FFFDF7' : theme.bg) : paperMuted,
               fontSize: 15, fontWeight: 600, letterSpacing: 3,
               fontFamily: 'inherit', cursor: filled && !saving ? 'pointer' : 'default',
-            }}>{saving ? '保存中…' : '保 存'}</button>
+              boxShadow: filled && !saving && customPaper ? '0 8px 22px rgba(67,55,43,.22)' : floatingControlShadow,
+              backdropFilter: customPaper ? 'blur(14px)' : 'none',
+            }}>{saving ? '保存中…' : editing ? '保 存 修 改' : '保 存，去 摇 签'}</button>
           </div>
         </div>
       </div>
       {paperOpen && (
         <div onClick={() => setPaperOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(20,25,22,.36)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
-          <div onClick={event => event.stopPropagation()} style={{ width: '100%', maxWidth: W, maxHeight: '72vh', background: theme.bg, borderRadius: '24px 24px 0 0', padding: '20px 16px 34px', display: 'flex', flexDirection: 'column' }}>
+          <div className="paper-picker-sheet" onClick={event => event.stopPropagation()} style={{ width: '100%', maxWidth: W, maxHeight: '72vh', background: theme.bg, borderRadius: '24px 24px 0 0', padding: '20px 16px 34px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 6px 14px' }}>
               <div>
                 <div className="serif" style={{ fontSize: 19, color: theme.text, letterSpacing: 3 }}>选 择 信 纸</div>
-                <div style={{ fontSize: 11, color: theme.textMute, marginTop: 4 }}>基础纹样与 25 款插画信纸</div>
+                <div style={{ fontSize: 11, color: theme.textMute, marginTop: 4 }}>基础纹样、插画与新信纸</div>
               </div>
               <button type="button" aria-label="关闭信纸选择器" onClick={() => setPaperOpen(false)} style={{ border: 'none', background: 'transparent', padding: 6, cursor: 'pointer' }}>
                 <IconClose color={theme.textSoft} size={18}/>
@@ -924,6 +957,76 @@ function GuardedNewHexagram({ theme, params, parentHex, onBack, onSaved }) {
     parentContext={params.parentContext || ''} onBack={onBack} onSaved={onSaved}/>;
 }
 
+function AutoPoemShake({ theme, entry, onBack, onAccepted }) {
+  const [state, setState] = React.useState('ready');
+  const [result, setResult] = React.useState(null);
+  const [error, setError] = React.useState('');
+  const [saving, setSaving] = React.useState(false);
+  const running = React.useRef(false);
+
+  const generate = React.useCallback(async () => {
+    if (running.current) return;
+    running.current = true;
+    setState('shaking'); setError('');
+    try {
+      const generated = await apiPoem(entry.body);
+      setResult(generated);
+      setState('done');
+    } catch (err) {
+      setError(err.message || '摇签失败');
+      setState('ready');
+    } finally {
+      running.current = false;
+    }
+  }, [entry.body]);
+
+  React.useEffect(() => {
+    let last = 0;
+    const onMotion = event => {
+      if (state !== 'ready') return;
+      const a = event.accelerationIncludingGravity;
+      if (!a) return;
+      const force = Math.abs(a.x || 0) + Math.abs(a.y || 0) + Math.abs(a.z || 0);
+      const now = Date.now();
+      if (force > 28 && now - last > 1200) { last = now; generate(); }
+    };
+    window.addEventListener('devicemotion', onMotion);
+    return () => window.removeEventListener('devicemotion', onMotion);
+  }, [state, generate]);
+
+  const displayEntry = {
+    ...entry,
+    poem: result ? { title: result.title, form: result.form, lines: result.lines } : { title: '待落', form: '', lines: ['', '', '', ''] },
+    sign: result ? {
+      title: result.signTitle,
+      motif: result.motif,
+      judgmentLines: result.judgmentLines,
+      interpretation: result.interpretation,
+      timelineLine: result.timelineLine,
+    } : null,
+  };
+
+  const accept = async () => {
+    if (!result) return;
+    setSaving(true);
+    try {
+      await onAccepted({
+        poem: displayEntry.poem,
+        sign: displayEntry.sign,
+        quoteSuggestions: result.quoteSuggestions || [],
+        poemCollected: true,
+      });
+    } catch (err) {
+      setError(err.message || '收入失败');
+      setSaving(false);
+    }
+  };
+
+  return <Shake theme={theme} state={state} entry={displayEntry} onCancel={onBack}
+    onShake={generate} onRegen={() => { setResult(null); setState('ready'); }}
+    onAccept={accept} saving={saving} error={error}/>;
+}
+
 function AppReal() {
   const [authState, setAuthState] = React.useState('loading');
   const [entries, setEntries] = React.useState([]);
@@ -1033,10 +1136,10 @@ function AppReal() {
     case 'compose':
       return (
         <ComposeReal theme={theme} paper={paper} syncState={syncState} onChangePaper={setPaper} onBack={pop}
-          onSaved={async ({ id, body, askHexAfterSave } = {}) => {
+          onSaved={async ({ id } = {}) => {
             await refresh();
             pop();
-            if (askHexAfterSave && id) push('newhex', { entryId: id, diaryContext: body });
+            if (id) push('shake', { id });
           }}
         />
       );
@@ -1064,13 +1167,24 @@ function AppReal() {
           notes: [...(entry.notes || []), { date: new Date().toLocaleString('zh-CN', { hour12: false }), text }],
         })}
         onGeneratePoem={entry.body?.trim() ? async () => {
-          const poem = await apiPoem(entry.body);
-          await updateEntry(entry.id, { poem });
+          push('shake', { id: entry.id });
         } : null}
+        onCollectQuote={quote => updateEntry(entry.id, {
+          collectedQuotes: Array.from(new Set([...(entry.collectedQuotes || []), quote])),
+        })}
         linkedHexagrams={hexagrams.filter(hex => hex.entryId === entry.id)}
         onStartHexagram={() => push('newhex', { entryId: entry.id, diaryContext: entry.body })}
         onDelete={async () => { await deleteEntry(entry.id); pop(); }}
       />;
+    }
+
+    case 'shake': {
+      const entry = entryById(params.id);
+      if (!entry) { pop(); return null; }
+      return <AutoPoemShake theme={theme} entry={entry} onBack={pop} onAccepted={async patch => {
+        await updateEntry(entry.id, patch);
+        pop();
+      }}/>;
     }
 
     case 'search':
@@ -1089,7 +1203,7 @@ function AppReal() {
       );
 
     case 'hex':
-      return <EnhancedHexagrams theme={theme} hexes={hexagrams} onNew={() => push('newhex', {})} onFollowUp={hex => push('newhex', {
+      return <EnhancedHexagrams theme={theme} hexes={hexagrams} onAnalyze={apiQuestion} onNew={() => push('newhex', {})} onFollowUp={hex => push('newhex', {
         parentHexId: hex.id,
         rootHexId: hex.rootHexId || hex.id,
         entryId: hex.entryId || '',

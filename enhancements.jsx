@@ -86,17 +86,58 @@ function LinkedHexCard({ theme, hex, onFollowUp, parent, childCount = 0 }) {
   );
 }
 
-function EnhancedHexagrams({ theme, hexes = [], onNew, onFollowUp, onTab }) {
+function EnhancedHexagrams({ theme, hexes = [], onNew, onFollowUp, onAnalyze, onTab }) {
+  const [mode, setMode] = React.useState('reason');
+  const [question, setQuestion] = React.useState('');
+  const [analysis, setAnalysis] = React.useState('');
+  const [busy, setBusy] = React.useState(false);
+  const [error, setError] = React.useState('');
+  const analyze = async () => {
+    if (!question.trim() || !onAnalyze) return;
+    setBusy(true); setError('');
+    try { setAnalysis(await onAnalyze(question.trim())); }
+    catch (err) { setError(err.message || '分析失败'); }
+    finally { setBusy(false); }
+  };
   return (
     <Screen theme={theme} tab="hex" onTab={onTab}>
       <div style={{ padding: '64px 24px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <div style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 500 }}>HEXAGRAMS · 六 爻</div>
-          <div className="serif" style={{ fontSize: 30, fontWeight: 600, marginTop: 4, color: theme.text }}>卜 签</div>
-          <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 6 }}>记录每一次求问 · {hexes.length} 次</div>
+          <div style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 500 }}>QUESTIONS</div>
+          <div className="serif" style={{ fontSize: 30, fontWeight: 600, marginTop: 4, color: theme.text }}>问</div>
+          <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 6 }}>分析生活疑惑，或以卦象照见处境</div>
         </div>
-        <button type="button" aria-label="起一卦" onClick={onNew} style={{ width: 40, height: 40, borderRadius: 20, border: 'none', background: theme.seal, color: '#fff', cursor: 'pointer', fontSize: 24, marginTop: 28 }}>+</button>
       </div>
+
+      <div style={{ display: 'flex', gap: 8, padding: '16px 20px 0' }}>
+        {[['reason','理问'],['hex','卜签']].map(([id,label]) => <button key={id} type="button" onClick={() => setMode(id)} style={{
+          flex: 1, height: 40, borderRadius: 20, border: `0.5px solid ${mode === id ? theme.text : theme.line}`,
+          background: mode === id ? theme.text : theme.surface, color: mode === id ? theme.bg : theme.textSoft,
+          fontFamily: 'inherit', cursor: 'pointer', letterSpacing: 2,
+        }}>{label}</button>)}
+      </div>
+
+      {mode === 'reason' ? <div style={{ padding: '22px 20px 120px' }}>
+        <div style={{ background: theme.paper, borderRadius: 18, padding: 18, border: `0.5px solid ${theme.line}` }}>
+          <div className="serif" style={{ fontSize: 18, color: theme.text, letterSpacing: 2 }}>写下一个生活疑惑</div>
+          <div style={{ fontSize: 11.5, color: theme.textMute, lineHeight: 1.7, marginTop: 7 }}>AI 会分析多种可能解释、反例与验证方法，不提供命运预测，也不会把示例理解成要开发某种系统。</div>
+          <textarea value={question} onChange={event => setQuestion(event.target.value)} maxLength={1000}
+            placeholder="例如：为什么我在纸上写东西时更容易认真思考？"
+            style={{ width: '100%', height: 130, marginTop: 14, resize: 'none', borderRadius: 14, border: `0.5px solid ${theme.line}`, background: theme.surface, padding: 13, color: theme.text, outline: 'none', fontFamily: 'inherit', fontSize: 15, lineHeight: 1.7 }}/>
+          <button type="button" onClick={analyze} disabled={busy || !question.trim()} style={{
+            width: '100%', height: 46, marginTop: 10, borderRadius: 23, border: 'none',
+            background: question.trim() ? theme.text : theme.surfaceSoft, color: question.trim() ? theme.bg : theme.textMute,
+            fontFamily: 'inherit', cursor: question.trim() ? 'pointer' : 'default', letterSpacing: 2,
+          }}>{busy ? '分析中…' : '开始理问'}</button>
+        </div>
+        {error && <div style={{ color: theme.seal, fontSize: 12, marginTop: 12 }}>{error}</div>}
+        {analysis && <div style={{ marginTop: 14, background: theme.surface, borderRadius: 18, padding: '18px 18px', border: `0.5px solid ${theme.line}` }}>
+          {analysis.split(/\n/).filter(Boolean).map((line, index) => <div key={index} className={line.startsWith('【') ? 'serif' : ''} style={{
+            color: line.startsWith('【') ? theme.seal : theme.text, fontSize: line.startsWith('【') ? 14 : 13.5,
+            fontWeight: line.startsWith('【') ? 600 : 400, lineHeight: 1.8, marginTop: index ? 7 : 0,
+          }}>{line}</div>)}
+        </div>}
+      </div> : <>
       <div style={{ padding: '20px 20px 0' }}>
         <button type="button" onClick={onNew} style={{ width: '100%', background: theme.paper, borderRadius: 20, padding: '20px 22px', border: `0.5px solid ${theme.line}`, display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
           <HexagramGlyph lines={[{type:'yang'},{type:'yin'},{type:'yang'},{type:'yin'},{type:'yang'},{type:'yin'}]} color={theme.text} size="lg"/>
@@ -113,6 +154,7 @@ function EnhancedHexagrams({ theme, hexes = [], onNew, onFollowUp, onTab }) {
               childCount={hexes.filter(item => item.parentHexId === hex.id).length} theme={theme} onFollowUp={onFollowUp}/>)
           : <div className="serif" style={{ padding: '48px 20px', textAlign: 'center', color: theme.textMute, lineHeight: 2 }}>还没有卦象<br/>点上方起一卦</div>}
       </div>
+      </>}
     </Screen>
   );
 };

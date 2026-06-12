@@ -131,6 +131,9 @@ function TodayCard({ theme, entry, layout = 'horizontal', onClick }) {
         <span style={{ color: theme.textMute, margin: '0 4px' }}>·</span>
         <span style={{ fontVariantNumeric: 'tabular-nums' }}>{entry.time}</span>
       </div>
+      {entry.sign?.timelineLine && <div className="serif" style={{
+        marginTop: 13, textAlign: 'center', color: theme.seal, fontSize: 12.5, letterSpacing: 1.5,
+      }}>{entry.sign.timelineLine}</div>}
     </div>);
 
 }
@@ -159,7 +162,7 @@ function PastRow({ entry, theme, onClick, isLast, dense }) {
         <div style={{
           fontSize: 13, color: theme.textSoft, lineHeight: 1.55,
           display: '-webkit-box', WebkitLineClamp: dense ? 1 : 2, WebkitBoxOrient: 'vertical', overflow: 'hidden'
-        }}>{entry.body}</div>
+        }}>{entry.flag && entry.sign?.timelineLine ? entry.sign.timelineLine : entry.body}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 11, color: theme.textMute }}>
           <IconPin color={theme.textMute} size={10} />
           <span>{safePlace.split(' · ')[1] || safePlace}</span>
@@ -640,8 +643,8 @@ function QuickCapture({ theme, kind = 'photo' }) {
   );
 }
 
-function Shake({ theme, state = 'shaking', onCancel, onAccept, onRegen, entry, saving = false, error = '' }) {
-  // state: 'shaking' | 'done'
+function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, entry, saving = false, error = '' }) {
+  // state: 'ready' | 'shaking' | 'done'
   const e = entry;
   const [c1, c2] = sealChars(e.poem.title);
   return (
@@ -657,7 +660,7 @@ function Shake({ theme, state = 'shaking', onCancel, onAccept, onRegen, entry, s
 
       <div style={{ height: 30 }} />
 
-      {state === 'shaking' ?
+      {state !== 'done' ?
       <div style={{ padding: '20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 480 }}>
           {/* stylized 签筒 */}
           <div className="anim-shake" style={{ marginBottom: 36 }}>
@@ -686,7 +689,7 @@ function Shake({ theme, state = 'shaking', onCancel, onAccept, onRegen, entry, s
             </div>
           </div>
           <div className="serif" style={{ fontSize: 18, color: theme.text, letterSpacing: 4, marginBottom: 12 }}>
-            AI 正在写诗
+            {state === 'ready' ? '摇 一 摇，落 一 签' : '签意正在落下'}
           </div>
           <div style={{ display: 'flex', gap: 4 }}>
             {[0, 1, 2].map((i) =>
@@ -697,23 +700,59 @@ function Shake({ theme, state = 'shaking', onCancel, onAccept, onRegen, entry, s
           )}
           </div>
           <style>{`@keyframes pulse{0%,100%{opacity:0.2}50%{opacity:1}}`}</style>
-          <div style={{ fontSize: 11, color: theme.textMute, marginTop: 40, letterSpacing: 2 }}>读取本篇日记 · 生成原创中文诗</div>
+          <div style={{ fontSize: 11, color: theme.textMute, marginTop: 40, letterSpacing: 2 }}>
+            {state === 'ready' ? '摇晃手机，或点击签筒' : '读取本篇日记 · 生成判语与原创诗'}
+          </div>
+          {state === 'ready' && <button type="button" onClick={onShake} style={{
+            marginTop: 24, height: 42, padding: '0 24px', borderRadius: 21,
+            border: `0.5px solid ${theme.line}`, background: theme.surface,
+            color: theme.text, fontFamily: 'inherit', cursor: 'pointer', letterSpacing: 2,
+          }}>轻触摇签</button>}
         </div> :
 
       // 'done' — reveal
-      <div className="anim-rise" style={{ padding: '8px 32px 0', textAlign: 'center' }}>
+      <div className="no-scroll anim-rise" style={{ padding: '8px 28px 150px', textAlign: 'center', overflowY: 'auto', flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>
-              今 日 之 诗 <span style={{ marginLeft: 8, opacity: 0.7 }}>{e.poem.form || '五绝'}</span>
+              今 日 诗 签
             </div>
             <Seal char1={c1} char2={c2} theme={theme} size={40} rotate={-4} />
           </div>
-          <div className="serif" style={{ fontSize: 32, fontWeight: 500, color: theme.text, letterSpacing: 8, marginTop: 18, lineHeight: 1.1, paddingLeft: '0.5em' }}>
+
+          <div style={{
+            width: 64, minHeight: 214, margin: '18px auto 20px', borderRadius: '8px 8px 20px 20px',
+            background: `linear-gradient(180deg, ${theme.accent}, ${theme.text})`, color: theme.bg,
+            boxShadow: `0 14px 34px ${theme.text}33`, padding: '18px 10px',
+            writingMode: 'vertical-rl', textOrientation: 'upright',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: "'Noto Serif SC', serif", fontSize: 23, letterSpacing: 6,
+            animation: 'sign-drop .7s cubic-bezier(.16,1,.3,1) both',
+          }}>{e.sign?.title || e.poem.title}</div>
+          <style>{`@keyframes sign-drop{from{transform:translateY(-90px) rotate(-5deg);opacity:0}to{transform:translateY(0) rotate(1deg);opacity:1}}`}</style>
+
+          {!!e.sign?.judgmentLines?.length && <div style={{
+            margin: '0 auto 20px', padding: '16px 18px', maxWidth: 310,
+            borderTop: `0.5px solid ${theme.line}`, borderBottom: `0.5px solid ${theme.line}`,
+          }}>
+            {e.sign.judgmentLines.map((line, index) => <div key={index} className="serif" style={{
+              color: theme.text, fontSize: 16, lineHeight: 1.95, letterSpacing: 3,
+            }}>{line}</div>)}
+          </div>}
+
+          {e.sign?.interpretation && <div style={{
+            textAlign: 'left', margin: '0 auto 24px', maxWidth: 310,
+            color: theme.textSoft, fontSize: 12.5, lineHeight: 1.8,
+          }}><span style={{ color: theme.seal, letterSpacing: 2 }}>解 语</span>　{e.sign.interpretation}</div>}
+
+          <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginTop: 6 }}>
+            今 日 之 诗 <span style={{ marginLeft: 8, opacity: 0.7 }}>{e.poem.form || '五绝'}</span>
+          </div>
+          <div className="serif" style={{ fontSize: 28, fontWeight: 500, color: theme.text, letterSpacing: 8, marginTop: 16, lineHeight: 1.1, paddingLeft: '0.5em' }}>
             {e.poem.title}
           </div>
-          <div style={{ width: 32, height: 1, background: theme.accent, margin: '20px auto 28px' }} />
-          <PoemBody lines={e.poem.lines} size={24} theme={theme} />
-          <div style={{ fontSize: 11, color: theme.textMute, marginTop: 36, letterSpacing: 1.5 }}>根据本篇日记生成 · AI</div>
+          <div style={{ width: 32, height: 1, background: theme.accent, margin: '16px auto 20px' }} />
+          <PoemBody lines={e.poem.lines} size={20} theme={theme} />
+          <div style={{ fontSize: 10.5, color: theme.textMute, marginTop: 24, lineHeight: 1.7 }}>根据本篇日记生成的文学化回望<br/>不作命运预测</div>
           {error && <div style={{ marginTop: 14, color: theme.seal, fontSize: 12, lineHeight: 1.6 }}>{error}</div>}
         </div>
       }
@@ -729,16 +768,16 @@ function Shake({ theme, state = 'shaking', onCancel, onAccept, onRegen, entry, s
           flex: 1, height: 50, borderRadius: 25, border: `0.5px solid ${theme.line}`,
           background: theme.surface, color: theme.text,
           fontSize: 15, letterSpacing: 1, fontFamily: 'inherit', cursor: 'pointer'
-        }}>重新摇签</button>
+        }}>再摇一次</button>
           <button onClick={onAccept} disabled={saving} style={{
           flex: 1.6, height: 50, borderRadius: 25, border: 'none',
           background: theme.text, color: theme.bg,
           fontSize: 15, letterSpacing: 1, fontFamily: 'inherit', cursor: 'pointer',
           fontWeight: 600
-        }}>{saving ? '保存中…' : '就是这一首'}</button>
+        }}>{saving ? '收入中…' : '收入诗册'}</button>
         </div>
       }
-      {state === 'shaking' &&
+      {state !== 'done' &&
       <div style={{
         position: 'absolute', left: 0, right: 0, bottom: 0,
         padding: '14px 20px 36px', textAlign: 'center'
@@ -833,7 +872,7 @@ async function createPoemCardBlob(entry, theme) {
     ctx.globalAlpha = 1;
   }
 
-  ctx.fillStyle = isArt ? 'rgba(255,253,247,.82)' : 'rgba(255,253,247,.58)';
+  ctx.fillStyle = isArt ? 'rgba(255,253,247,.88)' : 'rgba(255,253,247,.58)';
   ctx.beginPath();
   if (ctx.roundRect) ctx.roundRect(120, 180, 840, 1010, 44);
   else ctx.rect(120, 180, 840, 1010);
@@ -847,8 +886,12 @@ async function createPoemCardBlob(entry, theme) {
   ctx.fillRect(500, 414, 80, 3);
 
   ctx.fillStyle = theme.text;
-  ctx.font = "500 52px 'Noto Serif SC', serif";
-  (entry.poem.lines || []).forEach((line, index) => ctx.fillText(line, 540, 550 + index * 120));
+  const canvasPoemLines = splitPoemLines(entry.poem.lines || []);
+  const canvasLineSize = canvasPoemLines.length > 4 ? 42 : 52;
+  const canvasLineGap = canvasPoemLines.length > 4 ? 78 : 120;
+  const canvasStartY = canvasPoemLines.length > 4 ? 510 : 550;
+  ctx.font = `500 ${canvasLineSize}px 'Noto Serif SC', serif`;
+  canvasPoemLines.forEach((line, index) => ctx.fillText(line, 540, canvasStartY + index * canvasLineGap, 760));
 
   ctx.fillStyle = theme.textSoft;
   ctx.font = "400 27px 'Noto Sans SC', sans-serif";
@@ -862,14 +905,14 @@ async function createPoemCardBlob(entry, theme) {
   });
 }
 
-function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onAddNote, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
+function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onAddNote, onCollectQuote, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
   const e = entry;
   const hasPoem = showPoem && !!e.poem;
   const detailPaper = paperBg(e.paper || 'plain', theme);
   const customPaper = (e.paper || '').startsWith('art-');
   const detailContentStyle = customPaper ? {
     ...detailPaper,
-    backgroundImage: `linear-gradient(rgba(255,253,247,.70), rgba(255,253,247,.70)), ${detailPaper.backgroundImage}`,
+    backgroundImage: `linear-gradient(rgba(255,253,247,.78), rgba(255,253,247,.78)), ${detailPaper.backgroundImage}`,
     backgroundSize: `100% 100%, ${detailPaper.backgroundSize || '100% 100%'}`,
   } : detailPaper;
   const [c1, c2] = sealChars(e.poem?.title || '日记');
@@ -1004,7 +1047,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
 
       {hasPoem ? (
       /* poem block */
-      <div style={{ padding: '110px 32px 36px', background: customPaper ? 'rgba(255,253,247,.76)' : theme.paper, borderBottom: `0.5px solid ${theme.line}`, textAlign: 'center', position: 'relative' }}>
+      <div style={{ padding: '110px 24px 36px', background: customPaper ? 'rgba(255,253,247,.84)' : theme.paper, borderBottom: `0.5px solid ${theme.line}`, textAlign: 'center', position: 'relative' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>
               诗 签 <span style={{ marginLeft: 8, opacity: 0.7 }}>{e.poem.form || '五绝'}</span>
@@ -1018,7 +1061,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
         </div>) : (
 
       /* unpoemed — soft CTA, paper kept for visual continuity */
-      <div style={{ padding: '110px 32px 28px', background: customPaper ? 'rgba(255,253,247,.76)' : theme.paper, borderBottom: `0.5px solid ${theme.line}`, position: 'relative' }}>
+      <div style={{ padding: '110px 32px 28px', background: customPaper ? 'rgba(255,253,247,.84)' : theme.paper, borderBottom: `0.5px solid ${theme.line}`, position: 'relative' }}>
           <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>本 篇 尚 未 求 诗</div>
           <div className="serif" style={{
           fontSize: 17, lineHeight: 1.85, color: theme.textSoft,
@@ -1043,6 +1086,17 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
         <div style={{ padding: '24px 32px 0' }}>
           <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginBottom: 10 }}>日 记 标 题</div>
           <div className="serif" style={{ fontSize: 24, lineHeight: 1.5, color: theme.text, letterSpacing: 2, fontWeight: 500 }}>{e.title}</div>
+        </div>
+      )}
+
+      {e.sign && (
+        <div style={{ padding: '24px 32px 0' }}>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginBottom: 12 }}>今 日 判 语</div>
+          <div style={{ padding: '18px 18px', borderRadius: 16, background: theme.surface, border: `0.5px solid ${theme.line}` }}>
+            <div className="serif" style={{ fontSize: 20, color: theme.seal, letterSpacing: 4, textAlign: 'center', marginBottom: 10 }}>{e.sign.title}</div>
+            {(e.sign.judgmentLines || []).map((line, index) => <div key={index} className="serif" style={{ fontSize: 15, color: theme.text, lineHeight: 1.9, letterSpacing: 2, textAlign: 'center' }}>{line}</div>)}
+            {e.sign.interpretation && <div style={{ marginTop: 14, paddingTop: 12, borderTop: `0.5px solid ${theme.line}`, color: theme.textSoft, fontSize: 12.5, lineHeight: 1.75 }}>{e.sign.interpretation}</div>}
+          </div>
         </div>
       )}
 
@@ -1117,6 +1171,24 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
       }
 
       {/* revisit notes */}
+      {e.quoteSuggestions && e.quoteSuggestions.length > 0 && (
+        <div style={{ padding: '28px 32px 0' }}>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginBottom: 12 }}>拾 句 建 议</div>
+          {e.quoteSuggestions.map((item, index) => {
+            const collected = (e.collectedQuotes || []).includes(item.quote);
+            return <div key={index} style={{ marginBottom: 10, padding: '14px 15px', borderRadius: 14, background: theme.surface, border: `0.5px solid ${theme.line}` }}>
+              <div className="serif" style={{ fontSize: 15, color: theme.text, lineHeight: 1.7 }}>“{item.quote}”</div>
+              <div style={{ fontSize: 11.5, color: theme.textMute, marginTop: 6, lineHeight: 1.55 }}>{item.reason || '这句话值得日后重读。'}</div>
+              <button type="button" disabled={collected || !onCollectQuote} onClick={() => onCollectQuote?.(item.quote)} style={{
+                marginTop: 9, height: 30, padding: '0 12px', borderRadius: 15,
+                border: `0.5px solid ${theme.line}`, background: collected ? theme.surfaceSoft : theme.paper,
+                color: collected ? theme.textMute : theme.seal, fontFamily: 'inherit', cursor: collected ? 'default' : 'pointer',
+              }}>{collected ? '已收入拾句册' : '收入拾句册'}</button>
+            </div>;
+          })}
+        </div>
+      )}
+
       <div style={{ padding: '32px 32px 0' }}>
         {actionError && <div style={{ marginBottom: 12, color: theme.seal, fontSize: 12, lineHeight: 1.6 }}>{actionError}</div>}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
@@ -1186,7 +1258,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
               </button>
             </div>
             <div style={{ backgroundColor: theme.paper, borderRadius: 18, padding: '22px 20px', border: `0.5px solid ${theme.line}`, textAlign: 'center', overflow: 'hidden', ...paperBg(e.paper || 'plain', theme) }}>
-              <div style={{ background: customPaper ? 'rgba(255,253,247,.78)' : 'rgba(255,253,247,.48)', borderRadius: 14, padding: '18px 12px' }}>
+              <div style={{ background: customPaper ? 'rgba(255,253,247,.88)' : 'rgba(255,253,247,.48)', borderRadius: 14, padding: '18px 8px' }}>
               <div className="serif" style={{ fontSize: 25, color: theme.text, letterSpacing: 7, paddingLeft: 7 }}>{e.poem.title}</div>
               <div style={{ width: 26, height: 1, background: theme.accent, margin: '14px auto 18px' }}/>
               <PoemBody lines={e.poem.lines || []} size={18} theme={theme}/>
