@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.12-r20';
+const APP_BUILD = '2026.06.12-r22';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -578,7 +578,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
             style={{
               width: '100%', border: 'none', borderBottom: `0.5px solid ${customPaper ? 'rgba(81,74,67,.18)' : theme.line}`,
               outline: 'none', background: 'transparent', color: paperInk,
-              fontFamily: "'Noto Serif SC', serif", fontSize: 23, fontWeight: 500,
+              fontFamily: theme.fontSerif || "'Noto Serif SC', serif", fontSize: 23, fontWeight: 500,
               letterSpacing: 1.5, padding: '4px 0 10px',
             }}
           />
@@ -588,8 +588,8 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
             style={{
               width: '100%', height: '100%', border: 'none', outline: 'none', resize: 'none',
               background: 'transparent', color: paperInk,
-              fontFamily: "'Noto Serif SC', serif",
-              fontSize: 17, lineHeight: activePaper === 'ruled' ? '34px' : 1.95, letterSpacing: 0.5,
+              fontFamily: theme.fontWriting || theme.fontSerif || "'Noto Serif SC', serif",
+              fontSize: 17, lineHeight: activePaper === 'ruled' ? '34px' : (theme.writingLineHeight || 1.95), letterSpacing: theme.writingSpacing ?? 0.5,
             }}
           />
         </div>
@@ -1048,6 +1048,14 @@ function AppReal() {
   const setThemeKey = k => { localStorage.setItem('diary-theme', k); setThemeKey_(k); };
   const setPaper = k => { localStorage.setItem('diary-paper', k); setPaper_(k); };
 
+  React.useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.theme = themeKey;
+    root.style.setProperty('--theme-body-font', theme.fontBody || "'Noto Sans SC', sans-serif");
+    root.style.setProperty('--theme-serif-font', theme.fontSerif || "'Noto Serif SC', serif");
+    root.style.setProperty('--theme-writing-font', theme.fontWriting || theme.fontSerif || "'Noto Serif SC', serif");
+  }, [themeKey, theme.fontBody, theme.fontSerif, theme.fontWriting]);
+
   const push = (s, p = {}) => setStack(st => [...st, { screen: s, params: p }]);
   const pop  = () => setStack(st => st.length > 1 ? st.slice(0, -1) : st);
   const reset = s => setStack([{ screen: s, params: {} }]);
@@ -1172,6 +1180,10 @@ function AppReal() {
         onCollectQuote={quote => updateEntry(entry.id, {
           collectedQuotes: Array.from(new Set([...(entry.collectedQuotes || []), quote])),
         })}
+        onGenerateQuotes={entry.body?.trim() ? async () => {
+          const result = await apiPoem(entry.body);
+          await updateEntry(entry.id, { quoteSuggestions: result.quoteSuggestions || [] });
+        } : null}
         linkedHexagrams={hexagrams.filter(hex => hex.entryId === entry.id)}
         onStartHexagram={() => push('newhex', { entryId: entry.id, diaryContext: entry.body })}
         onDelete={async () => { await deleteEntry(entry.id); pop(); }}

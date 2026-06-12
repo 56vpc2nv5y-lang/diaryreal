@@ -9,12 +9,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="诗签">
 <meta name="theme-color" content="#E2EDE5">
-<link rel="manifest" href="manifest.webmanifest?v=20260612-r20">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=20260612-r20">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=20260612-r20">
+<link rel="manifest" href="manifest.webmanifest?v=20260612-r22">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=20260612-r22">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=20260612-r22">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
 
 <style>
   *, *::before, *::after { box-sizing: border-box; }
@@ -22,7 +22,7 @@
     margin: 0; padding: 0;
     height: 100%; overflow: hidden;
     background: #1a1510;
-    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+    font-family: var(--theme-body-font, 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif);
     -webkit-font-smoothing: antialiased;
   }
 
@@ -44,7 +44,8 @@
     }
   }
 
-  .serif { font-family: 'Noto Serif SC', 'Songti SC', serif; }
+  .serif { font-family: var(--theme-serif-font, 'Noto Serif SC', 'Songti SC', serif); }
+  .diary-writing { font-family: var(--theme-writing-font, 'Noto Serif SC', 'Songti SC', serif); }
   .no-scroll { scrollbar-width: none; -ms-overflow-style: none; }
   .no-scroll::-webkit-scrollbar { display: none; }
 
@@ -204,6 +205,28 @@
       margin-bottom: 28px;
     }
   }
+  .theme-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(104px, 126px));
+    justify-content: start;
+    gap: 12px;
+    padding: 14px 16px 16px;
+  }
+  .theme-card-preview {
+    aspect-ratio: 1.18 / 1;
+    min-height: 86px;
+  }
+  @media (max-width: 520px) {
+    .theme-picker-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+      padding: 12px;
+    }
+    .theme-card-preview {
+      min-height: 76px;
+      aspect-ratio: 1.08 / 1;
+    }
+  }
 </style>
 </head>
 <body>
@@ -215,7 +238,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- ── Your Firebase config (edit firebase-config.js) ────────── -->
-<script src="firebase-config.js?v=20260612-r20"></script>
+<script src="firebase-config.js?v=20260612-r22"></script>
 
 <!-- ── React + Babel ─────────────────────────────────────────── -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -223,16 +246,16 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- ── Shared data (THEMES, HEXAGRAMS, TAGS) ─────────────────── -->
-<script src="data.js?v=20260612-r20"></script>
+<script src="data.js?v=20260612-r22"></script>
 
 <!-- ── UI components (load order matters) ────────────────────── -->
-<script type="text/babel" src="primitives.jsx?v=20260612-r20"></script>
-<script type="text/babel" src="screens-main.jsx?v=20260612-r20"></script>
-<script type="text/babel" src="screens-other.jsx?v=20260612-r20"></script>
-<script type="text/babel" src="enhancements.jsx?v=20260612-r20"></script>
+<script type="text/babel" src="primitives.jsx?v=20260612-r22"></script>
+<script type="text/babel" src="screens-main.jsx?v=20260612-r22"></script>
+<script type="text/babel" src="screens-other.jsx?v=20260612-r22"></script>
+<script type="text/babel" src="enhancements.jsx?v=20260612-r22"></script>
 
 <!-- ── Real app ──────────────────────────────────────────────── -->
-<script type="text/babel" src="app-real.jsx?v=20260612-r20"></script>
+<script type="text/babel" src="app-real.jsx?v=20260612-r22"></script>
 
 <script>
   if ('serviceWorker' in navigator) {

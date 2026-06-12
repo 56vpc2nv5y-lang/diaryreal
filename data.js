@@ -1,5 +1,5 @@
 // data.js — sample diary entries + theme tokens
-// 3 主题: 青瓷 / 马卡龙 / 曼德拉
+// 6 主题: 青瓷 / 马卡龙 / 曼德拉 / 夜航 / 旧书房 / 暮云
 
 window.THEMES = {
   celadon: {
@@ -14,6 +14,12 @@ window.THEMES = {
     accent: '#4D9A76',      // vivid celadon green
     seal: '#D14A3D',        // brighter cinnabar
     paper: '#F4FAF5',
+    fontSerif: "'Noto Serif SC', 'Songti SC', serif",
+    fontWriting: "'Noto Serif SC', 'Songti SC', serif",
+    fontBody: "'Noto Sans SC', 'PingFang SC', sans-serif",
+    fontCanvas: "'Noto Serif SC', serif",
+    writingSpacing: 0.4,
+    writingLineHeight: 2,
   },
   macaron: {
     name: '马卡龙',
@@ -27,6 +33,12 @@ window.THEMES = {
     accent: '#E78BA9',      // pop rose
     seal: '#5378B6',        // blueberry blue — multi-hue pop
     paper: '#FFF6F2',
+    fontSerif: "'Noto Sans SC', 'PingFang SC', sans-serif",
+    fontWriting: "'LXGW WenKai', 'Noto Serif SC', serif",
+    fontBody: "'Noto Sans SC', 'PingFang SC', sans-serif",
+    fontCanvas: "'Noto Sans SC', sans-serif",
+    writingSpacing: 0.6,
+    writingLineHeight: 2.05,
   },
   mandela: {
     name: '曼德拉',
@@ -40,6 +52,69 @@ window.THEMES = {
     accent: '#E08930',      // sunset orange
     seal: '#B5392B',        // bright red
     paper: '#FFF7DA',
+    fontSerif: "'ZCOOL XiaoWei', 'Noto Serif SC', serif",
+    fontWriting: "'Noto Serif SC', 'Songti SC', serif",
+    fontBody: "'Noto Sans SC', 'PingFang SC', sans-serif",
+    fontCanvas: "'ZCOOL XiaoWei', 'Noto Serif SC', serif",
+    writingSpacing: 0.65,
+    writingLineHeight: 2.05,
+  },
+  night: {
+    name: '夜航',
+    bg: '#111B2A',
+    surface: '#19273A',
+    surfaceSoft: '#24364C',
+    text: '#EDF2F0',
+    textSoft: '#B9C8C5',
+    textMute: '#778D91',
+    line: 'rgba(214,229,225,0.12)',
+    accent: '#8FB9B0',
+    seal: '#D5AA67',
+    paper: '#172436',
+    fontSerif: "'Noto Sans SC', 'PingFang SC', sans-serif",
+    fontWriting: "'Noto Sans SC', 'PingFang SC', sans-serif",
+    fontBody: "'Noto Sans SC', 'PingFang SC', sans-serif",
+    fontCanvas: "'Noto Sans SC', sans-serif",
+    writingSpacing: 0.3,
+    writingLineHeight: 1.95,
+  },
+  study: {
+    name: '旧书房',
+    bg: '#D8C5A6',
+    surface: '#E7D8BC',
+    surfaceSoft: '#C9B18C',
+    text: '#34271D',
+    textSoft: '#705943',
+    textMute: '#9B8162',
+    line: 'rgba(75,50,29,0.14)',
+    accent: '#98724B',
+    seal: '#7E3428',
+    paper: '#F0E4CC',
+    fontSerif: "'FangSong', 'STFangsong', 'Noto Serif SC', serif",
+    fontWriting: "'FangSong', 'STFangsong', 'Noto Serif SC', serif",
+    fontBody: "'FangSong', 'STFangsong', 'Noto Serif SC', serif",
+    fontCanvas: "'FangSong', 'Noto Serif SC', serif",
+    writingSpacing: 0.9,
+    writingLineHeight: 2.1,
+  },
+  dusk: {
+    name: '暮云',
+    bg: '#E8E3ED',
+    surface: '#F2EEF5',
+    surfaceSoft: '#D8CFE0',
+    text: '#302A38',
+    textSoft: '#70647C',
+    textMute: '#A79BB1',
+    line: 'rgba(66,48,82,0.11)',
+    accent: '#8C79A4',
+    seal: '#A75D65',
+    paper: '#FAF7FB',
+    fontSerif: "'LXGW WenKai', 'KaiTi', 'STKaiti', 'Noto Serif SC', serif",
+    fontWriting: "'LXGW WenKai', 'KaiTi', 'STKaiti', 'Noto Serif SC', serif",
+    fontBody: "'LXGW WenKai', 'Noto Serif SC', serif",
+    fontCanvas: "'LXGW WenKai', 'Noto Serif SC', serif",
+    writingSpacing: 0.7,
+    writingLineHeight: 2.05,
   },
 };
 

@@ -828,6 +828,7 @@ function renderBodyWithAnchors(body, inlineNotes, theme, selectedId, onSelect) {
 }
 
 async function createPoemCardBlob(entry, theme) {
+  try { await document.fonts?.ready; } catch {}
   const canvas = document.createElement('canvas');
   canvas.width = 1080;
   canvas.height = 1440;
@@ -880,7 +881,7 @@ async function createPoemCardBlob(entry, theme) {
 
   ctx.textAlign = 'center';
   ctx.fillStyle = theme.text;
-  ctx.font = "500 74px 'Noto Serif SC', serif";
+  ctx.font = `500 74px ${theme.fontCanvas || "'Noto Serif SC', serif"}`;
   ctx.fillText(entry.poem.title || '无题', 540, 360);
   ctx.fillStyle = theme.accent;
   ctx.fillRect(500, 414, 80, 3);
@@ -890,14 +891,14 @@ async function createPoemCardBlob(entry, theme) {
   const canvasLineSize = canvasPoemLines.length > 4 ? 42 : 52;
   const canvasLineGap = canvasPoemLines.length > 4 ? 78 : 120;
   const canvasStartY = canvasPoemLines.length > 4 ? 510 : 550;
-  ctx.font = `500 ${canvasLineSize}px 'Noto Serif SC', serif`;
+  ctx.font = `500 ${canvasLineSize}px ${theme.fontCanvas || "'Noto Serif SC', serif"}`;
   canvasPoemLines.forEach((line, index) => ctx.fillText(line, 540, canvasStartY + index * canvasLineGap, 760));
 
   ctx.fillStyle = theme.textSoft;
-  ctx.font = "400 27px 'Noto Sans SC', sans-serif";
+  ctx.font = `400 27px ${theme.fontBody || "'Noto Sans SC', sans-serif"}`;
   ctx.fillText(`${entry.date || ''}${entry.place ? ` · ${entry.place}` : ''}`, 540, 1080);
   ctx.fillStyle = theme.seal;
-  ctx.font = "600 30px 'Noto Serif SC', serif";
+  ctx.font = `600 30px ${theme.fontCanvas || "'Noto Serif SC', serif"}`;
   ctx.fillText('诗 签', 540, 1270);
 
   return new Promise((resolve, reject) => {
@@ -905,7 +906,7 @@ async function createPoemCardBlob(entry, theme) {
   });
 }
 
-function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onAddNote, onCollectQuote, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
+function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onAddNote, onCollectQuote, onGenerateQuotes, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
   const e = entry;
   const hasPoem = showPoem && !!e.poem;
   const detailPaper = paperBg(e.paper || 'plain', theme);
@@ -923,6 +924,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
   const [preview, setPreview] = React.useState(null);
   const [shareOpen, setShareOpen] = React.useState(false);
   const [shareBusy, setShareBusy] = React.useState(false);
+  const [quoteBusy, setQuoteBusy] = React.useState(false);
   const [actionError, setActionError] = React.useState('');
   const noteNow = new Date().toLocaleString('zh-CN', { hour12: false });
 
@@ -956,6 +958,14 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
     try { await onGeneratePoem(); }
     catch (err) { setActionError('生成诗失败：' + (err?.message || '未知错误')); }
     finally { setBusy(false); }
+  };
+
+  const generateQuotes = async () => {
+    if (!onGenerateQuotes) return;
+    setQuoteBusy(true); setActionError('');
+    try { await onGenerateQuotes(); }
+    catch (err) { setActionError('AI 拾句失败：' + (err?.message || '未知错误')); }
+    finally { setQuoteBusy(false); }
   };
 
   const poemShareText = e.poem
@@ -1127,7 +1137,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
             <div style={{ fontSize: 11, color: theme.seal, letterSpacing: 1 }}>· {e.inlineNotes.length} 点评</div>
           )}
         </div>
-        <div className="serif" style={{ fontSize: 16, lineHeight: 2.0, color: theme.text, letterSpacing: 0.4 }}>
+        <div style={{ fontFamily: theme.fontWriting || theme.fontSerif, fontSize: 16, lineHeight: theme.writingLineHeight || 2.0, color: theme.text, letterSpacing: theme.writingSpacing ?? 0.4 }}>
           {renderBodyWithAnchors(e.body, e.inlineNotes, theme)}
         </div>
         {/* tags */}
@@ -1170,11 +1180,26 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
         </div>
       }
 
-      {/* revisit notes */}
-      {e.quoteSuggestions && e.quoteSuggestions.length > 0 && (
-        <div style={{ padding: '28px 32px 0' }}>
-          <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginBottom: 12 }}>拾 句 建 议</div>
-          {e.quoteSuggestions.map((item, index) => {
+      {/* AI quote suggestions */}
+      <div style={{ padding: '28px 32px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>AI 拾 句</div>
+            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 5 }}>从日记原文中发现值得留下的句子</div>
+          </div>
+          <button type="button" disabled={quoteBusy || !onGenerateQuotes} onClick={generateQuotes} style={{
+            flexShrink: 0, height: 32, padding: '0 12px', borderRadius: 16,
+            border: `0.5px solid ${theme.line}`, background: theme.paper,
+            color: onGenerateQuotes ? theme.seal : theme.textMute, fontFamily: 'inherit',
+            cursor: quoteBusy || !onGenerateQuotes ? 'default' : 'pointer',
+          }}>{quoteBusy ? '正在拾句…' : (e.quoteSuggestions?.length ? '重新拾句' : '让 AI 拾句')}</button>
+        </div>
+        {(!e.quoteSuggestions || e.quoteSuggestions.length === 0) && (
+          <div style={{ padding: '16px 15px', borderRadius: 14, background: theme.surface, border: `0.5px dashed ${theme.line}`, color: theme.textMute, fontSize: 12.5, lineHeight: 1.7 }}>
+            这篇日记还没有拾句建议。点击“让 AI 拾句”，旧日记也可以补做。
+          </div>
+        )}
+        {e.quoteSuggestions && e.quoteSuggestions.map((item, index) => {
             const collected = (e.collectedQuotes || []).includes(item.quote);
             return <div key={index} style={{ marginBottom: 10, padding: '14px 15px', borderRadius: 14, background: theme.surface, border: `0.5px solid ${theme.line}` }}>
               <div className="serif" style={{ fontSize: 15, color: theme.text, lineHeight: 1.7 }}>“{item.quote}”</div>
@@ -1186,8 +1211,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
               }}>{collected ? '已收入拾句册' : '收入拾句册'}</button>
             </div>;
           })}
-        </div>
-      )}
+      </div>
 
       <div style={{ padding: '32px 32px 0' }}>
         {actionError && <div style={{ marginBottom: 12, color: theme.seal, fontSize: 12, lineHeight: 1.6 }}>{actionError}</div>}

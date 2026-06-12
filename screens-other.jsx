@@ -344,11 +344,14 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
 
       {/* theme picker */}
       <SettingsSection theme={theme} title="主 题 皮 肤">
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, padding: '14px 16px' }}>
+        <div className="theme-picker-grid">
           {[
-            { key: 'celadon', label: '青瓷', swatch: ['#7B9485', '#E8E6DC', '#B14638'] },
-            { key: 'macaron', label: '马卡龙', swatch: ['#D89BA0', '#F4E8E4', '#C2604A'] },
-            { key: 'mandela', label: '曼德拉', swatch: ['#C99461', '#EDE1CD', '#8B3A2E'] },
+            { key: 'celadon', label: '青瓷', swatch: ['#7B9485', '#E8E6DC', '#B14638'], font: window.THEMES.celadon.fontSerif },
+            { key: 'macaron', label: '马卡龙', swatch: ['#D89BA0', '#F4E8E4', '#C2604A'], font: window.THEMES.macaron.fontSerif },
+            { key: 'mandela', label: '曼德拉', swatch: ['#C99461', '#EDE1CD', '#8B3A2E'], font: window.THEMES.mandela.fontSerif },
+            { key: 'night', label: '夜航', swatch: ['#8FB9B0', '#172436', '#D5AA67'], font: window.THEMES.night.fontSerif },
+            { key: 'study', label: '旧书房', swatch: ['#98724B', '#F0E4CC', '#7E3428'], font: window.THEMES.study.fontSerif },
+            { key: 'dusk', label: '暮云', swatch: ['#8C79A4', '#FAF7FB', '#A75D65'], font: window.THEMES.dusk.fontSerif },
           ].map(t => {
             const active = t.key === currentThemeKey;
             return (
@@ -356,28 +359,28 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
                 background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
               }}>
-                <div style={{
-                  width: '100%', aspectRatio: '1', borderRadius: 14,
+                <div className="theme-card-preview" style={{
+                  width: '100%', borderRadius: 12,
                   background: t.swatch[1],
                   border: active ? `1.5px solid ${theme.text}` : `0.5px solid ${theme.line}`,
-                  padding: 12, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                  padding: 9, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
                   position: 'relative', overflow: 'hidden',
                 }}>
                   <div style={{ display: 'flex', gap: 4 }}>
-                    {t.swatch.map((c, i) => <div key={i} style={{ width: 12, height: 12, borderRadius: 6, background: c, border: i === 1 ? `0.5px solid ${theme.line}` : 'none' }}/>)}
+                    {t.swatch.map((c, i) => <div key={i} style={{ width: 9, height: 9, borderRadius: 5, background: c, border: i === 1 ? `0.5px solid ${theme.line}` : 'none' }}/>)}
                   </div>
-                  <div className="serif" style={{
-                    fontSize: 16, color: t.swatch[0], letterSpacing: 2, alignSelf: 'flex-end', fontWeight: 500,
+                  <div style={{
+                    fontFamily: t.font, fontSize: 14, color: t.swatch[0], letterSpacing: 2, alignSelf: 'flex-end', fontWeight: 500,
                   }}>诗</div>
                   {active && (
                     <div style={{
-                      position: 'absolute', top: 8, right: 8, width: 18, height: 18, borderRadius: 9,
+                      position: 'absolute', top: 7, right: 7, width: 17, height: 17, borderRadius: 9,
                       background: theme.text, color: theme.bg,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10,
                     }}>✓</div>
                   )}
                 </div>
-                <div style={{ fontSize: 12, color: active ? theme.text : theme.textSoft, fontWeight: active ? 600 : 400 }}>{t.label}</div>
+                <div style={{ fontSize: 11.5, color: active ? theme.text : theme.textSoft, fontWeight: active ? 600 : 400 }}>{t.label}</div>
               </button>
             );
           })}
