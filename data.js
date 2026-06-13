@@ -1,5 +1,5 @@
 // data.js — sample diary entries + theme tokens
-// 6 主题: 青瓷 / 马卡龙 / 曼德拉 / 夜航 / 旧书房 / 暮云
+// 4 主题: 青瓷 / 夜航 / 旧书房 / 暮云
 
 window.THEMES = {
   celadon: {
@@ -21,46 +21,9 @@ window.THEMES = {
     writingSpacing: 0.4,
     writingLineHeight: 2,
   },
-  macaron: {
-    name: '马卡龙',
-    bg: '#FBE3DC',          // peachy cream
-    surface: '#FEF1ED',
-    surfaceSoft: '#F2CCC1',
-    text: '#3A2730',
-    textSoft: '#82565F',
-    textMute: '#C29CA1',
-    line: 'rgba(100,40,55,0.10)',
-    accent: '#E78BA9',      // pop rose
-    seal: '#5378B6',        // blueberry blue — multi-hue pop
-    paper: '#FFF6F2',
-    fontSerif: "'Noto Sans SC', 'PingFang SC', sans-serif",
-    fontWriting: "'LXGW WenKai', 'Noto Serif SC', serif",
-    fontBody: "'Noto Sans SC', 'PingFang SC', sans-serif",
-    fontCanvas: "'Noto Sans SC', sans-serif",
-    writingSpacing: 0.6,
-    writingLineHeight: 2.05,
-  },
-  mandela: {
-    name: '曼德拉',
-    bg: '#FCECC2',          // warm cream-yellow
-    surface: '#FEF5D5',
-    surfaceSoft: '#ECD79E',
-    text: '#352010',
-    textSoft: '#7E5A2C',
-    textMute: '#BFA070',
-    line: 'rgba(100,60,15,0.10)',
-    accent: '#E08930',      // sunset orange
-    seal: '#B5392B',        // bright red
-    paper: '#FFF7DA',
-    fontSerif: "'ZCOOL XiaoWei', 'Noto Serif SC', serif",
-    fontWriting: "'Noto Serif SC', 'Songti SC', serif",
-    fontBody: "'Noto Sans SC', 'PingFang SC', sans-serif",
-    fontCanvas: "'ZCOOL XiaoWei', 'Noto Serif SC', serif",
-    writingSpacing: 0.65,
-    writingLineHeight: 2.05,
-  },
   night: {
     name: '夜航',
+    isDark: true,
     bg: '#111B2A',
     surface: '#19273A',
     surfaceSoft: '#24364C',

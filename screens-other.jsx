@@ -347,8 +347,6 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         <div className="theme-picker-grid">
           {[
             { key: 'celadon', label: '青瓷', swatch: ['#7B9485', '#E8E6DC', '#B14638'], font: window.THEMES.celadon.fontSerif },
-            { key: 'macaron', label: '马卡龙', swatch: ['#D89BA0', '#F4E8E4', '#C2604A'], font: window.THEMES.macaron.fontSerif },
-            { key: 'mandela', label: '曼德拉', swatch: ['#C99461', '#EDE1CD', '#8B3A2E'], font: window.THEMES.mandela.fontSerif },
             { key: 'night', label: '夜航', swatch: ['#8FB9B0', '#172436', '#D5AA67'], font: window.THEMES.night.fontSerif },
             { key: 'study', label: '旧书房', swatch: ['#98724B', '#F0E4CC', '#7E3428'], font: window.THEMES.study.fontSerif },
             { key: 'dusk', label: '暮云', swatch: ['#8C79A4', '#FAF7FB', '#A75D65'], font: window.THEMES.dusk.fontSerif },

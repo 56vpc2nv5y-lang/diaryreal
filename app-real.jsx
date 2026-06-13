@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.12-r22';
+const APP_BUILD = '2026.06.12-r24';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -524,9 +524,9 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
           position: 'relative', zIndex: 2,
         }}>
           <button onClick={onBack} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 8 }}>
-            <IconClose color={theme.textSoft} size={20}/>
+            <IconClose color={customPaper ? paperSoft : theme.textSoft} size={20}/>
           </button>
-          <div style={{ fontSize: 12, color: theme.textSoft, fontWeight: 500 }}>{editing ? '编辑日记' : '新日记'}</div>
+          <div style={{ fontSize: 12, color: customPaper ? paperSoft : theme.textSoft, fontWeight: 500 }}>{editing ? '编辑日记' : '新日记'}</div>
           <button type="button" onClick={() => setPaperOpen(true)} style={{ height: 28, padding: '0 10px', borderRadius: 14, background: customPaper ? 'rgba(255,253,247,.76)' : theme.surface + 'dd', border: `0.5px solid ${customPaper ? 'rgba(81,74,67,.16)' : theme.line}`, backdropFilter: customPaper ? 'blur(12px)' : 'none', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: paperSoft, letterSpacing: 1.5, fontFamily: 'inherit', cursor: 'pointer' }}>
             <span style={{ width: 4, height: 4, borderRadius: 2, background: theme.accent, display: 'inline-block' }}/>
             {selectedPaper.name}
@@ -1032,9 +1032,10 @@ function AppReal() {
   const [entries, setEntries] = React.useState([]);
   const [hexagrams, setHexagrams] = React.useState([]);
   const [stack, setStack] = React.useState([{ screen: 'home', params: {} }]);
-  const [themeKey, setThemeKey_] = React.useState(
-    () => localStorage.getItem('diary-theme') || 'celadon'
-  );
+  const [themeKey, setThemeKey_] = React.useState(() => {
+    const saved = localStorage.getItem('diary-theme') || 'celadon';
+    return window.THEMES[saved] ? saved : 'celadon';
+  });
   const [paper, setPaper_] = React.useState(
     () => {
       const saved = localStorage.getItem('diary-paper') || 'plain';

@@ -212,7 +212,7 @@ function App() {
         {t.showNotes && (
           <React.Fragment>
             <DCPostIt top={-30} left={20} rotate={-3} width={210}>
-              点击右下角 ⓘ Tweaks 切换三套主题 · 信纸背景 · 横/竖排诗签
+              点击右下角 ⓘ Tweaks 切换四套主题 · 信纸背景 · 横/竖排诗签
             </DCPostIt>
           </React.Fragment>
         )}
@@ -225,11 +225,12 @@ function App() {
           value={[window.THEMES[t.theme].bg, window.THEMES[t.theme].accent, window.THEMES[t.theme].seal]}
           options={[
             [window.THEMES.celadon.bg, window.THEMES.celadon.accent, window.THEMES.celadon.seal],
-            [window.THEMES.macaron.bg, window.THEMES.macaron.accent, window.THEMES.macaron.seal],
-            [window.THEMES.mandela.bg, window.THEMES.mandela.accent, window.THEMES.mandela.seal],
+            [window.THEMES.night.bg, window.THEMES.night.accent, window.THEMES.night.seal],
+            [window.THEMES.study.bg, window.THEMES.study.accent, window.THEMES.study.seal],
+            [window.THEMES.dusk.bg, window.THEMES.dusk.accent, window.THEMES.dusk.seal],
           ]}
           onChange={(palette) => {
-            const keys = ['celadon', 'macaron', 'mandela'];
+            const keys = ['celadon', 'night', 'study', 'dusk'];
             for (const k of keys) {
               const th = window.THEMES[k];
               if ([th.bg, th.accent, th.seal].join(',') === palette.join(',')) {
@@ -243,8 +244,9 @@ function App() {
           value={t.theme}
           options={[
             { value: 'celadon', label: '青瓷' },
-            { value: 'macaron', label: '马卡龙' },
-            { value: 'mandela', label: '曼德拉' },
+            { value: 'night', label: '夜航' },
+            { value: 'study', label: '旧书房' },
+            { value: 'dusk', label: '暮云' },
           ]}
           onChange={(v) => setTweak('theme', v)}
         />
@@ -350,10 +352,11 @@ function SystemNote() {
       <Row label="主色调" v="温暖白底 · 0.02 以下饱和" />
       <Row label="点缀" v="单一 accent · 印章用朱砂红" />
       <Hr/>
-      <div style={{ fontSize: 12, letterSpacing: 2, color: '#69655c', marginBottom: 10, fontWeight: 600 }}>三 套 皮 肤</div>
+      <div style={{ fontSize: 12, letterSpacing: 2, color: '#69655c', marginBottom: 10, fontWeight: 600 }}>四 套 皮 肤</div>
       <Swatches theme={window.THEMES.celadon} name="青瓷" desc="薄荷、深青 · 虔诚、清醒" />
-      <Swatches theme={window.THEMES.macaron} name="马卡龙" desc="桃粉 × 莓蓝 · 多色、5香" />
-      <Swatches theme={window.THEMES.mandela} name="曼德拉" desc="奶黄 × 晚霞橙 · 明亮、温暖" />
+      <Swatches theme={window.THEMES.night} name="夜航" desc="深靛、月白 · 安静、专注" />
+      <Swatches theme={window.THEMES.study} name="旧书房" desc="旧纸、胡桃木 · 温暖、沉静" />
+      <Swatches theme={window.THEMES.dusk} name="暮云" desc="雾紫、文楷 · 柔和、轻盈" />
       <Hr/>
       <div style={{ fontSize: 12, color: '#69655c', lineHeight: 1.7, letterSpacing: 0.3 }}>
         印章是诗签身份的标识 — 朱砂、圆角方、内置两字（取诗题首两字）、轻微旋转，出现在每张签上。

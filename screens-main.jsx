@@ -909,11 +909,28 @@ async function createPoemCardBlob(entry, theme) {
 function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onAddNote, onCollectQuote, onGenerateQuotes, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
   const e = entry;
   const hasPoem = showPoem && !!e.poem;
-  const detailPaper = paperBg(e.paper || 'plain', theme);
+  const appTheme = theme;
+  const detailPaper = paperBg(e.paper || 'plain', appTheme);
   const customPaper = (e.paper || '').startsWith('art-');
+  const darkThemeOnLightPaper = customPaper && appTheme.isDark;
+  if (darkThemeOnLightPaper) {
+    theme = {
+      ...appTheme,
+      bg: '#F7F2E8',
+      paper: '#FFFCF5',
+      surface: 'rgba(255,252,245,.88)',
+      surfaceSoft: '#E9E0D2',
+      text: '#403A34',
+      textSoft: '#665E56',
+      textMute: '#8B8176',
+      line: 'rgba(64,58,52,.14)',
+      accent: '#6E9188',
+      seal: '#9B6A2F',
+    };
+  }
   const detailContentStyle = customPaper ? {
     ...detailPaper,
-    backgroundImage: `linear-gradient(rgba(255,253,247,.78), rgba(255,253,247,.78)), ${detailPaper.backgroundImage}`,
+    backgroundImage: `linear-gradient(${darkThemeOnLightPaper ? 'rgba(250,247,240,.70)' : 'rgba(255,253,247,.78)'}, ${darkThemeOnLightPaper ? 'rgba(250,247,240,.70)' : 'rgba(255,253,247,.78)'}), ${detailPaper.backgroundImage}`,
     backgroundSize: `100% 100%, ${detailPaper.backgroundSize || '100% 100%'}`,
   } : detailPaper;
   const [c1, c2] = sealChars(e.poem?.title || '日记');
