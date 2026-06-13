@@ -18,6 +18,8 @@
     return;
   }
 
+  delete window.THEMES.night;
+
   if (!window.THEMES.inkPlum) {
     window.THEMES.inkPlum = {
       ...window.THEMES.study,
