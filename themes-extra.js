@@ -1,4 +1,12 @@
 (function installSelectedThemes() {
+  const removeRetiredThemes = (themes) => {
+    if (!themes) return themes;
+    delete themes.night;
+    delete themes.macaron;
+    delete themes.mandela;
+    return themes;
+  };
+
   if (!window.THEMES) {
     let themes;
     Object.defineProperty(window, 'THEMES', {
@@ -7,7 +15,7 @@
         return themes;
       },
       set: function setThemes(value) {
-        themes = value;
+        themes = removeRetiredThemes(value);
         installSelectedThemes();
       },
     });
@@ -174,7 +182,154 @@
     },
   });
 
-  delete window.THEMES.night;
-  delete window.THEMES.macaron;
-  delete window.THEMES.mandela;
+  // 晨报：清晨报纸的清醒秩序，保留温暖与朝气。
+  window.THEMES.morningPaper = makeTheme(window.THEMES.study, {
+    key: 'morningPaper',
+    name: '晨报',
+    description: '晨光拂纸，清明有信',
+    fontSerif: fonts.song,
+    fontWriting: fonts.song,
+    fontBody: fonts.song,
+    fontCanvas: fonts.song,
+    writingSpacing: '0.045em',
+    writingLineHeight: 1.9,
+    palette: {
+      bg: '#f0e9dc',
+      paper: '#fbf7ee',
+      card: '#fcf8ef',
+      surface: '#fcf8ef',
+      panel: '#f5eee2',
+      ink: '#292723',
+      muted: '#81796d',
+      accent: '#b64a3b',
+      accentSoft: '#ead8cb',
+      line: '#8f887d',
+      border: '#c9c0b2',
+      nav: '#f8f2e8',
+      seal: '#b53e32',
+    },
+  });
+
+  // 海盐：明亮海风、开阔留白与清澈海蓝。
+  window.THEMES.seaSalt = makeTheme(window.THEMES.celadon, {
+    key: 'seaSalt',
+    name: '海盐',
+    description: '海风轻拂，心境通明',
+    fontSerif: fonts.song,
+    fontWriting: fonts.writing,
+    fontBody: fonts.song,
+    fontCanvas: fonts.song,
+    writingSpacing: '0.075em',
+    writingLineHeight: 2,
+    palette: {
+      bg: '#e8f1f4',
+      paper: '#fffdf7',
+      card: '#fffefa',
+      surface: '#fffefa',
+      panel: '#f2f8f9',
+      ink: '#245b82',
+      muted: '#7598ae',
+      accent: '#4d82a6',
+      accentSoft: '#d5e8ee',
+      line: '#a9cad7',
+      border: '#c5dce4',
+      nav: '#f5faf9',
+      seal: '#5486a5',
+    },
+  });
+
+  // 曜石晨光：暖白为主，黑曜只作为小面积坚定点缀。
+  window.THEMES.obsidianDawn = makeTheme(window.THEMES.celadon, {
+    key: 'obsidianDawn',
+    name: '曜石晨光',
+    description: '温润如晨，内敛有光',
+    fontSerif: fonts.refined,
+    fontWriting: fonts.writing,
+    fontBody: fonts.song,
+    fontCanvas: fonts.refined,
+    writingSpacing: '0.07em',
+    writingLineHeight: 1.95,
+    palette: {
+      bg: '#eeeae2',
+      paper: '#fbf8f1',
+      card: '#fffdf8',
+      surface: '#fffdf8',
+      panel: '#f4efe6',
+      ink: '#292b2a',
+      muted: '#7e7c76',
+      accent: '#303332',
+      accentSoft: '#e2ddd3',
+      line: '#b8ad99',
+      border: '#d1c8ba',
+      nav: '#f8f4ec',
+      seal: '#b98b45',
+    },
+  });
+
+  // 雪夜：月光映雪的明亮安宁，而非沉重深夜。
+  window.THEMES.snowNight = makeTheme(window.THEMES.dusk, {
+    key: 'snowNight',
+    name: '雪夜',
+    description: '月色如雪，心静自明',
+    fontSerif: fonts.refined,
+    fontWriting: fonts.writing,
+    fontBody: fonts.song,
+    fontCanvas: fonts.refined,
+    writingSpacing: '0.095em',
+    writingLineHeight: 2.05,
+    palette: {
+      bg: '#aebce1',
+      paper: '#f8f9ff',
+      card: '#fbfbff',
+      surface: '#fbfbff',
+      panel: '#edf0fb',
+      ink: '#365487',
+      muted: '#788bb8',
+      accent: '#6f83bd',
+      accentSoft: '#dce3f6',
+      line: '#bdc9e9',
+      border: '#d4dcf1',
+      nav: '#eef2fb',
+      seal: '#7889bc',
+    },
+  });
+
+  removeRetiredThemes(window.THEMES);
+
+  const syncThemeAttribute = () => {
+    removeRetiredThemes(window.THEMES);
+    const saved = localStorage.getItem('diary-theme');
+    if (saved === 'night' || saved === 'macaron' || saved === 'mandela') {
+      localStorage.setItem('diary-theme', 'celadon');
+    }
+    const selected = localStorage.getItem('diary-theme') || 'celadon';
+    document.documentElement.dataset.diaryTheme =
+      window.THEMES[selected] ? selected : 'celadon';
+
+    document
+      .querySelectorAll('button, [role="button"]')
+      .forEach((element) => {
+        const label = element.textContent?.replace(/\s+/g, '').trim();
+        if (label === '夜航' || label?.startsWith('夜航已选')) {
+          element.remove();
+        }
+      });
+  };
+
+  if (!window.__diaryThemeAttributeInstalled) {
+    window.__diaryThemeAttributeInstalled = true;
+    const originalSetItem = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = (key, value) => {
+      originalSetItem(key, value);
+      if (key === 'diary-theme') syncThemeAttribute();
+    };
+    window.addEventListener('storage', syncThemeAttribute);
+    window.addEventListener('DOMContentLoaded', syncThemeAttribute);
+    new MutationObserver(syncThemeAttribute).observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
+    window.setInterval(syncThemeAttribute, 500);
+    syncThemeAttribute();
+  }
 })();

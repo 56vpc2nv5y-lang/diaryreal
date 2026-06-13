@@ -228,7 +228,57 @@
     }
   }
 </style>
-  <script src="themes-extra.js?v=2026.06.13-r27"></script>
+  <script src="themes-extra.js?v=2026.06.13-r30"></script>
+  <style>
+    html[data-diary-theme="morningPaper"] {
+      --theme-card-radius: 8px;
+      --theme-control-radius: 6px;
+      --theme-card-shadow: 0 1px 0 rgba(41, 39, 35, .14);
+    }
+    html[data-diary-theme="seaSalt"] {
+      --theme-card-radius: 28px;
+      --theme-control-radius: 999px;
+      --theme-card-shadow: 0 10px 28px rgba(77, 130, 166, .11);
+    }
+    html[data-diary-theme="obsidianDawn"] {
+      --theme-card-radius: 20px;
+      --theme-control-radius: 10px;
+      --theme-card-shadow: 0 9px 24px rgba(48, 51, 50, .12);
+    }
+    html[data-diary-theme="snowNight"] {
+      --theme-card-radius: 26px;
+      --theme-control-radius: 18px;
+      --theme-card-shadow: 0 12px 30px rgba(72, 94, 151, .15);
+    }
+    html[data-diary-theme="morningPaper"] :is(button, input, textarea, select) {
+      border-radius: var(--theme-control-radius) !important;
+    }
+    html[data-diary-theme="morningPaper"] :is([class*="card"], [class*="panel"]) {
+      border-radius: var(--theme-card-radius) !important;
+      box-shadow: var(--theme-card-shadow) !important;
+    }
+    html[data-diary-theme="seaSalt"] :is(button, input, select) {
+      border-radius: var(--theme-control-radius) !important;
+    }
+    html[data-diary-theme="seaSalt"] :is([class*="card"], [class*="panel"]) {
+      border-radius: var(--theme-card-radius) !important;
+      box-shadow: var(--theme-card-shadow) !important;
+    }
+    html[data-diary-theme="obsidianDawn"] :is(button, input, select) {
+      border-radius: var(--theme-control-radius) !important;
+    }
+    html[data-diary-theme="obsidianDawn"] :is([class*="card"], [class*="panel"]) {
+      border-radius: var(--theme-card-radius) !important;
+      box-shadow: var(--theme-card-shadow) !important;
+    }
+    html[data-diary-theme="snowNight"] :is(button, input, select) {
+      border-radius: var(--theme-control-radius) !important;
+    }
+    html[data-diary-theme="snowNight"] :is([class*="card"], [class*="panel"]) {
+      border-radius: var(--theme-card-radius) !important;
+      box-shadow: var(--theme-card-shadow) !important;
+    }
+  </style>
 </head>
 <body>
 <div id="root"></div>
