@@ -225,12 +225,11 @@ function App() {
           value={[window.THEMES[t.theme].bg, window.THEMES[t.theme].accent, window.THEMES[t.theme].seal]}
           options={[
             [window.THEMES.celadon.bg, window.THEMES.celadon.accent, window.THEMES.celadon.seal],
-            [window.THEMES.night.bg, window.THEMES.night.accent, window.THEMES.night.seal],
             [window.THEMES.study.bg, window.THEMES.study.accent, window.THEMES.study.seal],
             [window.THEMES.dusk.bg, window.THEMES.dusk.accent, window.THEMES.dusk.seal],
           ]}
           onChange={(palette) => {
-            const keys = ['celadon', 'night', 'study', 'dusk'];
+            const keys = ['celadon', 'study', 'dusk'];
             for (const k of keys) {
               const th = window.THEMES[k];
               if ([th.bg, th.accent, th.seal].join(',') === palette.join(',')) {
@@ -244,7 +243,6 @@ function App() {
           value={t.theme}
           options={[
             { value: 'celadon', label: '青瓷' },
-            { value: 'night', label: '夜航' },
             { value: 'study', label: '旧书房' },
             { value: 'dusk', label: '暮云' },
           ]}
@@ -352,9 +350,8 @@ function SystemNote() {
       <Row label="主色调" v="温暖白底 · 0.02 以下饱和" />
       <Row label="点缀" v="单一 accent · 印章用朱砂红" />
       <Hr/>
-      <div style={{ fontSize: 12, letterSpacing: 2, color: '#69655c', marginBottom: 10, fontWeight: 600 }}>四 套 皮 肤</div>
+      <div style={{ fontSize: 12, letterSpacing: 2, color: '#69655c', marginBottom: 10, fontWeight: 600 }}>三 套 皮 肤</div>
       <Swatches theme={window.THEMES.celadon} name="青瓷" desc="薄荷、深青 · 虔诚、清醒" />
-      <Swatches theme={window.THEMES.night} name="夜航" desc="深靛、月白 · 安静、专注" />
       <Swatches theme={window.THEMES.study} name="旧书房" desc="旧纸、胡桃木 · 温暖、沉静" />
       <Swatches theme={window.THEMES.dusk} name="暮云" desc="雾紫、文楷 · 柔和、轻盈" />
       <Hr/>

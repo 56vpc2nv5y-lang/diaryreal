@@ -314,6 +314,22 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
       : syncState.pending
         ? `同步中 · ${syncState.pending} 项`
         : '已同步';
+  const themeGroups = [
+    { label: '清雅', keys: ['celadon', 'inkPlum', 'mossGarden'] },
+    { label: '温暖', keys: ['study', 'morningPaper', 'obsidianDawn'] },
+    { label: '轻盈', keys: ['dusk', 'seaSalt', 'snowNight'] },
+  ];
+  const themeRecommendations = {
+    celadon: '素雅浅色信纸 · 宋体或霞鹜文楷',
+    inkPlum: '宣纸或留白信纸 · 霞鹜文楷',
+    mossGarden: '植物边缘信纸 · 宋体',
+    study: '米白旧纸 · 宋体或霞鹜文楷',
+    morningPaper: '无图案信纸 · 宋体',
+    obsidianDawn: '暖白矿物纸 · 小薇体',
+    dusk: '低对比浅色信纸 · 小薇体',
+    seaSalt: '开阔浅蓝信纸 · 宋体',
+    snowNight: '月白或冰蓝信纸 · 小薇体',
+  };
   return (
     <Screen theme={theme} tab="settings" onTab={onTab}>
       <div style={{ padding: '64px 24px 24px' }}>
@@ -344,45 +360,51 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
 
       {/* theme picker */}
       <SettingsSection theme={theme} title="主 题 皮 肤">
-        <div className="theme-picker-grid">
-          {[
-            { key: 'celadon', label: '青瓷', swatch: ['#7B9485', '#E8E6DC', '#B14638'], font: window.THEMES.celadon.fontSerif },
-            { key: 'night', label: '夜航', swatch: ['#8FB9B0', '#172436', '#D5AA67'], font: window.THEMES.night.fontSerif },
-            { key: 'study', label: '旧书房', swatch: ['#98724B', '#F0E4CC', '#7E3428'], font: window.THEMES.study.fontSerif },
-            { key: 'dusk', label: '暮云', swatch: ['#8C79A4', '#FAF7FB', '#A75D65'], font: window.THEMES.dusk.fontSerif },
-          ].map(t => {
-            const active = t.key === currentThemeKey;
-            return (
-              <button key={t.key} onClick={() => onChangeTheme(t.key)} style={{
-                background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-              }}>
-                <div className="theme-card-preview" style={{
-                  width: '100%', borderRadius: 12,
-                  background: t.swatch[1],
-                  border: active ? `1.5px solid ${theme.text}` : `0.5px solid ${theme.line}`,
-                  padding: 9, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-                  position: 'relative', overflow: 'hidden',
-                }}>
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    {t.swatch.map((c, i) => <div key={i} style={{ width: 9, height: 9, borderRadius: 5, background: c, border: i === 1 ? `0.5px solid ${theme.line}` : 'none' }}/>)}
-                  </div>
-                  <div style={{
-                    fontFamily: t.font, fontSize: 14, color: t.swatch[0], letterSpacing: 2, alignSelf: 'flex-end', fontWeight: 500,
-                  }}>诗</div>
-                  {active && (
-                    <div style={{
-                      position: 'absolute', top: 7, right: 7, width: 17, height: 17, borderRadius: 9,
-                      background: theme.text, color: theme.bg,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10,
-                    }}>✓</div>
-                  )}
-                </div>
-                <div style={{ fontSize: 11.5, color: active ? theme.text : theme.textSoft, fontWeight: active ? 600 : 400 }}>{t.label}</div>
-              </button>
-            );
-          })}
+        <div style={{ padding: '12px 14px 4px', color: theme.textMute, fontSize: 11.5 }}>
+          推荐搭配：{themeRecommendations[currentThemeKey] || '跟随皮肤默认字体与信纸'}
         </div>
+        {themeGroups.map(group => (
+          <div key={group.label}>
+            <div style={{ padding: '12px 16px 0', color: theme.textMute, fontSize: 10.5, letterSpacing: 3 }}>{group.label}</div>
+            <div className="theme-picker-grid">
+              {group.keys.filter(key => window.THEMES[key]).map(key => {
+                const tokens = window.THEMES[key];
+                const active = key === currentThemeKey;
+                const swatch = [tokens.accent, tokens.paper, tokens.seal];
+                return (
+                  <button key={key} onClick={() => onChangeTheme(key)} style={{
+                    background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                  }}>
+                    <div className="theme-card-preview" style={{
+                      width: '100%', borderRadius: key === 'morningPaper' ? 5 : key === 'seaSalt' ? 18 : 12,
+                      background: tokens.paper,
+                      border: active ? `1.5px solid ${theme.text}` : `0.5px solid ${theme.line}`,
+                      padding: 9, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                      position: 'relative', overflow: 'hidden',
+                      boxShadow: key === 'snowNight' ? `inset 0 0 0 1px ${tokens.line}` : 'none',
+                    }}>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        {swatch.map((c, i) => <div key={i} style={{ width: 9, height: 9, borderRadius: key === 'morningPaper' ? 1 : 5, background: c, border: i === 1 ? `0.5px solid ${theme.line}` : 'none' }}/>)}
+                      </div>
+                      <div style={{
+                        fontFamily: tokens.fontSerif, fontSize: 14, color: tokens.text, letterSpacing: 2, alignSelf: 'flex-end', fontWeight: 500,
+                      }}>诗</div>
+                      {active && (
+                        <div style={{
+                          position: 'absolute', top: 7, right: 7, width: 17, height: 17, borderRadius: 9,
+                          background: theme.text, color: theme.bg,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10,
+                        }}>✓</div>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 11.5, color: active ? theme.text : theme.textSoft, fontWeight: active ? 600 : 400 }}>{tokens.name}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </SettingsSection>
 
       <SettingsSection theme={theme} title="写 作 与 生 诗">

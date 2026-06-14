@@ -906,7 +906,7 @@ async function createPoemCardBlob(entry, theme) {
   });
 }
 
-function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onAddNote, onCollectQuote, onGenerateQuotes, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
+function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onAddNote, onCollectQuote, onRejectQuote, onGenerateQuotes, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
   const e = entry;
   const hasPoem = showPoem && !!e.poem;
   const appTheme = theme;
@@ -1220,12 +1220,22 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
             const collected = (e.collectedQuotes || []).includes(item.quote);
             return <div key={index} style={{ marginBottom: 10, padding: '14px 15px', borderRadius: 14, background: theme.surface, border: `0.5px solid ${theme.line}` }}>
               <div className="serif" style={{ fontSize: 15, color: theme.text, lineHeight: 1.7 }}>“{item.quote}”</div>
-              <div style={{ fontSize: 11.5, color: theme.textMute, marginTop: 6, lineHeight: 1.55 }}>{item.reason || '这句话值得日后重读。'}</div>
-              <button type="button" disabled={collected || !onCollectQuote} onClick={() => onCollectQuote?.(item.quote)} style={{
-                marginTop: 9, height: 30, padding: '0 12px', borderRadius: 15,
-                border: `0.5px solid ${theme.line}`, background: collected ? theme.surfaceSoft : theme.paper,
-                color: collected ? theme.textMute : theme.seal, fontFamily: 'inherit', cursor: collected ? 'default' : 'pointer',
-              }}>{collected ? '已收入拾句册' : '收入拾句册'}</button>
+              <details style={{ marginTop: 6, color: theme.textMute, fontSize: 11.5, lineHeight: 1.55 }}>
+                <summary style={{ cursor: 'pointer', listStyle: 'none' }}>为什么选它</summary>
+                <div style={{ marginTop: 5 }}>{item.reason || '这句话具有独立的文学表达。'}</div>
+              </details>
+              <div style={{ display: 'flex', gap: 8, marginTop: 9 }}>
+                <button type="button" disabled={collected || !onCollectQuote} onClick={() => onCollectQuote?.(item.quote)} style={{
+                  height: 30, padding: '0 12px', borderRadius: 15,
+                  border: `0.5px solid ${theme.line}`, background: collected ? theme.surfaceSoft : theme.paper,
+                  color: collected ? theme.textMute : theme.seal, fontFamily: 'inherit', cursor: collected ? 'default' : 'pointer',
+                }}>{collected ? '已收入拾句册' : '收入拾句册'}</button>
+                {!collected && onRejectQuote && <button type="button" onClick={() => onRejectQuote(item.quote)} style={{
+                  height: 30, padding: '0 12px', borderRadius: 15,
+                  border: `0.5px solid ${theme.line}`, background: 'transparent',
+                  color: theme.textMute, fontFamily: 'inherit', cursor: 'pointer',
+                }}>不值得</button>}
+              </div>
             </div>;
           })}
       </div>

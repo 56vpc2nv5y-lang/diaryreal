@@ -1,10 +1,11 @@
-const CACHE_NAME = 'poem-diary-r24';
+const CACHE_NAME = 'poem-diary-r33';
 const APP_SHELL = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
   '/firebase-config.js',
   '/data.js',
+  '/themes-extra.js',
   '/primitives.jsx',
   '/screens-main.jsx',
   '/screens-other.jsx',

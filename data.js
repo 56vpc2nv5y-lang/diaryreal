@@ -1,5 +1,5 @@
 // data.js — sample diary entries + theme tokens
-// 4 主题: 青瓷 / 夜航 / 旧书房 / 暮云
+// Base themes. Additional themes are installed by themes-extra.js.
 
 window.THEMES = {
   celadon: {
@@ -20,26 +20,6 @@ window.THEMES = {
     fontCanvas: "'Noto Serif SC', serif",
     writingSpacing: 0.4,
     writingLineHeight: 2,
-  },
-  night: {
-    name: '夜航',
-    isDark: true,
-    bg: '#111B2A',
-    surface: '#19273A',
-    surfaceSoft: '#24364C',
-    text: '#EDF2F0',
-    textSoft: '#B9C8C5',
-    textMute: '#778D91',
-    line: 'rgba(214,229,225,0.12)',
-    accent: '#8FB9B0',
-    seal: '#D5AA67',
-    paper: '#172436',
-    fontSerif: "'Noto Sans SC', 'PingFang SC', sans-serif",
-    fontWriting: "'Noto Sans SC', 'PingFang SC', sans-serif",
-    fontBody: "'Noto Sans SC', 'PingFang SC', sans-serif",
-    fontCanvas: "'Noto Sans SC', sans-serif",
-    writingSpacing: 0.3,
-    writingLineHeight: 1.95,
   },
   study: {
     name: '旧书房',

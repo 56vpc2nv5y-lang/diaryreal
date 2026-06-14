@@ -9,9 +9,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="诗签">
 <meta name="theme-color" content="#E2EDE5">
-<link rel="manifest" href="manifest.webmanifest?v=20260612-r24">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=20260612-r24">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=20260612-r24">
+<link rel="manifest" href="manifest.webmanifest?v=20260614-r33">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=20260614-r33">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=20260614-r33">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
@@ -139,7 +139,9 @@
       max-height: 82vh !important;
       border-radius: 24px 24px 0 0 !important;
     }
+    .compose-focus-toggle { display: inline-flex !important; align-items: center; }
   }
+  .compose-focus-toggle { display: none; }
 
   @media (min-width: 1100px) {
     .compose-paper-bg { width: 1120px !important; }
@@ -204,6 +206,22 @@
       border-radius: 24px !important;
       margin-bottom: 28px;
     }
+    .compose-focus .compose-shell {
+      grid-template-columns: minmax(0, 900px);
+    }
+    .compose-focus .compose-meta { display: none; }
+    .compose-focus .compose-title,
+    .compose-focus .compose-body,
+    .compose-focus .compose-error,
+    .compose-focus .compose-actions {
+      grid-column: 1;
+    }
+    .compose-focus .compose-title { padding-top: 30px !important; }
+    .compose-focus .compose-body textarea {
+      font-size: 19px !important;
+      line-height: 2.15 !important;
+    }
+    .compose-focus .compose-actions { width: min(900px, 100%); }
   }
   .theme-picker-grid {
     display: grid;
@@ -228,8 +246,6 @@
     }
   }
 </style>
-  <script src="themes-extra.js?v=2026.06.13-r30"></script>
-  <script src="experience-enhancements.js?v=2026.06.13-r32" defer></script>
   <style>
     html[data-diary-theme="morningPaper"] {
       --theme-card-radius: 8px;
@@ -280,150 +296,6 @@
       box-shadow: var(--theme-card-shadow) !important;
     }
   </style>
-  <style>
-    [data-experience-toast] {
-      position: fixed;
-      left: 50%;
-      bottom: 96px;
-      z-index: 10020;
-      transform: translateX(-50%);
-      padding: 10px 16px;
-      border: 1px solid var(--theme-border, rgba(80, 70, 60, .15));
-      border-radius: 999px;
-      background: var(--theme-card, #fffdf8);
-      color: var(--theme-ink, #36312c);
-      box-shadow: 0 12px 36px rgba(46, 39, 34, .12);
-      font-size: 13px;
-    }
-    [data-save-next-steps] {
-      position: fixed;
-      inset: 0;
-      z-index: 10010;
-      display: grid;
-      place-items: end center;
-      padding: 20px;
-      background: rgba(35, 32, 29, .18);
-      backdrop-filter: blur(5px);
-    }
-    .experience-sheet {
-      position: relative;
-      width: min(520px, 100%);
-      padding: 28px;
-      border: 1px solid var(--theme-border, rgba(80, 70, 60, .14));
-      border-radius: 26px;
-      background: var(--theme-card, #fffdf8);
-      color: var(--theme-ink, #36312c);
-      box-shadow: 0 24px 70px rgba(42, 35, 30, .18);
-    }
-    .experience-sheet h2 { margin: 6px 0 8px; font: 600 24px/1.3 var(--theme-serif-font, serif); }
-    .experience-kicker { margin: 0; color: var(--theme-accent, #7a6858); font-size: 12px; letter-spacing: .2em; }
-    .experience-copy { margin: 0 0 22px; color: var(--theme-muted, #8a8178); font-size: 14px; }
-    .experience-close {
-      position: absolute;
-      top: 12px;
-      right: 14px;
-      border: 0;
-      background: transparent;
-      color: inherit;
-      font-size: 24px;
-    }
-    .experience-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .experience-actions button,
-    .experience-quote-reject {
-      min-height: 42px;
-      border: 1px solid var(--theme-border, rgba(80, 70, 60, .15));
-      border-radius: 999px;
-      background: var(--theme-surface, #fffdf8);
-      color: var(--theme-ink, #36312c);
-    }
-    .experience-actions button:first-child { color: var(--theme-accent, #735f4d); }
-    .experience-quote-reject { margin-left: 8px; padding: 8px 14px; color: var(--theme-muted, #8a8178); }
-    .experience-rejected { opacity: 0; transform: translateY(-4px); transition: .2s ease; }
-    .experience-ai-reason {
-      opacity: .62;
-      font-size: .88em !important;
-      font-style: normal;
-    }
-    .experience-quote-section {
-      border-inline-start: 2px solid var(--theme-line, rgba(80, 70, 60, .18));
-      box-shadow: none !important;
-    }
-    .experience-review-section { opacity: .86; }
-    .experience-poem-section { box-shadow: none; }
-    .experience-theme-guide {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 10px 0 18px;
-      color: var(--theme-muted, #8a8178);
-      font-size: 12px;
-    }
-    .experience-theme-guide span {
-      padding: 7px 11px;
-      border: 1px solid var(--theme-border, rgba(80, 70, 60, .13));
-      border-radius: 999px;
-      background: var(--theme-surface, rgba(255, 255, 255, .5));
-    }
-    .experience-theme-recommendation {
-      margin: 8px 0 12px;
-      color: var(--theme-muted, #8a8178);
-      font-size: 12px;
-      letter-spacing: .04em;
-    }
-    .experience-collection-tabs {
-      gap: 8px !important;
-      padding: 6px !important;
-      border: 1px solid var(--theme-border, rgba(80, 70, 60, .12));
-      border-radius: 18px;
-      background: var(--theme-panel, rgba(255, 255, 255, .38));
-    }
-    .experience-collection-tab { min-height: 44px; }
-    .experience-collections-visible[data-collection-kind="poems"] [class*="card"] {
-      border-inline-start: 3px solid var(--theme-accent, #7a6858);
-    }
-    .experience-collections-visible[data-collection-kind="quotes"] [class*="card"] {
-      border-radius: 10px !important;
-      box-shadow: 0 5px 0 var(--theme-panel, rgba(80, 70, 60, .08)) !important;
-    }
-    .experience-collections-visible[data-collection-kind="milestones"] [class*="card"] {
-      border-inline-start: 1px solid var(--theme-line, rgba(80, 70, 60, .2));
-      box-shadow: none !important;
-    }
-    .experience-focus-toggle {
-      display: none;
-      position: fixed;
-      right: 22px;
-      bottom: 22px;
-      z-index: 10000;
-      padding: 10px 15px;
-      border: 1px solid var(--theme-border, rgba(80, 70, 60, .15));
-      border-radius: 999px;
-      background: var(--theme-card, #fffdf8);
-      color: var(--theme-ink, #36312c);
-      box-shadow: 0 10px 28px rgba(42, 35, 30, .12);
-    }
-    @media (min-width: 900px) {
-      .experience-focus-toggle.experience-focus-available { display: block; }
-      .experience-focus-mode nav,
-      .experience-focus-mode [class*="bottom-nav"],
-      .experience-focus-mode [class*="tab-bar"] {
-        opacity: 0;
-        pointer-events: none;
-        transform: translateY(12px);
-        transition: .2s ease;
-      }
-      .experience-focus-mode textarea {
-        min-height: 68vh !important;
-        max-width: 920px;
-        margin-inline: auto;
-        line-height: 2.05 !important;
-      }
-    }
-    @media (max-width: 640px) {
-      .experience-actions { grid-template-columns: 1fr; }
-      .experience-sheet { padding: 24px 18px 18px; }
-    }
-  </style>
 </head>
 <body>
 <div id="root"></div>
@@ -434,7 +306,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- ── Your Firebase config (edit firebase-config.js) ────────── -->
-<script src="firebase-config.js?v=20260612-r24"></script>
+<script src="firebase-config.js?v=20260614-r33"></script>
 
 <!-- ── React + Babel ─────────────────────────────────────────── -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -442,16 +314,17 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- ── Shared data (THEMES, HEXAGRAMS, TAGS) ─────────────────── -->
-<script src="data.js?v=20260612-r24"></script>
+<script src="data.js?v=20260614-r33"></script>
+<script src="themes-extra.js?v=2026.06.14-r33"></script>
 
 <!-- ── UI components (load order matters) ────────────────────── -->
-<script type="text/babel" src="primitives.jsx?v=20260612-r24"></script>
-<script type="text/babel" src="screens-main.jsx?v=20260612-r24"></script>
-<script type="text/babel" src="screens-other.jsx?v=20260612-r24"></script>
-<script type="text/babel" src="enhancements.jsx?v=20260612-r24"></script>
+<script type="text/babel" src="primitives.jsx?v=20260614-r33"></script>
+<script type="text/babel" src="screens-main.jsx?v=20260614-r33"></script>
+<script type="text/babel" src="screens-other.jsx?v=20260614-r33"></script>
+<script type="text/babel" src="enhancements.jsx?v=20260614-r33"></script>
 
 <!-- ── Real app ──────────────────────────────────────────────── -->
-<script type="text/babel" src="app-real.jsx?v=20260612-r24"></script>
+<script type="text/babel" src="app-real.jsx?v=20260614-r33"></script>
 
 <script>
   if ('serviceWorker' in navigator) {

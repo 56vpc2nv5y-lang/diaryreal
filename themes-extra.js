@@ -1,27 +1,4 @@
 (function installSelectedThemes() {
-  const removeRetiredThemes = (themes) => {
-    if (!themes) return themes;
-    delete themes.night;
-    delete themes.macaron;
-    delete themes.mandela;
-    return themes;
-  };
-
-  if (!window.THEMES) {
-    let themes;
-    Object.defineProperty(window, 'THEMES', {
-      configurable: true,
-      get: function getThemes() {
-        return themes;
-      },
-      set: function setThemes(value) {
-        themes = removeRetiredThemes(value);
-        installSelectedThemes();
-      },
-    });
-    return;
-  }
-
   if (!window.THEMES.celadon || !window.THEMES.study || !window.THEMES.dusk) {
     return;
   }
@@ -33,14 +10,24 @@
     body: '"Noto Sans SC", sans-serif',
   };
 
-  const makeTheme = (base, definition) => ({
-    ...base,
-    ...definition,
-    palette: {
-      ...base.palette,
-      ...definition.palette,
-    },
-  });
+  const makeTheme = (base, definition) => {
+    const palette = definition.palette || {};
+    return {
+      ...base,
+      ...definition,
+      bg: palette.bg || definition.bg || base.bg,
+      surface: palette.surface || palette.card || definition.surface || base.surface,
+      surfaceSoft: palette.panel || palette.accentSoft || definition.surfaceSoft || base.surfaceSoft,
+      text: palette.ink || definition.text || base.text,
+      textSoft: palette.muted || definition.textSoft || base.textSoft,
+      textMute: palette.muted || definition.textMute || base.textMute,
+      line: palette.line || definition.line || base.line,
+      accent: palette.accent || definition.accent || base.accent,
+      seal: palette.seal || definition.seal || base.seal,
+      paper: palette.paper || definition.paper || base.paper,
+      palette: { ...(base.palette || {}), ...palette },
+    };
+  };
 
   // 青瓷：浅青釉色、象牙纸面、深玉墨色与克制朱砂。
   window.THEMES.celadon = makeTheme(window.THEMES.celadon, {
@@ -294,42 +281,7 @@
     },
   });
 
-  removeRetiredThemes(window.THEMES);
-
-  const syncThemeAttribute = () => {
-    removeRetiredThemes(window.THEMES);
-    const saved = localStorage.getItem('diary-theme');
-    if (saved === 'night' || saved === 'macaron' || saved === 'mandela') {
-      localStorage.setItem('diary-theme', 'celadon');
-    }
-    const selected = localStorage.getItem('diary-theme') || 'celadon';
-    document.documentElement.dataset.diaryTheme =
-      window.THEMES[selected] ? selected : 'celadon';
-
-    document
-      .querySelectorAll('button, [role="button"]')
-      .forEach((element) => {
-        const label = element.textContent?.replace(/\s+/g, '').trim();
-        if (label === '夜航' || label?.startsWith('夜航已选')) {
-          element.remove();
-        }
-      });
-  };
-
-  if (!window.__diaryThemeAttributeInstalled) {
-    window.__diaryThemeAttributeInstalled = true;
-    const originalSetItem = localStorage.setItem.bind(localStorage);
-    localStorage.setItem = (key, value) => {
-      originalSetItem(key, value);
-      if (key === 'diary-theme') syncThemeAttribute();
-    };
-    window.addEventListener('storage', syncThemeAttribute);
-    window.addEventListener('DOMContentLoaded', syncThemeAttribute);
-    new MutationObserver(syncThemeAttribute).observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-    });
-    window.setInterval(syncThemeAttribute, 500);
-    syncThemeAttribute();
-  }
+  delete window.THEMES.night;
+  delete window.THEMES.macaron;
+  delete window.THEMES.mandela;
 })();

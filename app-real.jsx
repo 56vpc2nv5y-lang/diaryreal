@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.12-r24';
+const APP_BUILD = '2026.06.14-r33';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -86,6 +86,7 @@ function normalizeEntry(data, id) {
       ? data.quoteSuggestions.filter(item => item && typeof item.quote === 'string')
       : [],
     collectedQuotes: Array.isArray(data?.collectedQuotes) ? data.collectedQuotes.map(String) : [],
+    rejectedQuotes: Array.isArray(data?.rejectedQuotes) ? data.rejectedQuotes.map(String) : [],
     poemCollected: data?.poemCollected !== false && !!poem,
     notes: Array.isArray(data?.notes) ? data.notes.filter(n => n && typeof n.text === 'string') : [],
     inlineNotes: Array.isArray(data?.inlineNotes) ? data.inlineNotes.filter(n => n && typeof n.text === 'string') : [],
@@ -389,6 +390,7 @@ const MOODS_REAL = ['☕','🌙','🌸','🌊','✨','🌿','💐','😴','🥲'
 
 function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, onSaved }) {
   const editing = !!entry?.id;
+  const [focusMode, setFocusMode] = React.useState(false);
   const [title, setTitle] = React.useState(entry?.title || '');
   const [body, setBody] = React.useState(entry?.body || '');
   const [mood, setMood] = React.useState(entry?.mood || '');
@@ -492,6 +494,18 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
     } catch (e) { setErr('保存失败: ' + e.message); setSaving(false); }
   };
 
+  React.useEffect(() => {
+    const handleKeyDown = event => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
+        event.preventDefault();
+        if (body.trim() && !saving) doSave(null);
+      }
+      if (event.key === 'Escape' && focusMode) setFocusMode(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [body, saving, focusMode, title, mood, flag, place, activePaper]);
+
   const fakeEntry = { body, poem: poem || { title: '…', form: '五绝', lines: ['', '', '', ''] } };
 
   if (shake === 'gen')
@@ -512,7 +526,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
   const floatingControlShadow = customPaper ? '0 5px 16px rgba(67,55,43,.10)' : 'none';
 
   return (
-    <div className="compose-screen" style={{ width: W, height: H, background: theme.paper, position: 'relative', overflow: 'hidden', fontFamily: 'inherit' }}>
+    <div className={`compose-screen${focusMode ? ' compose-focus' : ''}`} style={{ width: W, height: H, background: theme.paper, position: 'relative', overflow: 'hidden', fontFamily: 'inherit' }}>
       <div className="compose-paper-bg" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: customPaper ? 0.82 : 1, ...ps }}/>
       {customPaper && <div className="compose-paper-veil" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'rgba(255,253,247,.34)' }}/>}
       <div className="compose-shell" style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -527,10 +541,15 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
             <IconClose color={customPaper ? paperSoft : theme.textSoft} size={20}/>
           </button>
           <div style={{ fontSize: 12, color: customPaper ? paperSoft : theme.textSoft, fontWeight: 500 }}>{editing ? '编辑日记' : '新日记'}</div>
-          <button type="button" onClick={() => setPaperOpen(true)} style={{ height: 28, padding: '0 10px', borderRadius: 14, background: customPaper ? 'rgba(255,253,247,.76)' : theme.surface + 'dd', border: `0.5px solid ${customPaper ? 'rgba(81,74,67,.16)' : theme.line}`, backdropFilter: customPaper ? 'blur(12px)' : 'none', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: paperSoft, letterSpacing: 1.5, fontFamily: 'inherit', cursor: 'pointer' }}>
-            <span style={{ width: 4, height: 4, borderRadius: 2, background: theme.accent, display: 'inline-block' }}/>
-            {selectedPaper.name}
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button className="compose-focus-toggle" type="button" onClick={() => setFocusMode(!focusMode)} style={{ height: 28, padding: '0 11px', borderRadius: 14, background: customPaper ? 'rgba(255,253,247,.76)' : theme.surface + 'dd', border: `0.5px solid ${customPaper ? 'rgba(81,74,67,.16)' : theme.line}`, color: paperSoft, fontSize: 10.5, letterSpacing: 1.5, fontFamily: 'inherit', cursor: 'pointer' }}>
+              {focusMode ? '退出专注' : '专注写作'}
+            </button>
+            <button type="button" onClick={() => setPaperOpen(true)} style={{ height: 28, padding: '0 10px', borderRadius: 14, background: customPaper ? 'rgba(255,253,247,.76)' : theme.surface + 'dd', border: `0.5px solid ${customPaper ? 'rgba(81,74,67,.16)' : theme.line}`, backdropFilter: customPaper ? 'blur(12px)' : 'none', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: paperSoft, letterSpacing: 1.5, fontFamily: 'inherit', cursor: 'pointer' }}>
+              <span style={{ width: 4, height: 4, borderRadius: 2, background: theme.accent, display: 'inline-block' }}/>
+              {selectedPaper.name}
+            </button>
+          </div>
         </div>
 
         {/* meta */}
@@ -633,7 +652,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
               fontFamily: 'inherit', cursor: filled && !saving ? 'pointer' : 'default',
               boxShadow: filled && !saving && customPaper ? '0 8px 22px rgba(67,55,43,.22)' : floatingControlShadow,
               backdropFilter: customPaper ? 'blur(14px)' : 'none',
-            }}>{saving ? '保存中…' : editing ? '保 存 修 改' : '保 存，去 摇 签'}</button>
+            }}>{saving ? '保存中…' : editing ? '保 存 修 改' : '保 存 日 记'}</button>
           </div>
         </div>
       </div>
@@ -671,6 +690,56 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
         </div>
       )}
     </div>
+  );
+}
+
+function SavedEntryNext({ theme, entry, onGenerateQuotes, onShake, onOpen, onDone }) {
+  const [quoteBusy, setQuoteBusy] = React.useState(false);
+  const generateQuotes = async () => {
+    if (!onGenerateQuotes || quoteBusy) return;
+    setQuoteBusy(true);
+    try { await onGenerateQuotes(); }
+    finally { setQuoteBusy(false); }
+  };
+  return (
+    <Screen theme={theme} noTab>
+      <div style={{ minHeight: '100%', padding: '96px 26px 44px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div style={{ fontSize: 10.5, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>今 日 已 记 下</div>
+        <div className="serif" style={{ marginTop: 12, fontSize: 32, lineHeight: 1.35, color: theme.text, letterSpacing: 2 }}>
+          日记保存好了
+        </div>
+        <div style={{ marginTop: 12, color: theme.textSoft, fontSize: 13.5, lineHeight: 1.8 }}>
+          先让文字安静地留下，再决定要不要继续。
+        </div>
+
+        <div style={{ marginTop: 34, padding: '20px 18px', borderRadius: 20, background: theme.paper, border: `0.5px solid ${theme.line}` }}>
+          <div className="serif" style={{ color: theme.text, fontSize: 18, lineHeight: 1.6 }}>
+            {entry?.title || entry?.body?.slice(0, 32) || '今日的日记'}
+          </div>
+          <div style={{ marginTop: 8, color: theme.textMute, fontSize: 11.5 }}>
+            {entry?.date?.replace(/-/g, '.')} · {entry?.body?.length || 0} 字
+          </div>
+        </div>
+
+        <div style={{ marginTop: 24, display: 'grid', gap: 10 }}>
+          <button type="button" onClick={onShake} style={{
+            height: 50, borderRadius: 25, border: 'none', background: theme.text, color: theme.bg,
+            fontFamily: 'inherit', fontSize: 14, fontWeight: 600, letterSpacing: 2, cursor: 'pointer',
+          }}>摇 签 选 诗</button>
+          <button type="button" disabled={quoteBusy || !onGenerateQuotes} onClick={generateQuotes} style={{
+            height: 48, borderRadius: 24, border: `1px solid ${theme.accent}`, background: 'transparent', color: theme.accent,
+            fontFamily: 'inherit', fontSize: 13.5, letterSpacing: 1.5, cursor: quoteBusy ? 'default' : 'pointer',
+          }}>{quoteBusy ? '正在认真拾句…' : '让 AI 拾句'}</button>
+          <button type="button" onClick={onOpen} style={{
+            height: 46, borderRadius: 23, border: `0.5px solid ${theme.line}`, background: theme.surface, color: theme.textSoft,
+            fontFamily: 'inherit', fontSize: 13, cursor: 'pointer',
+          }}>查看这篇日记</button>
+          <button type="button" onClick={onDone} style={{
+            height: 42, border: 'none', background: 'transparent', color: theme.textMute, fontFamily: 'inherit', fontSize: 12.5, cursor: 'pointer',
+          }}>就到这里</button>
+        </div>
+      </div>
+    </Screen>
   );
 }
 
@@ -1052,6 +1121,7 @@ function AppReal() {
   React.useEffect(() => {
     const root = document.documentElement;
     root.dataset.theme = themeKey;
+    root.dataset.diaryTheme = themeKey;
     root.style.setProperty('--theme-body-font', theme.fontBody || "'Noto Sans SC', sans-serif");
     root.style.setProperty('--theme-serif-font', theme.fontSerif || "'Noto Serif SC', serif");
     root.style.setProperty('--theme-writing-font', theme.fontWriting || theme.fontSerif || "'Noto Serif SC', serif");
@@ -1060,6 +1130,7 @@ function AppReal() {
   const push = (s, p = {}) => setStack(st => [...st, { screen: s, params: p }]);
   const pop  = () => setStack(st => st.length > 1 ? st.slice(0, -1) : st);
   const reset = s => setStack([{ screen: s, params: {} }]);
+  const replace = (s, p = {}) => setStack(st => [...st.slice(0, -1), { screen: s, params: p }]);
 
   const tabHandler = t => t === 'compose' ? push('compose') : reset(t);
 
@@ -1147,8 +1218,7 @@ function AppReal() {
         <ComposeReal theme={theme} paper={paper} syncState={syncState} onChangePaper={setPaper} onBack={pop}
           onSaved={async ({ id } = {}) => {
             await refresh();
-            pop();
-            if (id) push('shake', { id });
+            if (id) replace('saved', { id });
           }}
         />
       );
@@ -1166,6 +1236,21 @@ function AppReal() {
       );
     }
 
+    case 'saved': {
+      const entry = entryById(params.id);
+      if (!entry) { reset('home'); return null; }
+      return <SavedEntryNext theme={theme} entry={entry}
+        onShake={() => replace('shake', { id: entry.id })}
+        onOpen={() => replace('detail', { id: entry.id })}
+        onDone={() => reset('home')}
+        onGenerateQuotes={entry.body?.trim() ? async () => {
+          const result = await apiPoem(entry.body);
+          await updateEntry(entry.id, { quoteSuggestions: result.quoteSuggestions || [] });
+          replace('detail', { id: entry.id });
+        } : null}
+      />;
+    }
+
     case 'detail': {
       const entry = entryById(params.id);
       if (!entry) { pop(); return null; }
@@ -1181,9 +1266,16 @@ function AppReal() {
         onCollectQuote={quote => updateEntry(entry.id, {
           collectedQuotes: Array.from(new Set([...(entry.collectedQuotes || []), quote])),
         })}
+        onRejectQuote={quote => updateEntry(entry.id, {
+          quoteSuggestions: (entry.quoteSuggestions || []).filter(item => item.quote !== quote),
+          rejectedQuotes: Array.from(new Set([...(entry.rejectedQuotes || []), quote])),
+        })}
         onGenerateQuotes={entry.body?.trim() ? async () => {
           const result = await apiPoem(entry.body);
-          await updateEntry(entry.id, { quoteSuggestions: result.quoteSuggestions || [] });
+          const rejected = new Set(entry.rejectedQuotes || []);
+          await updateEntry(entry.id, {
+            quoteSuggestions: (result.quoteSuggestions || []).filter(item => !rejected.has(item.quote)),
+          });
         } : null}
         linkedHexagrams={hexagrams.filter(hex => hex.entryId === entry.id)}
         onStartHexagram={() => push('newhex', { entryId: entry.id, diaryContext: entry.body })}
