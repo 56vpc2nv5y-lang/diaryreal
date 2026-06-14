@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.14-r35';
+const APP_BUILD = '2026.06.14-r36';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -529,6 +529,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
     <div className={`compose-screen${focusMode ? ' compose-focus' : ''}`} style={{ width: W, height: H, background: theme.paper, position: 'relative', overflow: 'hidden', fontFamily: 'inherit' }}>
       <div className="compose-paper-bg" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: customPaper ? 0.82 : 1, ...ps }}/>
       {customPaper && <div className="compose-paper-veil" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'rgba(255,253,247,.34)' }}/>}
+      {!customPaper && <ThemeDecor theme={theme}/>}
       <div className="compose-shell" style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
 
         {/* top bar */}

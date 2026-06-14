@@ -9,16 +9,70 @@ function Screen({ theme, children, statusDark = false, bg, contentStyle, noTab =
       width: W, height: H, position: 'relative', overflow: 'hidden',
       background: bg || theme.bg, color: theme.text,
     }}>
+      <ThemeDecor theme={theme} />
       <StatusBar theme={theme} dark={statusDark} />
       <div className="no-scroll app-scroll" style={{
         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-        overflowY: 'auto',
+        overflowY: 'auto', zIndex: 1,
         ...contentStyle,
       }}>
         {children}
       </div>
       {!noTab && <TabBar theme={theme} active={tab} onChange={onTab} />}
       <HomeIndicator theme={theme} />
+    </div>
+  );
+}
+
+function ThemeDecor({ theme }) {
+  const key = theme?.key || 'celadon';
+  return (
+    <div className={`theme-decor theme-decor-${key}`} aria-hidden="true">
+      <span className="theme-decor-mark mark-a"/>
+      <span className="theme-decor-mark mark-b"/>
+      <span className="theme-decor-mark mark-c"/>
+      <span className="theme-decor-mark mark-d"/>
+      <svg className="theme-decor-svg decor-celadon" viewBox="0 0 390 844">
+        <path d="M-12 154C48 111 84 156 128 117S205 55 255 91" />
+        <path d="M18 120l28 28 33-7 25 31 42-12 28 26" />
+        <circle cx="336" cy="728" r="82"/><circle cx="336" cy="728" r="62"/>
+      </svg>
+      <svg className="theme-decor-svg decor-inkPlum" viewBox="0 0 390 844">
+        <path d="M401 42c-58 18-80 54-116 105-24 35-45 50-85 68" />
+        <path d="M334 100c-34-3-52-17-67-38M294 143c28 1 47 13 65 35M251 184c-30-3-49 9-66 31" />
+        <g><circle cx="333" cy="97" r="8"/><circle cx="294" cy="143" r="7"/><circle cx="252" cy="184" r="8"/><circle cx="205" cy="212" r="6"/></g>
+      </svg>
+      <svg className="theme-decor-svg decor-mossGarden" viewBox="0 0 390 844">
+        <path d="M350-10c-18 92-33 166-62 245M320 86c-35 0-55-13-74-40M306 137c36-3 57 9 76 34M288 187c-29 0-50-14-66-38" />
+        <path d="M-30 780c81-54 134-58 208-22s139 30 242-15" />
+        <circle cx="45" cy="760" r="28"/><circle cx="111" cy="785" r="38"/>
+      </svg>
+      <svg className="theme-decor-svg decor-study" viewBox="0 0 390 844">
+        <path d="M18 692h354M30 692v138M74 692v138M119 692v138M165 692v138" />
+        <path d="M29 733h45M75 758h44M120 720h45M166 770h45" />
+        <circle cx="327" cy="108" r="54"/><path d="M327 162v58M287 220h80"/>
+      </svg>
+      <svg className="theme-decor-svg decor-dusk" viewBox="0 0 390 844">
+        <path d="M-24 168c48-42 90-44 124-8 30-55 103-61 139-7 53-25 112 4 134 48" />
+        <path d="M53 732c36-37 82-40 116-4 37-58 113-50 143 5 42-17 78-6 102 23" />
+      </svg>
+      <svg className="theme-decor-svg decor-morningPaper" viewBox="0 0 390 844">
+        <path d="M20 86h350M20 93h350M20 732h350M20 739h350M128 94v638M263 94v638" />
+      </svg>
+      <svg className="theme-decor-svg decor-seaSalt" viewBox="0 0 390 844">
+        <path d="M-30 674c66-42 124-37 178 3s114 43 178 2 113-34 142 0" />
+        <path d="M-30 716c66-42 124-37 178 3s114 43 178 2 113-34 142 0" />
+        <path d="M270 132q18-18 36 0q18-18 36 0M310 170q12-12 24 0q12-12 24 0" />
+      </svg>
+      <svg className="theme-decor-svg decor-obsidianDawn" viewBox="0 0 390 844">
+        <circle cx="326" cy="112" r="46"/><circle cx="326" cy="112" r="31"/>
+        <path d="M-22 844l92-182 77 182M80 844l92-128 75 128M226 844l76-166 110 166" />
+      </svg>
+      <svg className="theme-decor-svg decor-snowNight" viewBox="0 0 390 844">
+        <circle cx="321" cy="116" r="50"/><circle cx="339" cy="101" r="50"/>
+        <path d="M-30 724c70-57 130-58 186-4 62-75 150-57 264 12" />
+        <path d="M44 132v28M30 146h28M34 136l20 20M54 136l-20 20M104 204v20M94 214h20M97 207l14 14M111 207l-14 14" />
+      </svg>
     </div>
   );
 }

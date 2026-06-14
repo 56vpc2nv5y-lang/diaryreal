@@ -9,9 +9,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="诗签">
 <meta name="theme-color" content="#E2EDE5">
-<link rel="manifest" href="manifest.webmanifest?v=20260614-r35">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=20260614-r35">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=20260614-r35">
+<link rel="manifest" href="manifest.webmanifest?v=20260614-r36">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=20260614-r36">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=20260614-r36">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
@@ -48,6 +48,145 @@
   .diary-writing { font-family: var(--theme-writing-font, 'Noto Serif SC', 'Songti SC', serif); }
   .no-scroll { scrollbar-width: none; -ms-overflow-style: none; }
   .no-scroll::-webkit-scrollbar { display: none; }
+  .theme-decor {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    pointer-events: none;
+    color: var(--theme-decor-color, currentColor);
+  }
+  .theme-decor-svg {
+    display: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .theme-decor-mark {
+    display: none;
+    position: absolute;
+    font-family: var(--theme-serif-font, 'Noto Serif SC', serif);
+  }
+  .theme-decor-celadon { color: rgba(63,118,104,.32); }
+  .theme-decor-celadon .decor-celadon { display: block; }
+  .theme-decor-celadon .mark-a {
+    display: block; top: 42px; right: -28px; width: 88px; height: 88px;
+    border: 1px solid rgba(63,118,104,.28); border-radius: 50%;
+    box-shadow: inset 0 0 0 9px rgba(255,255,255,.12), inset 0 0 0 10px rgba(63,118,104,.12);
+  }
+  .theme-decor-celadon .mark-b {
+    display: block; left: 14px; bottom: 104px; color: rgba(63,118,104,.52);
+    font-size: 10px; letter-spacing: 5px; writing-mode: vertical-rl;
+  }
+  .theme-decor-celadon .mark-b::before { content: '青 瓷'; }
+
+  .theme-decor-inkPlum { color: rgba(45,43,39,.48); }
+  .theme-decor-inkPlum .decor-inkPlum { display: block; }
+  .theme-decor-inkPlum .decor-inkPlum g { fill: #b43a2e; stroke: #b43a2e; opacity: .72; }
+  .theme-decor-inkPlum .mark-a {
+    display: block; left: 16px; bottom: 94px; width: 30px; height: 30px;
+    border: 1px solid rgba(180,58,46,.55); color: rgba(180,58,46,.72);
+    font-size: 12px; line-height: 28px; text-align: center;
+  }
+  .theme-decor-inkPlum .mark-a::before { content: '梅'; }
+
+  .theme-decor-mossGarden { color: rgba(48,85,55,.42); }
+  .theme-decor-mossGarden .decor-mossGarden { display: block; stroke-width: 2; }
+  .theme-decor-mossGarden .mark-a {
+    display: block; top: 94px; left: -34px; width: 86px; height: 86px;
+    border-radius: 46% 54% 42% 58%; background: rgba(73,107,75,.13);
+    border: 1px solid rgba(48,85,55,.25); transform: rotate(22deg);
+  }
+  .theme-decor-mossGarden .mark-b {
+    display: block; right: 13px; bottom: 98px; color: rgba(48,85,55,.58);
+    font-size: 11px; letter-spacing: 4px; writing-mode: vertical-rl;
+  }
+  .theme-decor-mossGarden .mark-b::before { content: '苔 庭'; }
+
+  .theme-decor-study { color: rgba(103,77,51,.28); }
+  .theme-decor-study .decor-study { display: block; }
+  .theme-decor-study .mark-a {
+    display: block; top: 70px; right: 20px; width: 62px; height: 82px;
+    border: 1px solid rgba(103,77,51,.24); border-radius: 31px 31px 8px 8px;
+    background: radial-gradient(circle at 50% 38%, rgba(255,222,155,.34), transparent 58%);
+  }
+  .theme-decor-study .mark-b {
+    display: block; left: 14px; bottom: 104px; color: rgba(103,77,51,.54);
+    font-size: 10px; letter-spacing: 4px; writing-mode: vertical-rl;
+  }
+  .theme-decor-study .mark-b::before { content: '旧 书 房'; }
+
+  .theme-decor-dusk { color: rgba(128,109,145,.30); }
+  .theme-decor-dusk .decor-dusk { display: block; stroke-width: 1.8; }
+  .theme-decor-dusk .mark-a {
+    display: block; right: -48px; top: 104px; width: 132px; height: 132px;
+    border-radius: 50%; background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.44), rgba(128,109,145,.12) 68%, transparent 70%);
+  }
+  .theme-decor-dusk .mark-b {
+    display: block; left: 17px; bottom: 100px; color: rgba(128,109,145,.58);
+    font-size: 10px; letter-spacing: 4px;
+  }
+  .theme-decor-dusk .mark-b::before { content: '暮 云 · 微 光'; }
+
+  .theme-decor-morningPaper { color: rgba(54,49,42,.25); }
+  .theme-decor-morningPaper .decor-morningPaper { display: block; stroke-width: 1; }
+  .theme-decor-morningPaper .mark-a {
+    display: block; top: 54px; right: 18px; width: 32px; padding: 5px 0;
+    border: 1px solid rgba(181,62,50,.75); color: #b53e32;
+    font-size: 12px; line-height: 1.3; text-align: center; font-weight: 600;
+  }
+  .theme-decor-morningPaper .mark-a::before { content: '晨\A报'; white-space: pre; }
+  .theme-decor-morningPaper .mark-b {
+    display: block; left: 22px; bottom: 98px; color: rgba(54,49,42,.56);
+    font-size: 9px; letter-spacing: 2px; border-top: 1px solid rgba(54,49,42,.32); padding-top: 5px;
+  }
+  .theme-decor-morningPaper .mark-b::before { content: 'DAILY · 今日号'; }
+
+  .theme-decor-seaSalt { color: rgba(45,105,145,.48); }
+  .theme-decor-seaSalt .decor-seaSalt { display: block; stroke-width: 2; }
+  .theme-decor-seaSalt .mark-a {
+    display: block; top: 56px; right: 12px; color: rgba(45,105,145,.62);
+    font-size: 10px; line-height: 1.55; letter-spacing: 3px; writing-mode: vertical-rl;
+  }
+  .theme-decor-seaSalt .mark-a::before { content: 'SEA · SALT'; }
+  .theme-decor-seaSalt .mark-b {
+    display: block; left: -22px; bottom: 72px; width: 120px; height: 42px;
+    border-top: 2px solid rgba(77,130,166,.34); border-radius: 50%;
+  }
+
+  .theme-decor-obsidianDawn { color: rgba(41,43,42,.38); }
+  .theme-decor-obsidianDawn .decor-obsidianDawn { display: block; stroke-width: 1.6; }
+  .theme-decor-obsidianDawn .decor-obsidianDawn circle { stroke: rgba(185,139,69,.65); }
+  .theme-decor-obsidianDawn .decor-obsidianDawn path { fill: rgba(41,43,42,.10); }
+  .theme-decor-obsidianDawn .mark-a {
+    display: block; left: 17px; top: 72px; width: 5px; height: 86px;
+    background: #292b2a; box-shadow: 8px 0 0 rgba(185,139,69,.64);
+  }
+  .theme-decor-obsidianDawn .mark-b {
+    display: block; right: 16px; bottom: 98px; color: rgba(41,43,42,.64);
+    font-size: 10px; letter-spacing: 4px; writing-mode: vertical-rl;
+  }
+  .theme-decor-obsidianDawn .mark-b::before { content: '曜 石 晨 光'; }
+
+  .theme-decor-snowNight { color: rgba(255,255,255,.72); }
+  .theme-decor-snowNight .decor-snowNight { display: block; stroke-width: 1.8; }
+  .theme-decor-snowNight .decor-snowNight circle:first-child { fill: rgba(255,255,255,.40); stroke: rgba(255,255,255,.58); }
+  .theme-decor-snowNight .decor-snowNight circle:nth-child(2) { fill: #aebce1; stroke: #aebce1; }
+  .theme-decor-snowNight .mark-a,
+  .theme-decor-snowNight .mark-b,
+  .theme-decor-snowNight .mark-c {
+    display: block; width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,.86);
+    box-shadow: 24px 16px 0 rgba(255,255,255,.62), 52px -9px 0 rgba(255,255,255,.78), 81px 21px 0 rgba(255,255,255,.54), 112px 0 0 rgba(255,255,255,.76);
+  }
+  .theme-decor-snowNight .mark-a { top: 84px; left: 28px; }
+  .theme-decor-snowNight .mark-b { top: 284px; right: 132px; transform: rotate(17deg); }
+  .theme-decor-snowNight .mark-c { bottom: 154px; left: 80px; transform: rotate(-11deg); }
 
   @keyframes anim-rise-in {
     from { opacity: 0; transform: translateY(8px); }
@@ -140,6 +279,12 @@
       border-radius: 24px 24px 0 0 !important;
     }
     .compose-focus-toggle { display: inline-flex !important; align-items: center; }
+    .theme-decor {
+      left: 50%;
+      right: auto;
+      width: min(1100px, 100vw);
+      transform: translateX(-50%);
+    }
   }
   .compose-focus-toggle { display: none; }
 
@@ -234,6 +379,24 @@
     aspect-ratio: 1.18 / 1;
     min-height: 86px;
   }
+  .theme-card-preview::before {
+    position: absolute;
+    left: 8px;
+    bottom: 7px;
+    font-family: var(--theme-serif-font, 'Noto Serif SC', serif);
+    font-size: 8px;
+    letter-spacing: 1px;
+    opacity: .65;
+  }
+  .theme-preview-celadon::before { content: '冰裂釉'; }
+  .theme-preview-inkPlum::before { content: '墨枝 · 梅'; }
+  .theme-preview-mossGarden::before { content: '苔痕 · 庭石'; }
+  .theme-preview-study::before { content: '旧纸 · 书页'; }
+  .theme-preview-dusk::before { content: '暮云 · 微光'; }
+  .theme-preview-morningPaper::before { content: '晨报 · 今日号'; }
+  .theme-preview-seaSalt::before { content: '海风 · 浪线'; }
+  .theme-preview-obsidianDawn::before { content: '曜石 · 晨光'; }
+  .theme-preview-snowNight::before { content: '月色 · 雪丘'; }
   @media (max-width: 520px) {
     .theme-picker-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -512,7 +675,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- ── Your Firebase config (edit firebase-config.js) ────────── -->
-<script src="firebase-config.js?v=20260614-r35"></script>
+<script src="firebase-config.js?v=20260614-r36"></script>
 
 <!-- ── React + Babel ─────────────────────────────────────────── -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -520,17 +683,17 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- ── Shared data (THEMES, HEXAGRAMS, TAGS) ─────────────────── -->
-<script src="data.js?v=20260614-r35"></script>
-<script src="themes-extra.js?v=2026.06.14-r35"></script>
+<script src="data.js?v=20260614-r36"></script>
+<script src="themes-extra.js?v=2026.06.14-r36"></script>
 
 <!-- ── UI components (load order matters) ────────────────────── -->
-<script type="text/babel" src="primitives.jsx?v=20260614-r35"></script>
-<script type="text/babel" src="screens-main.jsx?v=20260614-r35"></script>
-<script type="text/babel" src="screens-other.jsx?v=20260614-r35"></script>
-<script type="text/babel" src="enhancements.jsx?v=20260614-r35"></script>
+<script type="text/babel" src="primitives.jsx?v=20260614-r36"></script>
+<script type="text/babel" src="screens-main.jsx?v=20260614-r36"></script>
+<script type="text/babel" src="screens-other.jsx?v=20260614-r36"></script>
+<script type="text/babel" src="enhancements.jsx?v=20260614-r36"></script>
 
 <!-- ── Real app ──────────────────────────────────────────────── -->
-<script type="text/babel" src="app-real.jsx?v=20260614-r35"></script>
+<script type="text/babel" src="app-real.jsx?v=20260614-r36"></script>
 
 <script>
   if ('serviceWorker' in navigator) {
