@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.14-r33';
+const APP_BUILD = '2026.06.14-r35';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -712,7 +712,7 @@ function SavedEntryNext({ theme, entry, onGenerateQuotes, onShake, onOpen, onDon
           先让文字安静地留下，再决定要不要继续。
         </div>
 
-        <div style={{ marginTop: 34, padding: '20px 18px', borderRadius: 20, background: theme.paper, border: `0.5px solid ${theme.line}` }}>
+        <div className="theme-saved-card" style={{ marginTop: 34, padding: '20px 18px', borderRadius: 20, background: theme.paper, border: `0.5px solid ${theme.line}` }}>
           <div className="serif" style={{ color: theme.text, fontSize: 18, lineHeight: 1.6 }}>
             {entry?.title || entry?.body?.slice(0, 32) || '今日的日记'}
           </div>

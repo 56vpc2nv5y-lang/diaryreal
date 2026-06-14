@@ -376,7 +376,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
                     background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                   }}>
-                    <div className="theme-card-preview" style={{
+                    <div className={`theme-card-preview theme-preview-${key}`} style={{
                       width: '100%', borderRadius: key === 'morningPaper' ? 5 : key === 'seaSalt' ? 18 : 12,
                       background: tokens.paper,
                       border: active ? `1.5px solid ${theme.text}` : `0.5px solid ${theme.line}`,
@@ -443,7 +443,7 @@ function SettingsSection({ theme, title, children }) {
   return (
     <div style={{ marginBottom: 20 }}>
       <div style={{ padding: '0 28px 8px', fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>{title}</div>
-      <div style={{ background: theme.surface, margin: '0 16px', borderRadius: 16, overflow: 'hidden' }}>{children}</div>
+      <div className="theme-settings-panel" style={{ background: theme.surface, margin: '0 16px', borderRadius: 16, overflow: 'hidden' }}>{children}</div>
     </div>
   );
 }
