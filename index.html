@@ -9,12 +9,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="诗签">
 <meta name="theme-color" content="#E2EDE5">
-<link rel="manifest" href="manifest.webmanifest?v=20260615-r46">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=20260615-r46">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=20260615-r46">
+<link rel="manifest" href="manifest.webmanifest?v=20260615-r48">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=20260615-r48">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=20260615-r48">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
 
 <style>
   *, *::before, *::after { box-sizing: border-box; }
@@ -784,10 +784,12 @@
       background-size: cover !important;
     }
     .theme-preview-obsidianDawn {
-      border-radius: 12px !important;
-      box-shadow: inset 4px 0 0 #292b2a !important;
-      background-image: radial-gradient(circle at 76% 28%, rgba(185,139,69,.28) 0 1px, transparent 2px) !important;
-      background-size: 19px 19px !important;
+      border-radius: 10px !important;
+      box-shadow: inset 0 1px 0 rgba(196,143,65,.40) !important;
+      background-image:
+        radial-gradient(circle at 88% 9%, rgba(234,190,112,.25), transparent 25%),
+        linear-gradient(145deg, #fffdf8, #f5f1e8) !important;
+      background-size: auto !important;
     }
     .theme-preview-snowNight {
       border-radius: 20px !important;
@@ -1530,7 +1532,211 @@
       box-shadow: none !important;
     }
 
+    /* Refined sea salt and snow night: stationery, not bubble UI. */
+    html[data-diary-theme="seaSalt"] .theme-poem-card:not(.theme-preview-poem-card),
+    html[data-diary-theme="snowNight"] .theme-poem-card:not(.theme-preview-poem-card) {
+      min-height: 365px;
+      border-radius: 18px !important;
+      background-position: center !important;
+      background-size: 100% 100% !important;
+      box-shadow: 0 8px 20px rgba(70,101,106,.10) !important;
+    }
+    html[data-diary-theme="seaSalt"] .theme-home-quote .theme-quote-card,
+    html[data-diary-theme="snowNight"] .theme-home-quote .theme-quote-card {
+      border-radius: 15px !important;
+      background-position: center !important;
+      background-size: 100% 100% !important;
+      box-shadow: 0 5px 14px rgba(70,101,106,.08) !important;
+    }
+    html[data-diary-theme="seaSalt"] .theme-home-quote .theme-quote-card::before,
+    html[data-diary-theme="snowNight"] .theme-home-quote .theme-quote-card::before {
+      display: none !important;
+    }
+    html[data-diary-theme="seaSalt"] .theme-home-quote-text,
+    html[data-diary-theme="snowNight"] .theme-home-quote-text {
+      padding-left: 0 !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tabbar,
+    html[data-diary-theme="snowNight"] .app-tabbar {
+      height: 82px !important;
+      margin: 0 16px 5px !important;
+      padding: 7px 0 23px !important;
+      border-top: 1px solid rgba(80,121,130,.24) !important;
+      background: rgba(249,251,248,.96) !important;
+      box-shadow: 0 -4px 14px rgba(70,101,106,.06) !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tab-item,
+    html[data-diary-theme="snowNight"] .app-tab-item {
+      width: 20% !important;
+      min-width: 0 !important;
+      height: 49px !important;
+      padding: 4px !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tab-primary,
+    html[data-diary-theme="snowNight"] .app-tab-primary {
+      width: 48px !important;
+      min-width: 48px !important;
+      height: 48px !important;
+      border-radius: 10px !important;
+      color: #fff !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tab-primary {
+      background: #477f8d !important;
+      box-shadow: 0 5px 12px rgba(53,111,125,.20) !important;
+    }
+    html[data-diary-theme="snowNight"] .app-tab-primary {
+      background: #668da1 !important;
+      box-shadow: 0 5px 13px rgba(73,111,131,.22) !important;
+    }
+    html[data-diary-theme="snowNight"] .app-tabbar {
+      border: 1px solid rgba(117,148,165,.20) !important;
+      border-radius: 14px !important;
+    }
+    html[data-diary-theme="snowNight"] .app-tab-item + .app-tab-item {
+      border-left: 1px solid rgba(117,148,165,.13) !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tab-primary-label,
+    html[data-diary-theme="snowNight"] .app-tab-primary-label {
+      color: #fff !important;
+    }
+    html[data-diary-theme="snowNight"] .theme-home-date,
+    html[data-diary-theme="snowNight"] .theme-home-place {
+      color: #6d8997 !important;
+    }
+    html[data-diary-theme="snowNight"] .theme-home-title {
+      color: #496f83 !important;
+    }
+    html[data-diary-theme="snowNight"] .theme-poem-rule {
+      height: 1px !important;
+      margin: 13px auto 18px !important;
+      background: #86a6b7 !important;
+      color: transparent !important;
+    }
+    html[data-diary-theme="snowNight"] .theme-poem-rule::after {
+      content: none !important;
+    }
+
+    /* Classical type pairings: restrained Kai and Song typefaces. */
+    html[data-diary-theme="celadon"] :is(.theme-home-title, .theme-poem-title, .theme-home-quote-title),
+    .theme-preview-celadon .theme-preview-poem-card > div:nth-of-type(1) {
+      font-family: "KaiTi", "STKaiti", "Kaiti SC", "Noto Serif SC", serif !important;
+      font-weight: 400 !important;
+    }
+    html[data-diary-theme="inkPlum"] :is(.theme-home-title, .theme-poem-title, .theme-home-quote-title),
+    .theme-preview-inkPlum .theme-preview-poem-card > div:nth-of-type(1) {
+      font-family: "Noto Serif SC", "Songti SC", "SimSun", serif !important;
+      font-weight: 400 !important;
+    }
+    html[data-diary-theme="mossGarden"] :is(.theme-home-title, .theme-poem-title, .theme-home-quote-title),
+    .theme-preview-mossGarden .theme-preview-poem-card > div:nth-of-type(1) {
+      font-family: "KaiTi", "STKaiti", "Kaiti SC", "Noto Serif SC", serif !important;
+      font-weight: 400 !important;
+    }
+    html[data-diary-theme="inkPlum"] .theme-poem-title {
+      font-size: 31px !important;
+      letter-spacing: 6px !important;
+    }
+
+    /* Obsidian dawn: warm paper, one mineral edge, one restrained sunrise. */
+    html[data-diary-theme="obsidianDawn"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero) {
+      border: 1px solid rgba(48,49,47,.24) !important;
+      border-radius: 14px !important;
+      background-image:
+        radial-gradient(circle at 91% 8%, rgba(232,186,105,.30), transparent 23%),
+        linear-gradient(145deg, #fffefa, #f7f3eb) !important;
+      box-shadow: inset 0 1px 0 rgba(185,139,69,.36), 0 7px 18px rgba(48,46,42,.09) !important;
+    }
+    html[data-diary-theme="obsidianDawn"] :is(.theme-quote-card, .theme-sign-card, .theme-saved-card) {
+      border: 1px solid rgba(48,49,47,.19) !important;
+      border-radius: 12px !important;
+      background-image:
+        radial-gradient(circle at 93% 10%, rgba(232,186,105,.23), transparent 25%),
+        linear-gradient(145deg, #fffefa, #f7f3eb) !important;
+      box-shadow: inset 0 1px 0 rgba(185,139,69,.24), 0 5px 14px rgba(48,46,42,.07) !important;
+    }
+    html[data-diary-theme="obsidianDawn"] .theme-home-quote .theme-quote-card::after {
+      content: '一';
+      top: 14px;
+      right: 17px;
+      color: #bd8c43;
+      font-size: 14px;
+      letter-spacing: 0;
+    }
+
     @media (min-width: 900px) {
+      /*
+        Desktop navigation must override every theme's mobile bottom-bar rules.
+        Theme-specific selectors below use !important, so this deliberately
+        uses the same specificity at the end of the stylesheet.
+      */
+      html[data-diary-theme] .app-tabbar {
+        position: fixed !important;
+        top: 50% !important;
+        left: max(24px, calc(50vw - 640px)) !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: 72px !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 12px 8px !important;
+        transform: translateY(-50%);
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 15px !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        z-index: 30 !important;
+      }
+      html[data-diary-theme] .app-tab-item {
+        width: 54px !important;
+        min-width: 54px !important;
+        height: auto !important;
+        min-height: 52px !important;
+        margin: 0 !important;
+        padding: 6px 8px !important;
+        border: 0 !important;
+        border-radius: 16px !important;
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+      html[data-diary-theme] .app-tab-item:hover,
+      html[data-diary-theme] .app-tab-active {
+        background: rgba(255,255,255,.46) !important;
+        box-shadow: 0 5px 16px rgba(72,61,48,.06) !important;
+      }
+      html[data-diary-theme] .app-tab-item + .app-tab-item {
+        border-left: 0 !important;
+      }
+      html[data-diary-theme] .app-tab-primary {
+        width: 54px !important;
+        min-width: 54px !important;
+        height: 52px !important;
+        min-height: 52px !important;
+        margin: 0 !important;
+        padding: 6px 8px !important;
+        border: 0 !important;
+        border-radius: 16px !important;
+        background: transparent !important;
+        color: inherit !important;
+        box-shadow: none !important;
+      }
+      html[data-diary-theme] .app-tab-primary:hover {
+        background: rgba(255,255,255,.46) !important;
+        box-shadow: 0 5px 16px rgba(72,61,48,.06) !important;
+      }
+      html[data-diary-theme] .app-tab-primary-label {
+        color: currentColor !important;
+        font-size: 22px !important;
+      }
       html[data-diary-theme] .theme-home-header {
         padding-top: 46px !important;
       }
@@ -1541,6 +1747,62 @@
       }
       html[data-diary-theme] .theme-poem-card:not(.theme-preview-poem-card) {
         min-height: 390px;
+      }
+      .settings-page {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 22px 54px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px 24px;
+        align-items: start;
+      }
+      .settings-header,
+      .settings-account-wrap,
+      .settings-theme-section,
+      .settings-version {
+        grid-column: 1 / -1;
+      }
+      .settings-header {
+        padding: 48px 4px 0 !important;
+      }
+      .settings-account-wrap {
+        padding: 0 !important;
+      }
+      .settings-section {
+        margin-bottom: 0 !important;
+        min-width: 0;
+      }
+      .settings-section > div:first-child {
+        padding-left: 4px !important;
+      }
+      .settings-section .theme-settings-panel {
+        margin: 0 !important;
+      }
+      .settings-theme-section .theme-settings-panel {
+        padding: 4px 8px 10px;
+      }
+      .settings-theme-section .theme-picker-grid {
+        grid-template-columns: repeat(3, minmax(150px, 1fr));
+        gap: 16px 20px;
+        align-items: start;
+        padding: 12px 14px 16px;
+      }
+      .settings-theme-section .theme-picker-grid > button {
+        align-self: start;
+        justify-self: stretch;
+        height: auto;
+        justify-content: flex-start;
+      }
+      .settings-theme-section .theme-card-preview {
+        min-height: 0;
+        aspect-ratio: 1.55 / 1;
+      }
+      .settings-version {
+        padding: 4px 0 0 !important;
+      }
+      .settings-bottom-spacer {
+        display: none;
       }
     }
   </style>
@@ -1554,7 +1816,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- ── Your Firebase config (edit firebase-config.js) ────────── -->
-<script src="firebase-config.js?v=20260615-r46"></script>
+<script src="firebase-config.js?v=20260615-r48"></script>
 
 <!-- ── React + Babel ─────────────────────────────────────────── -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -1562,17 +1824,17 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- ── Shared data (THEMES, HEXAGRAMS, TAGS) ─────────────────── -->
-<script src="data.js?v=20260615-r46"></script>
-<script src="themes-extra.js?v=2026.06.15-r46"></script>
+<script src="data.js?v=20260615-r48"></script>
+<script src="themes-extra.js?v=2026.06.15-r50"></script>
 
 <!-- ── UI components (load order matters) ────────────────────── -->
-<script type="text/babel" src="primitives.jsx?v=20260615-r46"></script>
-<script type="text/babel" src="screens-main.jsx?v=20260615-r46"></script>
-<script type="text/babel" src="screens-other.jsx?v=20260615-r46"></script>
-<script type="text/babel" src="enhancements.jsx?v=20260615-r46"></script>
+<script type="text/babel" src="primitives.jsx?v=20260615-r48"></script>
+<script type="text/babel" src="screens-main.jsx?v=20260615-r48"></script>
+<script type="text/babel" src="screens-other.jsx?v=20260615-r48"></script>
+<script type="text/babel" src="enhancements.jsx?v=20260615-r48"></script>
 
 <!-- ── Real app ──────────────────────────────────────────────── -->
-<script type="text/babel" src="app-real.jsx?v=20260615-r46"></script>
+<script type="text/babel" src="app-real.jsx?v=20260615-r48"></script>
 
 <script>
   if ('serviceWorker' in navigator) {

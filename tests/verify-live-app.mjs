@@ -11,6 +11,10 @@ const { chromium } = require(playwrightPath);
 const root = path.resolve(import.meta.dirname, '..');
 const baseUrl = process.env.APP_URL || 'http://127.0.0.1:4173';
 const outputPath = path.resolve(root, 'output', 'playwright', process.env.OUTPUT_NAME || 'live-app.png');
+const viewport = {
+  width: Number(process.env.VIEWPORT_WIDTH || 390),
+  height: Number(process.env.VIEWPORT_HEIGHT || 844),
+};
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.jsx': 'text/babel; charset=utf-8', '.json': 'application/json; charset=utf-8',
@@ -29,7 +33,11 @@ const server = process.env.APP_URL ? null : http.createServer((request, response
 });
 if (server) await new Promise(resolve => server.listen(4173, '127.0.0.1', resolve));
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
-const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1.5 });
+const context = await browser.newContext({ viewport, deviceScaleFactor: 1 });
+if (process.env.THEME_KEY) {
+  await context.addInitScript(themeKey => localStorage.setItem('diary-theme', themeKey), process.env.THEME_KEY);
+}
+const page = await context.newPage();
 const errors = [];
 
 page.on('pageerror', error => errors.push(`pageerror: ${error.message}`));

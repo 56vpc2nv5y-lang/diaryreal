@@ -253,7 +253,7 @@ function TabBar({ theme, active = 'home', onChange }) {
         }
         return (
           <button key={it.id} type="button" aria-label={it.label}
-            className="app-tab-item"
+            className={`app-tab-item${isActive ? ' app-tab-active' : ''}`}
             onClick={() => onChange && onChange(it.id)}
               style={{
                 border: 'none', background: 'transparent', cursor: 'pointer',

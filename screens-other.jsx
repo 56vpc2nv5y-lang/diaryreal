@@ -425,9 +425,9 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
     { label: '轻盈', keys: ['dusk', 'seaSalt', 'snowNight'] },
   ];
   const themeRecommendations = {
-    celadon: '素雅浅色信纸 · 宋体或霞鹜文楷',
-    inkPlum: '宣纸或留白信纸 · 霞鹜文楷',
-    mossGarden: '植物边缘信纸 · 宋体',
+    celadon: '青釉浅色信纸 · 楷体',
+    inkPlum: '宣纸留白 · 宋体',
+    mossGarden: '苔庭信纸 · 楷体',
     study: '米白旧纸 · 宋体或霞鹜文楷',
     morningPaper: '无图案信纸 · 宋体',
     obsidianDawn: '暖白矿物纸 · 小薇体',
@@ -437,13 +437,14 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
   };
   return (
     <Screen theme={theme} tab="settings" onTab={onTab}>
-      <div style={{ padding: '64px 24px 24px' }}>
+      <div className="settings-page">
+      <div className="settings-header" style={{ padding: '64px 24px 24px' }}>
         <div style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 500 }}>SETTINGS</div>
         <div className="serif" style={{ fontSize: 30, fontWeight: 600, letterSpacing: -0.5, marginTop: 4, color: theme.text }}>我</div>
       </div>
 
       {/* account card */}
-      <div style={{ padding: '0 20px 24px' }}>
+      <div className="settings-account-wrap" style={{ padding: '0 20px 24px' }}>
         <EmailAccountCard theme={theme} user={currentUser} entriesCount={entriesCount}
           onBindEmail={onBindEmail} onPasswordReset={onPasswordReset}/>
         <button type="button" onClick={() => alert('当前为 Firebase 匿名账户。请定期使用“数据备份”；清除浏览器数据或更换设备后，匿名账户可能无法找回。')} style={{
@@ -467,7 +468,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
       </div>
 
       {/* theme picker */}
-      <SettingsSection theme={theme} title="主 题 皮 肤">
+      <SettingsSection theme={theme} title="主 题 皮 肤" className="settings-theme-section">
         <div style={{ padding: '12px 14px 4px', color: theme.textMute, fontSize: 11.5 }}>
           推荐搭配：{themeRecommendations[currentThemeKey] || '跟随皮肤默认字体与信纸'}
         </div>
@@ -545,7 +546,9 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
 
       <SettingsSection theme={theme} title="云 同 步">
         <SettingsRow theme={theme} label="Firestore" detail={syncDetail} onClick={() => alert(syncState.error ? `最近一次同步失败：${syncState.error}` : syncDetail)} />
-        <SettingsRow theme={theme} label="跨设备同步" detail="匿名账号不支持" onClick={() => alert('当前使用 Firebase 匿名登录。要跨设备同步，需要后续增加 Google 或邮箱登录。')} isLast />
+        <SettingsRow theme={theme} label="跨设备同步"
+          detail={currentUser?.isAnonymous ? '绑定邮箱后可用' : '邮箱账户已启用'}
+          onClick={() => alert(currentUser?.isAnonymous ? '请在页面顶部绑定邮箱，绑定后即可跨设备登录。' : `当前已绑定 ${currentUser?.email || '邮箱账户'}，可在其他设备登录。`)} isLast />
       </SettingsSection>
 
       <SettingsSection theme={theme} title="数 据">
@@ -553,17 +556,18 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         <SettingsRow theme={theme} label="退出" onClick={onSignOut} isLast />
       </SettingsSection>
 
-      <div style={{ textAlign: 'center', fontSize: 10.5, color: theme.textMute, letterSpacing: 1, padding: '2px 0 18px' }}>
+      <div className="settings-version" style={{ textAlign: 'center', fontSize: 10.5, color: theme.textMute, letterSpacing: 1, padding: '2px 0 18px' }}>
         版本 {buildLabel || 'prototype'}
       </div>
-      <div style={{ height: 100 }} />
+      <div className="settings-bottom-spacer" style={{ height: 100 }} />
+      </div>
     </Screen>
   );
 }
 
-function SettingsSection({ theme, title, children }) {
+function SettingsSection({ theme, title, children, className = '' }) {
   return (
-    <div style={{ marginBottom: 20 }}>
+    <div className={`settings-section ${className}`} style={{ marginBottom: 20 }}>
       <div style={{ padding: '0 28px 8px', fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>{title}</div>
       <div className="theme-settings-panel" style={{ background: theme.surface, margin: '0 16px', borderRadius: 16, overflow: 'hidden', ...skin(theme, 'panel') }}>{children}</div>
     </div>
