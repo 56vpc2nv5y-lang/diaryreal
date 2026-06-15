@@ -1,6 +1,6 @@
 # Vercel 同步部署检查
 
-这次修复后的页面版本是 `2026.06.12-r24`。
+这次修复后的页面版本是 `2026.06.15-r46`。
 
 ## 必须一起部署
 
@@ -30,11 +30,11 @@
 {
   "ok": true,
   "deepseekConfigured": true,
-    "build": "2026.06.12-r24"
+    "build": "2026.06.15-r46"
 }
 ```
 
-3. 打开应用设置页底部，应显示 `版本 2026.06.12-r24`。
+3. 打开应用设置页底部，应显示 `版本 2026.06.15-r46`。
 4. 如果仍显示 `iCloud`、`Android 同步` 或 `.docx · .txt · .pdf · .md`，说明当前域名仍指向旧部署或 Vercel 项目的 Root Directory 配错。
 
 ## Firestore
@@ -43,4 +43,12 @@ Firestore 可以用于这个个人应用。需要单独将 `firestore.rules` 部
 
 为保持免费版无需绑定付款方式，本项目不启用 Firebase Storage，也不提供日记照片云端上传。诗签 PNG 分享在浏览器本地生成，不使用云存储。
 
-当前使用匿名登录：同一浏览器里可以持续使用，但清除浏览器数据或更换设备后可能无法访问旧 UID 的数据。请定期使用设置页的“数据备份”；如需可靠跨设备同步，应增加邮箱或 Google 登录。
+## Firebase 邮箱登录
+
+1. Firebase Console -> Authentication -> Sign-in method。
+2. 启用 `Email/Password`，同时保留 `Anonymous`。
+3. Authentication -> Settings -> Authorized domains 中确认包含 `diaryreal.vercel.app`。
+4. 已有匿名账户应在应用“我”页面选择“绑定邮箱”，这样会保留原 UID 和全部日记。
+5. 如果直接注册全新邮箱账户，会产生新 UID；使用了 `ALLOWED_FIREBASE_UID` 时，需要同步更新 Vercel 环境变量。
+
+邮箱绑定不会改变 Firestore 数据路径，现有 `firestore.rules` 无需修改。仍建议定期下载数据备份。

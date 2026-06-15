@@ -9,9 +9,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="诗签">
 <meta name="theme-color" content="#E2EDE5">
-<link rel="manifest" href="manifest.webmanifest?v=20260614-r36">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=20260614-r36">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=20260614-r36">
+<link rel="manifest" href="manifest.webmanifest?v=20260615-r46">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=20260615-r46">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=20260615-r46">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
@@ -73,6 +73,132 @@
     position: absolute;
     font-family: var(--theme-serif-font, 'Noto Serif SC', serif);
   }
+  .theme-card-motif { transition: opacity .2s ease; }
+  .theme-card-motif-inkPlum circle,
+  .theme-card-motif-mossGarden ellipse,
+  .theme-card-motif-snowNight circle { fill: currentColor; stroke: none; }
+  .theme-card-motif-morningPaper { opacity: .24 !important; }
+  .theme-card-motif-seaSalt,
+  .theme-card-motif-snowNight { opacity: .46 !important; }
+  .theme-poem-card:hover .theme-card-motif,
+  .theme-quote-card:hover .theme-card-motif { opacity: .62 !important; }
+  .theme-home-header { position: relative; z-index: 4; }
+  .theme-header-mark {
+    min-width: 58px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 3px;
+    color: currentColor;
+    font-family: var(--theme-serif-font, 'Noto Serif SC', serif);
+  }
+  .theme-header-mark span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+    padding: 4px 8px;
+    border: 1px solid currentColor;
+    border-radius: 8px;
+    font-size: 11px;
+    letter-spacing: 2px;
+  }
+  .theme-header-mark small { font-size: 8px; letter-spacing: 1px; opacity: .6; }
+  .theme-header-mark-morningPaper span { border-radius: 1px; color: #b53e32; }
+  .theme-header-mark-seaSalt span,
+  .theme-header-mark-snowNight span { border-radius: 14px; }
+  .theme-header-mark-inkPlum span { border-radius: 2px; color: #a43a2e; }
+  .theme-header-mark-mossGarden span { background: rgba(73,107,75,.12); }
+  .theme-header-mark-study span { border-color: rgba(103,77,51,.35); background: rgba(255,247,225,.45); }
+  .theme-header-mark-dusk span { border-color: rgba(128,109,145,.3); background: rgba(255,255,255,.3); }
+  .theme-header-mark-obsidianDawn span { color: #292b2a; border-color: rgba(185,139,69,.58); }
+  .theme-header-mark-snowNight { color: rgba(255,255,255,.92); }
+
+  .theme-card-art {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    color: currentColor;
+  }
+  .theme-poem-card,
+  .theme-quote-card,
+  .theme-poem-hero,
+  .theme-sign-card { isolation: isolate; }
+  .theme-card-art svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+  .theme-card-art svg > * { display: none; }
+  .theme-card-art-label { display: none; position: absolute; font-family: var(--theme-serif-font, serif); }
+
+  .theme-card-art-celadon { color: rgba(63,118,104,.20); }
+  .theme-card-art-celadon .art-line,
+  .theme-card-art-celadon .art-sun { display: block; }
+  .theme-card-art-celadon .art-sun { transform: translate(29px,-36px); }
+
+  .theme-card-art-inkPlum { color: rgba(45,43,39,.42); }
+  .theme-card-art-inkPlum .art-branch,
+  .theme-card-art-inkPlum .art-blossoms { display: block; }
+  .theme-card-art-inkPlum .art-blossoms { fill: #a43a2e; stroke: #a43a2e; }
+  .theme-card-art-inkPlum.theme-card-art-poem .art-branch,
+  .theme-card-art-inkPlum.theme-card-art-poem .art-blossoms { display: none; }
+
+  .theme-card-art-mossGarden { color: rgba(54,92,62,.32); }
+  .theme-card-art-mossGarden .art-leaf-stem { display: block; }
+  .theme-card-art-mossGarden.theme-card-art-poem .art-leaf-stem { display: none; }
+
+  .theme-card-art-study { color: rgba(103,77,51,.20); }
+  .theme-card-art-study .art-book { display: block; transform: translate(198px,125px) scale(.72); transform-origin: center; }
+
+  .theme-card-art-dusk { color: rgba(128,109,145,.22); }
+  .theme-card-art-dusk .art-moon,
+  .theme-card-art-dusk .art-line-a { display: block; }
+  .theme-card-art-dusk.theme-card-art-poem .art-moon { display: none; }
+
+  .theme-card-art-morningPaper { color: rgba(41,39,35,.20); }
+  .theme-card-art-morningPaper.theme-card-art-quote .art-book { display: block; transform: translate(205px,128px) scale(.72); transform-origin: center; }
+  .theme-card-art-morningPaper::after {
+    content: ''; position: absolute; left: 12px; right: 12px; bottom: 12px;
+    border-top: 3px double rgba(41,39,35,.30);
+  }
+
+  .theme-card-art-seaSalt { color: rgba(77,130,166,.34); }
+  .theme-card-art-seaSalt .art-line { display: block; stroke-width: 1.7; }
+
+  .theme-card-art-obsidianDawn { color: rgba(185,139,69,.40); }
+  .theme-card-art-obsidianDawn .art-sun,
+  .theme-card-art-obsidianDawn .art-rays { display: block; }
+  .theme-card-art-obsidianDawn.theme-card-art-poem .art-sun,
+  .theme-card-art-obsidianDawn.theme-card-art-poem .art-rays { display: none; }
+
+  .theme-card-art-snowNight { color: rgba(111,131,189,.28); }
+  .theme-card-art-snowNight .art-line,
+  .theme-card-art-snowNight .art-snow { display: block; }
+  .theme-card-art-snowNight .art-moon { display: block; transform: translate(22px,-12px) scale(.78); transform-origin: center; }
+  .theme-card-art-snowNight.theme-card-art-poem .art-moon { display: none; }
+
+  .theme-screen-inkPlum .theme-poem-card:not(.theme-preview-poem-card) {
+    clip-path: polygon(0 2%, 3% 1%, 7% 2%, 12% 1%, 17% 2%, 22% 1%, 28% 2%, 34% 1%, 41% 2%, 48% 1%, 55% 2%, 63% 1%, 71% 2%, 79% 1%, 87% 2%, 94% 1%, 100% 2%, 99% 98%, 94% 99%, 87% 98%, 80% 99%, 72% 98%, 64% 99%, 55% 98%, 47% 99%, 38% 98%, 30% 99%, 22% 98%, 14% 99%, 7% 98%, 1% 99%);
+  }
+  .theme-screen-morningPaper .theme-home-header { border-bottom: 3px double rgba(41,39,35,.62); margin: 0 20px; padding-left: 0 !important; padding-right: 0 !important; }
+  .theme-screen-morningPaper .theme-today-wrap { padding-left: 20px !important; padding-right: 20px !important; }
+  .theme-screen-seaSalt .theme-poem-card:not(.theme-preview-poem-card),
+  .theme-screen-snowNight .theme-poem-card:not(.theme-preview-poem-card) { border-bottom-left-radius: 46px !important; border-bottom-right-radius: 46px !important; }
+  .theme-screen-obsidianDawn .theme-poem-card:not(.theme-preview-poem-card) { box-shadow: inset -3px 0 0 rgba(185,139,69,.48), 0 12px 28px rgba(41,43,42,.13) !important; }
+  .theme-screen-celadon .theme-quote-card,
+  .theme-screen-mossGarden .theme-quote-card { min-height: 104px; }
+  .theme-screen-snowNight .theme-home-header { color: #274983; }
+
+  .theme-home-quote { margin-top: 14px; }
+  .theme-home-quote .theme-quote-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 86px;
+    padding: 16px 18px;
+    cursor: pointer;
+  }
+  .theme-home-quote-title { font-size: 11px; letter-spacing: 3px; font-weight: 600; }
+  .theme-home-quote-text { margin-top: 9px; padding-right: 30px; font-size: 13.5px; line-height: 1.75; letter-spacing: .8px; }
+  .theme-home-quote-arrow { position: absolute; right: 17px; top: 50%; transform: translateY(-50%); font-size: 20px; opacity: .58; }
   .theme-decor-celadon { color: rgba(63,118,104,.32); }
   .theme-decor-celadon .decor-celadon { display: block; }
   .theme-decor-celadon .mark-a {
@@ -87,7 +213,7 @@
   .theme-decor-celadon .mark-b::before { content: '青 瓷'; }
 
   .theme-decor-inkPlum { color: rgba(45,43,39,.48); }
-  .theme-decor-inkPlum .decor-inkPlum { display: block; }
+  .theme-decor-inkPlum .decor-inkPlum { display: none; }
   .theme-decor-inkPlum .decor-inkPlum g { fill: #b43a2e; stroke: #b43a2e; opacity: .72; }
   .theme-decor-inkPlum .mark-a {
     display: block; left: 16px; bottom: 94px; width: 30px; height: 30px;
@@ -97,7 +223,7 @@
   .theme-decor-inkPlum .mark-a::before { content: '梅'; }
 
   .theme-decor-mossGarden { color: rgba(48,85,55,.42); }
-  .theme-decor-mossGarden .decor-mossGarden { display: block; stroke-width: 2; }
+  .theme-decor-mossGarden .decor-mossGarden { display: none; }
   .theme-decor-mossGarden .mark-a {
     display: block; top: 94px; left: -34px; width: 86px; height: 86px;
     border-radius: 46% 54% 42% 58%; background: rgba(73,107,75,.13);
@@ -163,10 +289,9 @@
   .theme-decor-obsidianDawn { color: rgba(41,43,42,.38); }
   .theme-decor-obsidianDawn .decor-obsidianDawn { display: block; stroke-width: 1.6; }
   .theme-decor-obsidianDawn .decor-obsidianDawn circle { stroke: rgba(185,139,69,.65); }
-  .theme-decor-obsidianDawn .decor-obsidianDawn path { fill: rgba(41,43,42,.10); }
+  .theme-decor-obsidianDawn .decor-obsidianDawn path { fill: none; }
   .theme-decor-obsidianDawn .mark-a {
-    display: block; left: 17px; top: 72px; width: 5px; height: 86px;
-    background: #292b2a; box-shadow: 8px 0 0 rgba(185,139,69,.64);
+    display: none;
   }
   .theme-decor-obsidianDawn .mark-b {
     display: block; right: 16px; bottom: 98px; color: rgba(41,43,42,.64);
@@ -245,7 +370,7 @@
       flex-direction: column;
       justify-content: center !important;
       gap: 18px;
-      background: rgba(255,255,255,.28) !important;
+      background: rgba(255,255,255,.28);
       border-right: 0.5px solid rgba(80,70,60,.10);
       backdrop-filter: blur(18px);
       -webkit-backdrop-filter: blur(18px);
@@ -625,15 +750,20 @@
     }
 
     .theme-preview-celadon {
-      background-image: linear-gradient(115deg, transparent 47%, rgba(63,118,104,.12) 48%, transparent 49%) !important;
-      background-size: 24px 26px !important;
+      background-image: url("assets/themes/generated/celadon-bg.webp") !important;
+      background-position: center !important;
+      background-size: cover !important;
     }
     .theme-preview-inkPlum {
       border-radius: 7px !important;
-      background-image: radial-gradient(ellipse at 100% 0%, rgba(132,57,64,.24), transparent 48%) !important;
+      background-image: url("assets/themes/generated/ink-plum-bg.webp") !important;
+      background-position: center !important;
+      background-size: cover !important;
     }
     .theme-preview-mossGarden {
-      background-image: radial-gradient(ellipse at 100% 10%, rgba(62,101,70,.28), transparent 45%) !important;
+      background-image: url("assets/themes/generated/moss-garden-bg.webp") !important;
+      background-position: center !important;
+      background-size: cover !important;
     }
     .theme-preview-study {
       border-radius: 9px !important;
@@ -649,7 +779,9 @@
     }
     .theme-preview-seaSalt {
       border-radius: 22px !important;
-      background-image: radial-gradient(ellipse at 50% 110%, transparent 52%, rgba(77,130,166,.22) 54%, transparent 58%) !important;
+      background-image: url("assets/themes/generated/sea-salt-bg.webp") !important;
+      background-position: center !important;
+      background-size: cover !important;
     }
     .theme-preview-obsidianDawn {
       border-radius: 12px !important;
@@ -659,10 +791,757 @@
     }
     .theme-preview-snowNight {
       border-radius: 20px !important;
+      background-image: url("assets/themes/generated/snow-night-bg.webp") !important;
+      background-position: center !important;
+      background-size: cover !important;
+    }
+
+    /*
+      Reference-faithful home skins.
+      The data and interactions stay shared; each theme owns its paper,
+      composition, card silhouette, quote treatment, and navigation language.
+    */
+    html[data-diary-theme] .app-screen:not(.app-screen-custom-bg) {
+      background-image: var(--theme-screen-image) !important;
+      background-position: var(--theme-screen-position) !important;
+      background-size: var(--theme-screen-size) !important;
+      background-repeat: var(--theme-screen-repeat) !important;
+    }
+    html[data-diary-theme] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero) {
+      background-image: var(--theme-poem-image) !important;
+      background-position: var(--theme-poem-position) !important;
+      background-size: var(--theme-poem-size) !important;
+      background-repeat: var(--theme-poem-repeat) !important;
+    }
+    html[data-diary-theme] :is(.theme-quote-card, .theme-sign-card, .theme-saved-card) {
+      background-image: var(--theme-panel-image) !important;
+      background-position: var(--theme-panel-position) !important;
+      background-size: var(--theme-panel-size) !important;
+      background-repeat: var(--theme-panel-repeat) !important;
+    }
+    html[data-diary-theme] .theme-home-header {
+      align-items: flex-start !important;
+      padding: 52px 23px 7px !important;
+    }
+    html[data-diary-theme] .theme-home-date {
+      display: flex;
+      align-items: center;
+      white-space: nowrap;
+      font-size: 10.5px !important;
+      letter-spacing: .4px !important;
+      line-height: 1.4;
+    }
+    html[data-diary-theme] .theme-home-weekday { display: inline; }
+    html[data-diary-theme] .theme-home-weather {
+      margin-left: 8px;
+      color: var(--theme-accent, currentColor);
+      font-size: 15px;
+      line-height: 1;
+    }
+    html[data-diary-theme] .theme-home-place {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 7px;
+      font-size: 10.5px;
+      letter-spacing: .4px;
+    }
+    html[data-diary-theme] .theme-home-title {
+      margin-top: 12px !important;
+      font-size: 36px !important;
+      line-height: 1 !important;
+      letter-spacing: 2px !important;
+      font-weight: 600 !important;
+    }
+    html[data-diary-theme] .theme-home-actions {
+      flex-direction: column;
+      align-items: flex-end !important;
+      gap: 6px !important;
+    }
+    html[data-diary-theme] .theme-header-mark { display: none; }
+    html[data-diary-theme="morningPaper"] .theme-header-mark { display: none; }
+    html[data-diary-theme="morningPaper"] .theme-header-mark span {
+      min-height: 0;
+      padding: 4px 5px;
+      border-color: #b53e32;
+      font-size: 10px;
+      line-height: 1.15;
+      letter-spacing: 2px;
+      writing-mode: vertical-rl;
+    }
+    html[data-diary-theme="morningPaper"] .theme-header-mark small {
+      max-width: 44px;
+      font-size: 7px;
+      letter-spacing: 0;
+      text-align: right;
+    }
+    html[data-diary-theme="morningPaper"] .theme-decor-morningPaper .mark-a {
+      display: block;
+      top: 98px;
+      right: 22px;
+      z-index: 5;
+    }
+    html[data-diary-theme="morningPaper"] .theme-decor-morningPaper .mark-a::after {
+      content: '第1287期';
+      position: absolute;
+      top: 38px;
+      right: -7px;
+      width: 52px;
+      color: rgba(54,49,42,.68);
+      font-size: 7px;
+      font-weight: 400;
+      letter-spacing: .5px;
+      writing-mode: horizontal-tb;
+    }
+    html[data-diary-theme] .theme-search-button {
+      width: 48px !important;
+      height: 32px !important;
+      border-radius: 8px !important;
+      box-shadow: none !important;
+      font-family: var(--theme-serif-font, serif);
+      order: 1;
+    }
+    html[data-diary-theme] .theme-search-button svg { display: none; }
+    html[data-diary-theme] .theme-journal-label {
+      display: inline-block;
+      font-size: 13px;
+      letter-spacing: 2px;
+      color: currentColor;
+    }
+    html[data-diary-theme] .theme-today-wrap {
+      padding: 8px 20px 0 !important;
+    }
+    html[data-diary-theme] .theme-poem-card:not(.theme-preview-poem-card) {
+      min-height: 350px;
+      padding: 31px 25px 25px !important;
+      overflow: hidden;
+    }
+    html[data-diary-theme] .theme-poem-card .theme-card-art,
+    html[data-diary-theme] .theme-poem-card .theme-card-motif,
+    html[data-diary-theme] .theme-home-quote .theme-card-art,
+    html[data-diary-theme] .theme-home-quote .theme-card-motif {
+      display: none;
+    }
+    html[data-diary-theme] .theme-poem-topline {
+      height: 0;
+      margin: 0 !important;
+    }
+    html[data-diary-theme] .theme-poem-tag { display: none; }
+    html[data-diary-theme] .theme-poem-seal {
+      position: absolute;
+      z-index: 4;
+      top: 20px;
+      right: 17px;
+    }
+    html[data-diary-theme] .theme-poem-seal .theme-seal {
+      width: 25px !important;
+      height: 34px !important;
+      border: 1px solid #bd3d31 !important;
+      border-radius: 2px !important;
+      background: rgba(255,255,255,.26) !important;
+      box-shadow: none !important;
+      color: #bd3d31 !important;
+      font-size: 9px !important;
+      transform: none !important;
+    }
+    html[data-diary-theme] .theme-poem-title {
+      padding-left: .3em !important;
+      font-size: 28px !important;
+      letter-spacing: 7px !important;
+    }
+    html[data-diary-theme] .theme-poem-rule {
+      width: 25px !important;
+      margin: 13px auto 18px !important;
+    }
+    html[data-diary-theme] .theme-poem-body {
+      min-height: 188px;
+      display: flex;
+      align-items: center;
+    }
+    html[data-diary-theme] .theme-poem-body > .serif > div {
+      font-size: 15px !important;
+      line-height: 2.25 !important;
+      letter-spacing: .22em !important;
+    }
+    html[data-diary-theme] .theme-poem-meta {
+      margin-top: 16px !important;
+      font-size: 10px !important;
+    }
+    html[data-diary-theme] .theme-home-quote { margin-top: 14px; }
+    html[data-diary-theme] .theme-home-quote .theme-quote-card {
+      min-height: 116px;
+      padding: 19px 20px !important;
+    }
+    html[data-diary-theme] .theme-home-quote-title {
+      position: relative;
+      z-index: 2;
+      font-size: 13px;
+      letter-spacing: 2px;
+      font-weight: 500;
+    }
+    html[data-diary-theme] .theme-home-quote-text {
+      position: relative;
+      z-index: 2;
+      margin-top: 12px;
+      padding-right: 26px;
+      font-size: 12px;
+      line-height: 1.9;
+    }
+    html[data-diary-theme] .theme-home-quote-arrow {
+      z-index: 2;
+      font-size: 21px;
+    }
+    html[data-diary-theme] :is(.theme-poem-card, .theme-quote-card, .theme-search-button, .app-tab-item):focus-visible {
+      outline: 2px solid currentColor;
+      outline-offset: 3px;
+    }
+    html[data-diary-theme] .theme-past-divider { padding-top: 64px !important; }
+    html[data-diary-theme="celadon"] .theme-decor,
+    html[data-diary-theme="inkPlum"] .theme-decor,
+    html[data-diary-theme="mossGarden"] .theme-decor,
+    html[data-diary-theme="study"] .theme-decor,
+    html[data-diary-theme="dusk"] .theme-decor,
+    html[data-diary-theme="seaSalt"] .theme-decor,
+    html[data-diary-theme="obsidianDawn"] .theme-decor,
+    html[data-diary-theme="snowNight"] .theme-decor {
+      display: none;
+    }
+
+    /* The five classical skins share a restrained poem seal. */
+    html[data-diary-theme="morningPaper"] .theme-poem-seal,
+    html[data-diary-theme="seaSalt"] .theme-poem-seal,
+    html[data-diary-theme="obsidianDawn"] .theme-poem-seal,
+    html[data-diary-theme="snowNight"] .theme-poem-seal {
+      display: none;
+    }
+
+    /* 青瓷 */
+    html[data-diary-theme="celadon"] .theme-poem-card:not(.theme-preview-poem-card) {
+      border-radius: 18px !important;
+      background-color: rgba(251,250,245,.92) !important;
+      box-shadow: 0 8px 19px rgba(36,79,70,.13) !important;
+    }
+    html[data-diary-theme="celadon"] .theme-home-quote .theme-quote-card {
+      border-radius: 18px !important;
+      background-position: right bottom, center !important;
+      background-size: 112px auto, auto !important;
+    }
+    html[data-diary-theme="celadon"] .app-tabbar,
+    html[data-diary-theme="mossGarden"] .app-tabbar,
+    html[data-diary-theme="study"] .app-tabbar,
+    html[data-diary-theme="dusk"] .app-tabbar {
+      height: 86px !important;
+      margin: 0 9px 5px;
+      padding: 8px 8px 23px !important;
+      border: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    html[data-diary-theme="celadon"] .app-tab-item,
+    html[data-diary-theme="mossGarden"] .app-tab-item,
+    html[data-diary-theme="study"] .app-tab-item,
+    html[data-diary-theme="dusk"] .app-tab-item {
+      width: 48px;
+      height: 48px;
+      min-width: 48px !important;
+      padding: 5px !important;
+      border: 1px solid rgba(255,255,255,.72) !important;
+      border-radius: 50% !important;
+      background: rgba(255,255,255,.70) !important;
+      box-shadow: 0 3px 9px rgba(50,60,55,.12) !important;
+    }
+    html[data-diary-theme="celadon"] .app-tab-primary,
+    html[data-diary-theme="mossGarden"] .app-tab-primary,
+    html[data-diary-theme="study"] .app-tab-primary,
+    html[data-diary-theme="dusk"] .app-tab-primary {
+      width: 54px !important;
+      height: 54px !important;
+      border: 0 !important;
+      color: #fff !important;
+    }
+
+    /* 墨梅 */
+    html[data-diary-theme="inkPlum"] .theme-poem-card:not(.theme-preview-poem-card),
+    html[data-diary-theme="inkPlum"] .theme-home-quote .theme-quote-card {
+      border-radius: 2px !important;
+      clip-path: polygon(0 2%,3% 1%,7% 2%,12% 1%,17% 2%,22% 1%,28% 2%,34% 1%,41% 2%,48% 1%,55% 2%,63% 1%,71% 2%,79% 1%,87% 2%,94% 1%,100% 2%,99% 98%,94% 99%,87% 98%,80% 99%,72% 98%,64% 99%,55% 98%,47% 99%,38% 98%,30% 99%,22% 98%,14% 99%,7% 98%,1% 99%);
+      box-shadow: 0 8px 20px rgba(68,54,42,.13) !important;
+    }
+    html[data-diary-theme="inkPlum"] .app-tabbar {
+      height: 82px !important;
+      margin: 0 10px 5px;
+      padding: 7px 8px 23px !important;
+      border-top: 1px solid rgba(45,43,41,.34) !important;
+      background: rgba(250,246,237,.95) !important;
+    }
+    html[data-diary-theme="inkPlum"] .app-tab-item {
+      min-width: 54px !important;
+      padding: 5px !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    html[data-diary-theme="inkPlum"] .app-tab-primary {
+      width: 50px !important;
+      height: 50px !important;
+      border-radius: 3px !important;
+    }
+
+    /* 苔庭 */
+    html[data-diary-theme="mossGarden"] .theme-poem-card:not(.theme-preview-poem-card) {
+      border-radius: 12px !important;
+      clip-path: polygon(0 1%,8% .5%,16% 1.3%,25% .6%,36% 1.2%,48% .5%,60% 1.2%,72% .6%,84% 1.3%,94% .6%,100% 1%,100% 99%,91% 99.4%,80% 98.8%,68% 99.4%,56% 98.8%,43% 99.4%,31% 98.8%,18% 99.4%,8% 98.8%,0 99%);
+    }
+    html[data-diary-theme="mossGarden"] .theme-home-quote .theme-quote-card {
+      background-position: right bottom, center !important;
+      background-size: 125px auto, auto !important;
+    }
+
+    /* 旧书房 */
+    html[data-diary-theme="study"] .theme-poem-card:not(.theme-preview-poem-card),
+    html[data-diary-theme="study"] .theme-home-quote .theme-quote-card {
+      border-radius: 17px !important;
+    }
+
+    /* 暮云 */
+    html[data-diary-theme="dusk"] .theme-poem-card:not(.theme-preview-poem-card),
+    html[data-diary-theme="dusk"] .theme-home-quote .theme-quote-card {
+      border-radius: 22px !important;
+      background-color: rgba(251,249,252,.86) !important;
+    }
+
+    /* 晨报 */
+    html[data-diary-theme="morningPaper"] .theme-home-header {
+      margin: 0 20px !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      padding-bottom: 13px !important;
+      border-bottom: 4px double rgba(41,39,35,.72) !important;
+    }
+    html[data-diary-theme="morningPaper"] .theme-today-wrap {
+      padding-top: 7px !important;
+    }
+    html[data-diary-theme="morningPaper"] .theme-poem-card:not(.theme-preview-poem-card) {
+      min-height: 358px;
+      border: 1px solid rgba(41,39,35,.52) !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+    }
+    html[data-diary-theme="morningPaper"] .theme-home-quote .theme-quote-card {
+      border: 1px solid rgba(41,39,35,.42) !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+    }
+    html[data-diary-theme="morningPaper"] .theme-home-quote .theme-quote-card::before {
+      content: '“';
+      position: absolute;
+      left: 17px;
+      top: 42px;
+      font-family: Georgia, serif;
+      font-size: 38px;
+      color: rgba(41,39,35,.72);
+    }
+    html[data-diary-theme="morningPaper"] .theme-home-quote-text {
+      padding-left: 38px;
+      font-size: 14px;
+    }
+    html[data-diary-theme="morningPaper"] .app-tabbar,
+    html[data-diary-theme="obsidianDawn"] .app-tabbar {
+      height: 82px !important;
+      margin: 0 20px 5px;
+      padding: 7px 0 23px !important;
+      border-top: 3px double rgba(41,39,35,.58) !important;
+      background: rgba(251,247,238,.96) !important;
+      box-shadow: none !important;
+    }
+    html[data-diary-theme="morningPaper"] .app-tab-item,
+    html[data-diary-theme="obsidianDawn"] .app-tab-item {
+      width: 20%;
+      min-width: 0 !important;
+      height: 49px;
+      padding: 4px !important;
+      border: 1px solid rgba(41,39,35,.22) !important;
+      border-right: 0 !important;
+      border-radius: 0 !important;
+      background: rgba(255,255,255,.18) !important;
+      box-shadow: none !important;
+    }
+    html[data-diary-theme="morningPaper"] .app-tab-primary,
+    html[data-diary-theme="obsidianDawn"] .app-tab-primary {
+      width: 20% !important;
+      height: 49px !important;
+      border-radius: 0 !important;
+    }
+
+    /* 海盐 */
+    html[data-diary-theme="seaSalt"] .theme-poem-card:not(.theme-preview-poem-card) {
+      min-height: 365px;
+      border-radius: 29px 29px 48px 48px !important;
+      background-position: center bottom, center !important;
+      background-size: 100% 58px, auto !important;
+    }
+    html[data-diary-theme="seaSalt"] .theme-home-quote .theme-quote-card {
+      border-radius: 22px 22px 34px 34px !important;
+      background-position: center bottom, center !important;
+      background-size: 100% 42px, auto !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tabbar,
+    html[data-diary-theme="snowNight"] .app-tabbar {
+      height: 88px !important;
+      margin: 0 8px 5px;
+      padding: 8px 7px 23px !important;
+      border: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tab-item,
+    html[data-diary-theme="snowNight"] .app-tab-item {
+      width: 49px;
+      height: 49px;
+      min-width: 49px !important;
+      padding: 5px !important;
+      border: 1px solid rgba(255,255,255,.82) !important;
+      border-radius: 50% !important;
+      background: rgba(255,255,255,.72) !important;
+      box-shadow: 0 4px 12px rgba(49,95,131,.15) !important;
+      backdrop-filter: blur(12px);
+    }
+    html[data-diary-theme="seaSalt"] .app-tab-primary,
+    html[data-diary-theme="snowNight"] .app-tab-primary {
+      width: 57px !important;
+      height: 57px !important;
+      border-radius: 50% !important;
+    }
+
+    /* 曜石晨光 */
+    html[data-diary-theme="obsidianDawn"] .theme-poem-card:not(.theme-preview-poem-card) {
+      border-radius: 24px !important;
+      box-shadow: 0 12px 27px rgba(41,43,42,.12) !important;
+      background-position: center !important;
+    }
+    html[data-diary-theme="obsidianDawn"] .theme-home-quote .theme-quote-card {
+      border-radius: 20px !important;
+      box-shadow: 0 9px 22px rgba(41,43,42,.10) !important;
+    }
+    html[data-diary-theme="obsidianDawn"] .app-tabbar {
+      border-top: 1px solid rgba(41,43,42,.26) !important;
+      background: rgba(248,244,236,.94) !important;
+    }
+    html[data-diary-theme="obsidianDawn"] .app-tab-primary {
+      border: 0 !important;
+      background: #292b2a !important;
+    }
+
+    /* 雪夜 */
+    html[data-diary-theme="snowNight"] .theme-home-date,
+    html[data-diary-theme="snowNight"] .theme-home-place {
+      color: rgba(255,255,255,.90) !important;
+    }
+    html[data-diary-theme="snowNight"] .theme-search-button {
+      border-color: rgba(255,255,255,.72) !important;
+      background: rgba(255,255,255,.08) !important;
+      color: #fff !important;
+    }
+    html[data-diary-theme="snowNight"] .theme-poem-card:not(.theme-preview-poem-card) {
+      min-height: 365px;
+      border-radius: 29px 29px 50px 50px !important;
+      background-position: center, center !important;
+      background-size: 100% 100%, auto !important;
+    }
+    html[data-diary-theme="snowNight"] .theme-home-quote .theme-quote-card {
+      border-radius: 24px 24px 38px 38px !important;
+      background-position: center, center !important;
+      background-size: 100% 100%, auto !important;
+    }
+    html[data-diary-theme="snowNight"] .app-tab-item {
+      border-color: rgba(255,255,255,.55) !important;
+      background: rgba(255,255,255,.18) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 5px 14px rgba(54,84,135,.18) !important;
+    }
+
+    /* The center action carries each skin's strongest visual accent. */
+    html[data-diary-theme="celadon"] .app-tab-primary {
+      background: linear-gradient(145deg, #c34d39, #963425) !important;
+      box-shadow: 0 7px 17px rgba(150,52,37,.28) !important;
+    }
+    html[data-diary-theme="inkPlum"] .app-tab-primary {
+      background: #b7352d !important;
+      color: #fff !important;
+      box-shadow: 0 6px 14px rgba(183,53,45,.24) !important;
+    }
+    html[data-diary-theme="mossGarden"] .app-tab-primary {
+      background: linear-gradient(145deg, #6f8b55, #395a3d) !important;
+      box-shadow: 0 7px 17px rgba(57,90,61,.25) !important;
+    }
+    html[data-diary-theme="study"] .app-tab-primary {
+      background: linear-gradient(145deg, #8a552f, #5b3523) !important;
+      box-shadow: 0 6px 15px rgba(91,61,43,.25) !important;
+    }
+    html[data-diary-theme="dusk"] .app-tab-primary {
+      background: linear-gradient(145deg, #8a72a0, #655374) !important;
+      box-shadow: 0 8px 20px rgba(101,83,116,.26) !important;
+    }
+    html[data-diary-theme="morningPaper"] .app-tab-primary {
+      background: rgba(255,255,255,.28) !important;
+      color: #292723 !important;
+      border: 1px solid rgba(41,39,35,.55) !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tab-primary {
+      background: linear-gradient(145deg, #75b7d6, #397ba6) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.65), 0 8px 20px rgba(49,95,131,.28) !important;
+    }
+    html[data-diary-theme="snowNight"] .app-tab-primary {
+      background: linear-gradient(145deg, #9baee0, #6179bb) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.70), 0 8px 22px rgba(54,84,135,.30) !important;
+    }
+
+    /* Reference pass: paper surfaces, never glass. */
+    html[data-diary-theme] .theme-search-button {
+      display: none !important;
+    }
+    .theme-settings-account + button {
+      display: none !important;
+    }
+    html[data-diary-theme="morningPaper"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero, .theme-quote-card, .theme-sign-card, .theme-saved-card) {
+      border: 1px solid rgba(58,52,45,.48) !important;
+      border-radius: 0 !important;
+      background-color: #fbf7ee !important;
+      background-image: linear-gradient(145deg, rgba(255,255,255,.20), rgba(248,242,231,.18)) !important;
+      box-shadow: none !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    html[data-diary-theme="morningPaper"] .app-tabbar,
+    html[data-diary-theme="morningPaper"] .app-tab-item {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    html[data-diary-theme="morningPaper"] .theme-decor-morningPaper .decor-morningPaper {
+      display: none !important;
+    }
+
+    html[data-diary-theme="seaSalt"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero) {
+      border: 1px solid rgba(84,128,158,.22) !important;
+      background-color: #fffdf8 !important;
+      background-image: var(--theme-poem-image) !important;
+      box-shadow: 0 5px 14px rgba(51,91,119,.12) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    html[data-diary-theme="seaSalt"] :is(.theme-quote-card, .theme-sign-card, .theme-saved-card) {
+      border: 1px solid rgba(84,128,158,.20) !important;
+      background-color: #fffdf8 !important;
+      background-image: var(--theme-panel-image) !important;
+      box-shadow: 0 4px 12px rgba(51,91,119,.10) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tabbar,
+    html[data-diary-theme="seaSalt"] .app-tab-item {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tab-item {
+      background: #fffdfa !important;
+      box-shadow: 0 3px 9px rgba(49,95,131,.13) !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tab-primary {
+      background: linear-gradient(145deg, #7bb8d3, #397ba6) !important;
+    }
+
+    html[data-diary-theme="obsidianDawn"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero) {
+      border: 1px solid rgba(64,61,55,.20) !important;
+      background-color: #fffdf8 !important;
       background-image:
-        radial-gradient(circle at 22% 28%, rgba(255,255,255,.95) 0 1px, transparent 2px),
-        linear-gradient(160deg, rgba(111,131,189,.28), rgba(248,249,255,.65)) !important;
-      background-size: 22px 22px, auto !important;
+        radial-gradient(circle at 91% 10%, rgba(231,190,105,.30), transparent 25%),
+        linear-gradient(145deg, #fffefb, #fbf8f1) !important;
+      box-shadow: 0 7px 18px rgba(48,46,42,.11) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    html[data-diary-theme="obsidianDawn"] :is(.theme-quote-card, .theme-sign-card, .theme-saved-card) {
+      border: 1px solid rgba(64,61,55,.18) !important;
+      background-color: #fffdf8 !important;
+      background-image:
+        radial-gradient(circle at 94% 12%, rgba(231,190,105,.22), transparent 28%),
+        linear-gradient(145deg, #fffefb, #faf6ee) !important;
+      box-shadow: 0 5px 14px rgba(48,46,42,.09) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    html[data-diary-theme="obsidianDawn"] .app-tabbar,
+    html[data-diary-theme="obsidianDawn"] .app-tab-item {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    html[data-diary-theme="obsidianDawn"] .theme-home-quote .theme-quote-card::after {
+      content: '✦';
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      color: #b98b45;
+      font-size: 16px;
+    }
+
+    html[data-diary-theme="snowNight"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero) {
+      border: 1px solid rgba(255,255,255,.76) !important;
+      background-color: #f6f7ff !important;
+      background-image: var(--theme-poem-image) !important;
+      box-shadow: 0 7px 20px rgba(58,80,137,.16) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    html[data-diary-theme="snowNight"] :is(.theme-quote-card, .theme-sign-card, .theme-saved-card) {
+      border: 1px solid rgba(255,255,255,.72) !important;
+      background-color: #f3f5ff !important;
+      background-image: var(--theme-panel-image) !important;
+      box-shadow: 0 6px 17px rgba(58,80,137,.14) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    html[data-diary-theme="snowNight"] .app-tabbar,
+    html[data-diary-theme="snowNight"] .app-tab-item {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    html[data-diary-theme="snowNight"] .app-tab-item {
+      background: rgba(244,246,255,.72) !important;
+      box-shadow: 0 4px 12px rgba(54,84,135,.16) !important;
+    }
+    html[data-diary-theme="snowNight"] .theme-poem-rule {
+      height: 16px !important;
+      margin-top: 8px !important;
+      margin-bottom: 12px !important;
+      background: transparent !important;
+      color: #6f83bd;
+      text-align: center;
+      line-height: 16px;
+    }
+    html[data-diary-theme="snowNight"] .theme-poem-rule::after {
+      content: '—  ❄  —';
+      white-space: nowrap;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    /* Button and quote composition follows each reference skin. */
+    html[data-diary-theme="morningPaper"] .theme-home-quote-title { color: #b53e32 !important; }
+    html[data-diary-theme="morningPaper"] .theme-home-quote-text {
+      font-size: 14px !important;
+      line-height: 2 !important;
+    }
+    html[data-diary-theme="morningPaper"] .app-tab-item {
+      height: 52px !important;
+      border-color: rgba(41,39,35,.28) !important;
+    }
+    html[data-diary-theme="morningPaper"] .app-tab-primary {
+      background: #fbf7ee !important;
+      color: #292723 !important;
+      border: 1px solid rgba(41,39,35,.62) !important;
+    }
+    html[data-diary-theme="morningPaper"] .app-tab-primary-label,
+    html[data-diary-theme="obsidianDawn"] .app-tab-primary-label,
+    html[data-diary-theme="study"] .app-tab-primary-label,
+    html[data-diary-theme="dusk"] .app-tab-primary-label {
+      color: inherit !important;
+    }
+    html[data-diary-theme="seaSalt"] .theme-home-quote-title,
+    html[data-diary-theme="seaSalt"] .theme-home-quote-text { color: #245b82 !important; }
+    html[data-diary-theme="seaSalt"] .theme-home-quote .theme-quote-card::before,
+    html[data-diary-theme="snowNight"] .theme-home-quote .theme-quote-card::before {
+      content: '“';
+      position: absolute;
+      left: 18px;
+      top: 43px;
+      font-family: Georgia, serif;
+      font-size: 34px;
+      color: currentColor;
+      opacity: .78;
+    }
+    html[data-diary-theme="seaSalt"] .theme-home-quote-text,
+    html[data-diary-theme="snowNight"] .theme-home-quote-text { padding-left: 25px !important; }
+    html[data-diary-theme="obsidianDawn"] .app-tabbar {
+      margin-left: 20px !important;
+      margin-right: 20px !important;
+      background: #f9f6ef !important;
+    }
+    html[data-diary-theme="obsidianDawn"] .app-tab-item {
+      border-color: rgba(41,43,42,.24) !important;
+      background: #fbf9f4 !important;
+    }
+    html[data-diary-theme="obsidianDawn"] .app-tab-primary {
+      background: #292b2a !important;
+      color: #fff !important;
+    }
+    html[data-diary-theme="snowNight"] .theme-home-title { color: #234e9b !important; }
+    html[data-diary-theme="snowNight"] .theme-home-quote-title,
+    html[data-diary-theme="snowNight"] .theme-home-quote-text { color: #365487 !important; }
+
+    /* Restore the original restrained old study and dusk skins. */
+    html[data-diary-theme="study"] .app-screen {
+      background: #d8c5a6 !important;
+      background-image: none !important;
+    }
+    html[data-diary-theme="study"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-quote-card, .theme-sign-card, .theme-saved-card) {
+      border: 1px solid rgba(75,50,29,.13) !important;
+      border-radius: 12px !important;
+      background: #f0e4cc !important;
+      background-image: none !important;
+      box-shadow: 0 5px 12px rgba(75,50,29,.06) !important;
+    }
+    html[data-diary-theme="dusk"] .app-screen {
+      background: #e8e3ed !important;
+      background-image: none !important;
+    }
+    html[data-diary-theme="dusk"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-quote-card, .theme-sign-card, .theme-saved-card) {
+      border: 1px solid rgba(66,48,82,.10) !important;
+      border-radius: 14px !important;
+      background: #faf7fb !important;
+      background-image: none !important;
+      box-shadow: 0 5px 12px rgba(66,48,82,.05) !important;
+    }
+    html[data-diary-theme="study"] .app-tabbar,
+    html[data-diary-theme="dusk"] .app-tabbar {
+      height: 82px !important;
+      margin: 0 20px 5px !important;
+      padding: 7px 0 23px !important;
+      border-top: 1px solid currentColor !important;
+      background: transparent !important;
+    }
+    html[data-diary-theme="study"] .app-tab-item,
+    html[data-diary-theme="dusk"] .app-tab-item {
+      width: 20% !important;
+      min-width: 0 !important;
+      height: 49px !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    html[data-diary-theme="study"] .app-tab-primary,
+    html[data-diary-theme="dusk"] .app-tab-primary {
+      width: 20% !important;
+      height: 49px !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      color: currentColor !important;
+      box-shadow: none !important;
+    }
+
+    @media (min-width: 900px) {
+      html[data-diary-theme] .theme-home-header {
+        padding-top: 46px !important;
+      }
+      html[data-diary-theme] .theme-today-wrap {
+        max-width: 760px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      html[data-diary-theme] .theme-poem-card:not(.theme-preview-poem-card) {
+        min-height: 390px;
+      }
     }
   </style>
 </head>
@@ -675,7 +1554,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- ── Your Firebase config (edit firebase-config.js) ────────── -->
-<script src="firebase-config.js?v=20260614-r36"></script>
+<script src="firebase-config.js?v=20260615-r46"></script>
 
 <!-- ── React + Babel ─────────────────────────────────────────── -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -683,17 +1562,17 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- ── Shared data (THEMES, HEXAGRAMS, TAGS) ─────────────────── -->
-<script src="data.js?v=20260614-r36"></script>
-<script src="themes-extra.js?v=2026.06.14-r36"></script>
+<script src="data.js?v=20260615-r46"></script>
+<script src="themes-extra.js?v=2026.06.15-r46"></script>
 
 <!-- ── UI components (load order matters) ────────────────────── -->
-<script type="text/babel" src="primitives.jsx?v=20260614-r36"></script>
-<script type="text/babel" src="screens-main.jsx?v=20260614-r36"></script>
-<script type="text/babel" src="screens-other.jsx?v=20260614-r36"></script>
-<script type="text/babel" src="enhancements.jsx?v=20260614-r36"></script>
+<script type="text/babel" src="primitives.jsx?v=20260615-r46"></script>
+<script type="text/babel" src="screens-main.jsx?v=20260615-r46"></script>
+<script type="text/babel" src="screens-other.jsx?v=20260615-r46"></script>
+<script type="text/babel" src="enhancements.jsx?v=20260615-r46"></script>
 
 <!-- ── Real app ──────────────────────────────────────────────── -->
-<script type="text/babel" src="app-real.jsx?v=20260614-r36"></script>
+<script type="text/babel" src="app-real.jsx?v=20260615-r46"></script>
 
 <script>
   if ('serviceWorker' in navigator) {

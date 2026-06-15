@@ -2,77 +2,162 @@
 // Screen frame, status bar, home indicator, tab bar, seal stamp, icons.
 
 const W = 390, H = 844;
+const skin = (theme, part) => theme?.skin?.[part] || {};
+const DECOR_THEME_KEYS = new Set([
+  'celadon', 'inkPlum', 'mossGarden', 'study', 'dusk',
+  'morningPaper', 'seaSalt', 'obsidianDawn', 'snowNight',
+]);
+
+function ThemeDecor({ theme }) {
+  const key = theme?.key;
+  if (!DECOR_THEME_KEYS.has(key)) return null;
+  return (
+    <div className={`theme-decor theme-decor-${key}`} aria-hidden="true">
+      <svg className="theme-decor-svg decor-celadon" viewBox="0 0 390 844">
+        <path d="M286 30c44 16 72 50 85 99M303 29c-22 37-24 78-5 119M326 43c-8 28-5 57 11 85"/>
+        <path d="M13 680c35-24 67-21 96 7s61 31 95 3 69-28 109 1 57 23 79 8"/>
+        <circle cx="334" cy="96" r="34"/><circle cx="334" cy="96" r="24"/>
+      </svg>
+      <svg className="theme-decor-svg decor-inkPlum" viewBox="0 0 390 844">
+        <path d="M405 72c-86 7-119 47-165 90-41 38-90 45-151 75M312 113c-6 42-31 73-67 98M245 160c-35-11-71-7-108 13M362 88c-7 22-2 43 14 63"/>
+        <g>
+          <circle cx="238" cy="164" r="4"/><circle cx="245" cy="161" r="4"/><circle cx="244" cy="169" r="4"/><circle cx="236" cy="171" r="4"/>
+          <circle cx="134" cy="173" r="3.5"/><circle cx="141" cy="170" r="3.5"/><circle cx="140" cy="177" r="3.5"/><circle cx="133" cy="180" r="3.5"/>
+          <circle cx="312" cy="113" r="3.5"/><circle cx="319" cy="110" r="3.5"/><circle cx="318" cy="117" r="3.5"/><circle cx="311" cy="120" r="3.5"/>
+        </g>
+      </svg>
+      <svg className="theme-decor-svg decor-mossGarden" viewBox="0 0 390 844">
+        <path d="M350 17c-10 70-5 144 21 226M311 31c10 76 23 132 52 191M358 74l-49-26m55 58 33-34m-28 70-52-20m59 56 30-25"/>
+        <path d="M-24 723c49-45 103-48 153-17s91 31 138 1 92-29 149 4"/>
+        <ellipse cx="308" cy="48" rx="25" ry="6" transform="rotate(26 308 48)"/>
+        <ellipse cx="397" cy="70" rx="25" ry="6" transform="rotate(-44 397 70)"/>
+        <ellipse cx="315" cy="122" rx="25" ry="6" transform="rotate(20 315 122)"/>
+      </svg>
+      <svg className="theme-decor-svg decor-study" viewBox="0 0 390 844">
+        <path d="M42 72h85M42 80h65M42 88h76M267 734h79M280 742h66"/>
+        <path d="M310 39v81M290 61h40M299 61c0-17 22-17 22 0v31c0 12-22 12-22 0z"/>
+        <path d="M15 663c64 12 115 12 175 0s119-12 185 0"/>
+      </svg>
+      <svg className="theme-decor-svg decor-dusk" viewBox="0 0 390 844">
+        <path d="M-21 159c58-32 112-27 162 5s102 38 168 7 100-29 126-9M-40 183c60-28 115-20 164 10s103 34 169 4 103-25 139-5"/>
+        <path d="M302 54a46 46 0 1 0 38 74 39 39 0 1 1-38-74z"/>
+        <circle cx="72" cy="116" r="2"/><circle cx="111" cy="87" r="1.4"/><circle cx="245" cy="126" r="1.7"/>
+      </svg>
+      <svg className="theme-decor-svg decor-morningPaper" viewBox="0 0 390 844">
+        <path d="M20 52h350M20 57h350M20 182h350M20 187h350M20 681h350M20 686h350"/>
+        <path d="M48 82h128M48 91h92M48 100h108M218 82h126M218 91h102M218 100h116"/>
+        <path d="M56 713h278M56 721h278M56 729h278"/>
+      </svg>
+      <svg className="theme-decor-svg decor-seaSalt" viewBox="0 0 390 844">
+        <path d="M-28 670c77-43 139 28 216-4s135 20 230-8M-30 695c78-38 139 24 216-3s137 17 232-7M-31 718c78-32 143 21 220-2s137 15 231-5"/>
+        <path d="M291 94c12-12 24-12 36 0 12-12 24-12 36 0M29 207c9-9 18-9 27 0 9-9 18-9 27 0"/>
+        <circle cx="335" cy="152" r="2"/><circle cx="353" cy="179" r="1.5"/>
+      </svg>
+      <svg className="theme-decor-svg decor-obsidianDawn" viewBox="0 0 390 844">
+        <circle cx="322" cy="104" r="34"/><circle cx="322" cy="104" r="21"/>
+        <path d="M322 54V34M322 174v-20M272 104h-20M392 104h-20M286 68l-14-14M372 154l-14-14M358 68l14-14M272 154l14-14"/>
+        <path d="M26 715h338M26 724h338"/>
+      </svg>
+      <svg className="theme-decor-svg decor-snowNight" viewBox="0 0 390 844">
+        <circle cx="318" cy="105" r="48"/><circle cx="337" cy="88" r="48"/>
+        <path d="M72 161v54m-24-41 48 28m-48 0 48-28M310 271v38m-17-29 34 20m-34 0 34-20"/>
+        <path d="M-15 690c75-38 132 20 207-5s135 16 214-8M-18 718c78-31 138 17 212-4s135 13 215-7"/>
+      </svg>
+      <span className="theme-decor-mark mark-a"/><span className="theme-decor-mark mark-b"/><span className="theme-decor-mark mark-c"/>
+    </div>
+  );
+}
+
+function ThemeMotif({ theme, variant = 'card' }) {
+  const key = theme?.key;
+  if (!DECOR_THEME_KEYS.has(key)) return null;
+  const common = {
+    position: 'absolute', pointerEvents: 'none', zIndex: 0,
+    right: variant === 'hero' ? 18 : 12, bottom: variant === 'panel' ? 10 : 12,
+    width: variant === 'hero' ? 86 : 62, height: variant === 'hero' ? 62 : 46,
+    color: theme.accent, opacity: variant === 'panel' ? 0.32 : 0.42,
+  };
+  const motif = {
+    celadon: <><circle cx="39" cy="24" r="18"/><circle cx="39" cy="24" r="12"/><path d="M5 37c18-14 34 10 52-2"/></>,
+    inkPlum: <><path d="M3 39c21-2 25-18 39-25 8-4 14-4 22-8"/><path d="M36 17c-6-7-7-12-6-16M47 12c3-7 8-10 14-12"/><circle cx="36" cy="17" r="3"/><circle cx="49" cy="11" r="3"/></>,
+    mossGarden: <><path d="M58 44C43 34 29 22 13 2M48 36l2-18M39 29l-18-1M31 20l1-15M23 14 8 13"/><ellipse cx="50" cy="18" rx="9" ry="3"/><ellipse cx="21" cy="28" rx="9" ry="3"/></>,
+    study: <><path d="M7 7h48v32H7zM13 13h34M13 20h27M13 27h31"/><path d="M52 7l6-5v32l-6 5"/></>,
+    dusk: <><path d="M17 6a18 18 0 1 0 17 29A15 15 0 1 1 17 6z"/><path d="M34 38c10-7 20-7 30 0"/><circle cx="53" cy="10" r="1.5"/></>,
+    morningPaper: <><path d="M4 5h56v36H4zM9 12h46M9 18h21M35 18h20M9 25h46M9 32h35"/><path d="M32 7v32"/></>,
+    seaSalt: <><path d="M2 36c12-8 22 7 34-1s21 5 32-1M4 43c12-7 22 6 34-1s21 4 30-1M28 12c6-6 12-6 18 0 6-6 12-6 18 0"/></>,
+    obsidianDawn: <><circle cx="48" cy="17" r="9"/><path d="M48 2v6m0 18v6M33 17h6m18 0h6M9 7h5v35H9zM18 7h2v35h-2z"/></>,
+    snowNight: <><path d="M37 4v30M24 11l26 16M24 27l26-16M8 38c11-7 19 6 30-1s19 4 27-1"/><circle cx="58" cy="8" r="1.5"/></>,
+  }[key];
+  return (
+    <svg className={`theme-card-motif theme-card-motif-${key}`} viewBox="0 0 70 48" style={common}
+      fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {motif}
+    </svg>
+  );
+}
+
+function ThemeHeaderMark({ theme }) {
+  const key = theme?.key;
+  if (!DECOR_THEME_KEYS.has(key)) return null;
+  const marks = {
+    celadon: ['青瓷', '温润如玉'],
+    inkPlum: ['墨梅', '一枝清雅'],
+    mossGarden: ['苔庭', '清静自然'],
+    study: ['书房', '旧纸暖光'],
+    dusk: ['暮云', '微光留白'],
+    morningPaper: ['晨报', '第1287期'],
+    seaSalt: ['海盐', '海风轻拂'],
+    obsidianDawn: ['晨光', '曜石映日'],
+    snowNight: ['雪夜', '月色如雪'],
+  };
+  const [label, detail] = marks[key];
+  return (
+    <div className={`theme-header-mark theme-header-mark-${key}`} aria-hidden="true">
+      <span>{label}</span><small>{detail}</small>
+    </div>
+  );
+}
+
+function ThemeCardArt({ theme, kind = 'poem' }) {
+  const key = theme?.key;
+  if (!DECOR_THEME_KEYS.has(key)) return null;
+  return (
+    <div className={`theme-card-art theme-card-art-${key} theme-card-art-${kind}`} aria-hidden="true">
+      <svg viewBox="0 0 360 240" preserveAspectRatio="none">
+        <path className="art-line art-line-a" d="M-12 205c69-34 121 25 191-3s124 21 196-5"/>
+        <path className="art-line art-line-b" d="M-15 220c70-29 126 21 196-3s124 17 194-4"/>
+        <path className="art-branch" d="M372 21c-68 5-91 38-129 68-34 27-71 32-118 56M285 61c-4 31-20 52-45 70M239 92c-24-8-47-5-72 7"/>
+        <path className="art-leaf-stem" d="M361 238c-22-69-46-116-96-177M321 173l-43-9m58 38 27-34m-70-29-4-38m-4 59-42-17"/>
+        <path className="art-book" d="M34 32h95v62H34zM47 46h67M47 58h54M47 70h61M129 32l15-12v62l-15 12"/>
+        <path className="art-rays" d="M302 54v-25m0 108v-25m-54-29h25m58 0h25m-92-38 18 18m40 40 18 18m0-76-18 18m-40 40-18 18"/>
+        <circle className="art-sun" cx="302" cy="83" r="22"/><circle className="art-sun" cx="302" cy="83" r="13"/>
+        <path className="art-moon" d="M303 38a42 42 0 1 0 36 64 35 35 0 1 1-36-64z"/>
+        <path className="art-snow" d="M82 33v45M62 44l40 23M62 67l40-23"/>
+        <g className="art-blossoms"><circle cx="239" cy="92" r="4"/><circle cx="247" cy="89" r="4"/><circle cx="246" cy="97" r="4"/><circle cx="238" cy="99" r="4"/></g>
+      </svg>
+      <span className="theme-card-art-label"/>
+    </div>
+  );
+}
 
 function Screen({ theme, children, statusDark = false, bg, contentStyle, noTab = false, tab, onTab }) {
   return (
-    <div className={`app-screen${noTab ? ' app-screen-no-tab' : ''}`} style={{
+    <div className={`app-screen theme-screen-${theme?.key || 'default'}${noTab ? ' app-screen-no-tab' : ''}${bg ? ' app-screen-custom-bg' : ''}`} style={{
       width: W, height: H, position: 'relative', overflow: 'hidden',
       background: bg || theme.bg, color: theme.text,
+      ...(!bg ? skin(theme, 'screen') : {}),
     }}>
-      <ThemeDecor theme={theme} />
       <StatusBar theme={theme} dark={statusDark} />
+      {!bg && <ThemeDecor theme={theme} />}
       <div className="no-scroll app-scroll" style={{
         position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-        overflowY: 'auto', zIndex: 1,
+        overflowY: 'auto', zIndex: 3,
         ...contentStyle,
       }}>
         {children}
       </div>
       {!noTab && <TabBar theme={theme} active={tab} onChange={onTab} />}
       <HomeIndicator theme={theme} />
-    </div>
-  );
-}
-
-function ThemeDecor({ theme }) {
-  const key = theme?.key || 'celadon';
-  return (
-    <div className={`theme-decor theme-decor-${key}`} aria-hidden="true">
-      <span className="theme-decor-mark mark-a"/>
-      <span className="theme-decor-mark mark-b"/>
-      <span className="theme-decor-mark mark-c"/>
-      <span className="theme-decor-mark mark-d"/>
-      <svg className="theme-decor-svg decor-celadon" viewBox="0 0 390 844">
-        <path d="M-12 154C48 111 84 156 128 117S205 55 255 91" />
-        <path d="M18 120l28 28 33-7 25 31 42-12 28 26" />
-        <circle cx="336" cy="728" r="82"/><circle cx="336" cy="728" r="62"/>
-      </svg>
-      <svg className="theme-decor-svg decor-inkPlum" viewBox="0 0 390 844">
-        <path d="M401 42c-58 18-80 54-116 105-24 35-45 50-85 68" />
-        <path d="M334 100c-34-3-52-17-67-38M294 143c28 1 47 13 65 35M251 184c-30-3-49 9-66 31" />
-        <g><circle cx="333" cy="97" r="8"/><circle cx="294" cy="143" r="7"/><circle cx="252" cy="184" r="8"/><circle cx="205" cy="212" r="6"/></g>
-      </svg>
-      <svg className="theme-decor-svg decor-mossGarden" viewBox="0 0 390 844">
-        <path d="M350-10c-18 92-33 166-62 245M320 86c-35 0-55-13-74-40M306 137c36-3 57 9 76 34M288 187c-29 0-50-14-66-38" />
-        <path d="M-30 780c81-54 134-58 208-22s139 30 242-15" />
-        <circle cx="45" cy="760" r="28"/><circle cx="111" cy="785" r="38"/>
-      </svg>
-      <svg className="theme-decor-svg decor-study" viewBox="0 0 390 844">
-        <path d="M18 692h354M30 692v138M74 692v138M119 692v138M165 692v138" />
-        <path d="M29 733h45M75 758h44M120 720h45M166 770h45" />
-        <circle cx="327" cy="108" r="54"/><path d="M327 162v58M287 220h80"/>
-      </svg>
-      <svg className="theme-decor-svg decor-dusk" viewBox="0 0 390 844">
-        <path d="M-24 168c48-42 90-44 124-8 30-55 103-61 139-7 53-25 112 4 134 48" />
-        <path d="M53 732c36-37 82-40 116-4 37-58 113-50 143 5 42-17 78-6 102 23" />
-      </svg>
-      <svg className="theme-decor-svg decor-morningPaper" viewBox="0 0 390 844">
-        <path d="M20 86h350M20 93h350M20 732h350M20 739h350M128 94v638M263 94v638" />
-      </svg>
-      <svg className="theme-decor-svg decor-seaSalt" viewBox="0 0 390 844">
-        <path d="M-30 674c66-42 124-37 178 3s114 43 178 2 113-34 142 0" />
-        <path d="M-30 716c66-42 124-37 178 3s114 43 178 2 113-34 142 0" />
-        <path d="M270 132q18-18 36 0q18-18 36 0M310 170q12-12 24 0q12-12 24 0" />
-      </svg>
-      <svg className="theme-decor-svg decor-obsidianDawn" viewBox="0 0 390 844">
-        <circle cx="326" cy="112" r="46"/><circle cx="326" cy="112" r="31"/>
-        <path d="M-22 844l92-182 77 182M80 844l92-128 75 128M226 844l76-166 110 166" />
-      </svg>
-      <svg className="theme-decor-svg decor-snowNight" viewBox="0 0 390 844">
-        <circle cx="321" cy="116" r="50"/><circle cx="339" cy="101" r="50"/>
-        <path d="M-30 724c70-57 130-58 186-4 62-75 150-57 264 12" />
-        <path d="M44 132v28M30 146h28M34 136l20 20M54 136l-20 20M104 204v20M94 214h20M97 207l14 14M111 207l-14 14" />
-      </svg>
     </div>
   );
 }
@@ -98,7 +183,7 @@ function Seal({ char1, char2, theme, size = 36, rotate = -3 }) {
   const px = size;
   const fs = Math.round(px * 0.36);
   return (
-    <div style={{
+    <div className="theme-seal" style={{
       width: px, height: px, borderRadius: Math.round(px * 0.12),
       background: theme.seal,
       display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -135,17 +220,19 @@ function TabBar({ theme, active = 'home', onChange }) {
     { id: 'settings', label: '我', icon: IconUser },
   ];
   return (
-    <div className="app-tabbar" style={{
+    <div className={`app-tabbar theme-tabbar-${theme?.key || 'default'}`} style={{
       position: 'absolute', bottom: 0, left: 0, right: 0, height: 82,
       paddingBottom: 24, zIndex: 25,
       background: `linear-gradient(to top, ${theme.bg} 60%, transparent)`,
       display: 'flex', alignItems: 'center', justifyContent: 'space-around',
       padding: '0 12px 24px',
+      ...skin(theme, 'nav'),
     }}>
       {items.map((it) => {
         const Icon = it.icon;
         const isActive = it.id === active;
         if (it.primary) {
+          const themedPrimary = DECOR_THEME_KEYS.has(theme?.key);
           return (
             <button key={it.id} type="button" aria-label="写日记"
               className="app-tab-item app-tab-primary"
@@ -156,8 +243,11 @@ function TabBar({ theme, active = 'home', onChange }) {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: `0 6px 16px ${theme.text}33`,
                 cursor: 'pointer',
+                ...skin(theme, 'primary'),
               }}>
-              <Icon color={theme.bg} size={22} />
+              {themedPrimary
+                ? <span className="serif app-tab-primary-label" style={{ color: theme.paper, fontSize: 24, lineHeight: 1, letterSpacing: 0 }}>签</span>
+                : <Icon color={theme.bg} size={22} />}
             </button>
           );
         }
@@ -165,14 +255,16 @@ function TabBar({ theme, active = 'home', onChange }) {
           <button key={it.id} type="button" aria-label={it.label}
             className="app-tab-item"
             onClick={() => onChange && onChange(it.id)}
-            style={{
-              border: 'none', background: 'transparent', cursor: 'pointer',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-              padding: '6px 10px', minWidth: 52,
-              color: isActive ? theme.text : theme.textMute,
-            }}>
-            <Icon color={isActive ? theme.text : theme.textMute} size={20} />
-            <span style={{ fontSize: 10.5, letterSpacing: 1, fontWeight: 500 }}>{it.label}</span>
+              style={{
+                border: 'none', background: 'transparent', cursor: 'pointer',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                padding: '6px 10px', minWidth: 52,
+                color: isActive ? theme.text : theme.textMute,
+                ...skin(theme, 'tabItem'),
+                ...(isActive ? skin(theme, 'tabActive') : {}),
+              }}>
+            <span className="app-tab-icon"><Icon color={isActive ? theme.text : theme.textMute} size={20} /></span>
+            <span className="app-tab-label" style={{ fontSize: 10.5, letterSpacing: 1, fontWeight: 500 }}>{it.label}</span>
           </button>
         );
       })}
@@ -504,7 +596,8 @@ function sealChars(title) {
 
 Object.assign(window, {
   W, H, Screen, StatusBar, HomeIndicator, TabBar, Seal, FlagDot, ImgPlaceholder,
+  ThemeDecor, ThemeMotif, ThemeHeaderMark, ThemeCardArt,
   IconHome, IconTimeline, IconPlus, IconImport, IconHex, IconUser, IconSearch,
   IconChevron, IconClose, IconCamera, IconPin, IconShake, sealChars,
-  paperBg, PAPER_LIBRARY, PoemBody, splitPoemLines,
+  paperBg, PAPER_LIBRARY, PoemBody, splitPoemLines, skin,
 });

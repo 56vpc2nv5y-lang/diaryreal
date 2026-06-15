@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.14-r36';
+const APP_BUILD = '2026.06.15-r46';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -345,6 +345,7 @@ function WelcomeScreen({ theme, onStart, loading }) {
           opacity: loading ? 0.7 : 1,
           boxShadow: `0 10px 32px ${theme.text}22`,
           transition: 'opacity .2s',
+          ...skin(theme, 'primary'),
         }}>
           {loading ? '…' : '开 始 写 今 天'}
         </button>
@@ -379,6 +380,7 @@ function EmptyHomeScreen({ theme, onCompose, onTab }) {
           border: 'none', background: theme.text, color: theme.bg,
           fontSize: 16, fontWeight: 600, letterSpacing: 3, fontFamily: 'inherit', cursor: 'pointer',
           boxShadow: `0 8px 24px ${theme.text}33`,
+          ...skin(theme, 'primary'),
         }}>开 始 写</button>
       </div>
     </Screen>
@@ -526,11 +528,11 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
   const floatingControlShadow = customPaper ? '0 5px 16px rgba(67,55,43,.10)' : 'none';
 
   return (
-    <div className={`compose-screen${focusMode ? ' compose-focus' : ''}`} style={{ width: W, height: H, background: theme.paper, position: 'relative', overflow: 'hidden', fontFamily: 'inherit' }}>
+    <div className={`compose-screen theme-screen-${theme?.key || 'default'}${focusMode ? ' compose-focus' : ''}`} style={{ width: W, height: H, background: theme.paper, position: 'relative', overflow: 'hidden', fontFamily: 'inherit', ...(!customPaper ? skin(theme, 'screen') : {}) }}>
       <div className="compose-paper-bg" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: customPaper ? 0.82 : 1, ...ps }}/>
       {customPaper && <div className="compose-paper-veil" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', background: 'rgba(255,253,247,.34)' }}/>}
-      {!customPaper && <ThemeDecor theme={theme}/>}
-      <div className="compose-shell" style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {!customPaper && <ThemeDecor theme={theme} />}
+      <div className="compose-shell" style={{ position: 'relative', zIndex: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
 
         {/* top bar */}
         <div className="compose-topbar" style={{
@@ -653,6 +655,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
               fontFamily: 'inherit', cursor: filled && !saving ? 'pointer' : 'default',
               boxShadow: filled && !saving && customPaper ? '0 8px 22px rgba(67,55,43,.22)' : floatingControlShadow,
               backdropFilter: customPaper ? 'blur(14px)' : 'none',
+              ...(filled && !saving && !customPaper ? skin(theme, 'primary') : {}),
             }}>{saving ? '保存中…' : editing ? '保 存 修 改' : '保 存 日 记'}</button>
           </div>
         </div>
@@ -713,7 +716,9 @@ function SavedEntryNext({ theme, entry, onGenerateQuotes, onShake, onOpen, onDon
           先让文字安静地留下，再决定要不要继续。
         </div>
 
-        <div className="theme-saved-card" style={{ marginTop: 34, padding: '20px 18px', borderRadius: 20, background: theme.paper, border: `0.5px solid ${theme.line}` }}>
+        <div className="theme-saved-card" style={{ marginTop: 34, padding: '20px 18px', borderRadius: 20, background: theme.paper, border: `0.5px solid ${theme.line}`, position: 'relative', overflow: 'hidden', ...skin(theme, 'panel') }}>
+          <ThemeCardArt theme={theme} kind="quote" />
+          <ThemeMotif theme={theme} variant="panel" />
           <div className="serif" style={{ color: theme.text, fontSize: 18, lineHeight: 1.6 }}>
             {entry?.title || entry?.body?.slice(0, 32) || '今日的日记'}
           </div>
@@ -726,6 +731,7 @@ function SavedEntryNext({ theme, entry, onGenerateQuotes, onShake, onOpen, onDon
           <button type="button" onClick={onShake} style={{
             height: 50, borderRadius: 25, border: 'none', background: theme.text, color: theme.bg,
             fontFamily: 'inherit', fontSize: 14, fontWeight: 600, letterSpacing: 2, cursor: 'pointer',
+            ...skin(theme, 'primary'),
           }}>摇 签 选 诗</button>
           <button type="button" disabled={quoteBusy || !onGenerateQuotes} onClick={generateQuotes} style={{
             height: 48, borderRadius: 24, border: `1px solid ${theme.accent}`, background: 'transparent', color: theme.accent,
@@ -1097,8 +1103,123 @@ function AutoPoemShake({ theme, entry, onBack, onAccepted }) {
     onAccept={accept} saving={saving} error={error}/>;
 }
 
+function friendlyAuthError(error) {
+  const messages = {
+    'auth/email-already-in-use': '这个邮箱已经注册，请直接登录。',
+    'auth/invalid-email': '邮箱格式不正确。',
+    'auth/invalid-credential': '邮箱或密码不正确。',
+    'auth/wrong-password': '邮箱或密码不正确。',
+    'auth/user-not-found': '没有找到这个邮箱账户。',
+    'auth/weak-password': '密码至少需要 6 位。',
+    'auth/credential-already-in-use': '这个邮箱已经绑定到其他账户。',
+    'auth/provider-already-linked': '当前账户已经绑定邮箱。',
+    'auth/too-many-requests': '尝试次数过多，请稍后再试。',
+    'auth/operation-not-allowed': '请先在 Firebase Console 开启“电子邮件/密码”登录。',
+  };
+  return messages[error?.code] || error?.message || '操作失败，请稍后重试。';
+}
+
+function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPasswordReset, loading }) {
+  const [mode, setMode] = React.useState('login');
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [busy, setBusy] = React.useState(false);
+  const [message, setMessage] = React.useState('');
+  const submit = async () => {
+    setMessage('');
+    if (!email.trim() || password.length < 6) {
+      setMessage('请输入邮箱，并使用至少 6 位密码。');
+      return;
+    }
+    setBusy(true);
+    try {
+      if (mode === 'register') await onEmailRegister(email.trim(), password);
+      else await onEmailLogin(email.trim(), password);
+    } catch (error) {
+      setMessage(friendlyAuthError(error));
+      setBusy(false);
+    }
+  };
+  const reset = async () => {
+    if (!email.trim()) {
+      setMessage('请先填写邮箱地址。');
+      return;
+    }
+    setBusy(true);
+    try {
+      await onPasswordReset(email.trim());
+      setMessage('重置密码邮件已发送。');
+    } catch (error) {
+      setMessage(friendlyAuthError(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+  const inputStyle = {
+    width: '100%', height: 46, border: `1px solid ${theme.line}`, borderRadius: 12,
+    background: theme.paper, color: theme.text, padding: '0 14px', fontFamily: 'inherit',
+    outline: 'none', boxSizing: 'border-box',
+  };
+  return (
+    <div style={{
+      width: W, minHeight: H, background: theme.bg, color: theme.text, padding: '62px 26px 36px',
+      boxSizing: 'border-box', display: 'flex', flexDirection: 'column',
+      ...skin(theme, 'screen'),
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <img src="assets/icons/app-icon-192.png" alt="诗签" style={{ width: 58, height: 58, borderRadius: 15 }}/>
+        <div>
+          <div className="serif" style={{ fontSize: 28, letterSpacing: 5 }}>诗签</div>
+          <div style={{ fontSize: 11, color: theme.textSoft, marginTop: 5, letterSpacing: 2 }}>写日记，也收藏诗与句子</div>
+        </div>
+      </div>
+      <div style={{
+        marginTop: 42, background: theme.paper, border: `1px solid ${theme.line}`,
+        borderRadius: 18, padding: 20, ...skin(theme, 'panel'),
+      }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, background: theme.surfaceSoft, padding: 4, borderRadius: 11 }}>
+          {[['login', '邮箱登录'], ['register', '注册邮箱']].map(([key, label]) => (
+            <button key={key} type="button" onClick={() => { setMode(key); setMessage(''); }} style={{
+              height: 36, border: 0, borderRadius: 8, fontFamily: 'inherit', cursor: 'pointer',
+              background: mode === key ? theme.paper : 'transparent',
+              color: mode === key ? theme.text : theme.textSoft,
+            }}>{label}</button>
+          ))}
+        </div>
+        <input type="email" value={email} onChange={event => setEmail(event.target.value)}
+          placeholder="邮箱地址" autoComplete="email" style={{ ...inputStyle, marginTop: 16 }}/>
+        <input type="password" value={password} onChange={event => setPassword(event.target.value)}
+          placeholder={mode === 'register' ? '设置密码（至少 6 位）' : '密码'}
+          autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+          onKeyDown={event => event.key === 'Enter' && submit()}
+          style={{ ...inputStyle, marginTop: 10 }}/>
+        <button type="button" disabled={busy} onClick={submit} style={{
+          width: '100%', height: 48, marginTop: 14, border: 0, borderRadius: 12,
+          background: theme.text, color: theme.paper, fontFamily: 'inherit', fontSize: 15,
+        }}>{busy ? '请稍候…' : mode === 'register' ? '注册并开始写日记' : '登录'}</button>
+        {mode === 'login' && <button type="button" disabled={busy} onClick={reset} style={{
+          width: '100%', border: 0, background: 'transparent', color: theme.textSoft,
+          fontFamily: 'inherit', fontSize: 12, marginTop: 12,
+        }}>忘记密码</button>}
+        {message && <div style={{ color: theme.textSoft, fontSize: 11.5, lineHeight: 1.6, marginTop: 10 }}>{message}</div>}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0', color: theme.textMute, fontSize: 11 }}>
+        <i style={{ flex: 1, borderTop: `1px solid ${theme.line}` }}/><span>或者</span><i style={{ flex: 1, borderTop: `1px solid ${theme.line}` }}/>
+      </div>
+      <button type="button" disabled={loading} onClick={onGuest} style={{
+        height: 46, border: `1px solid ${theme.line}`, borderRadius: 12,
+        background: theme.paper, color: theme.text, fontFamily: 'inherit',
+      }}>{loading ? '正在进入…' : '先匿名使用'}</button>
+      <div style={{ marginTop: 12, color: theme.textMute, fontSize: 10.5, lineHeight: 1.7, textAlign: 'center' }}>
+        匿名使用后，也可以在“我”中绑定邮箱并保留全部日记。
+      </div>
+    </div>
+  );
+}
+
 function AppReal() {
   const [authState, setAuthState] = React.useState('loading');
+  const [currentUser, setCurrentUser] = React.useState(null);
   const [entries, setEntries] = React.useState([]);
   const [hexagrams, setHexagrams] = React.useState([]);
   const [stack, setStack] = React.useState([{ screen: 'home', params: {} }]);
@@ -1126,7 +1247,23 @@ function AppReal() {
     root.style.setProperty('--theme-body-font', theme.fontBody || "'Noto Sans SC', sans-serif");
     root.style.setProperty('--theme-serif-font', theme.fontSerif || "'Noto Serif SC', serif");
     root.style.setProperty('--theme-writing-font', theme.fontWriting || theme.fontSerif || "'Noto Serif SC', serif");
-  }, [themeKey, theme.fontBody, theme.fontSerif, theme.fontWriting]);
+    const screenSkin = theme.skin?.screen || {};
+    const poemSkin = theme.skin?.poemCard || {};
+    const panelSkin = theme.skin?.panel || {};
+    const setSkinVariable = (name, value, fallback) => root.style.setProperty(name, value || fallback);
+    setSkinVariable('--theme-screen-image', screenSkin.backgroundImage, 'none');
+    setSkinVariable('--theme-screen-position', screenSkin.backgroundPosition, 'center');
+    setSkinVariable('--theme-screen-size', screenSkin.backgroundSize, 'auto');
+    setSkinVariable('--theme-screen-repeat', screenSkin.backgroundRepeat, 'repeat');
+    setSkinVariable('--theme-poem-image', poemSkin.backgroundImage, 'none');
+    setSkinVariable('--theme-poem-position', poemSkin.backgroundPosition, 'center');
+    setSkinVariable('--theme-poem-size', poemSkin.backgroundSize, 'auto');
+    setSkinVariable('--theme-poem-repeat', poemSkin.backgroundRepeat, 'repeat');
+    setSkinVariable('--theme-panel-image', panelSkin.backgroundImage, 'none');
+    setSkinVariable('--theme-panel-position', panelSkin.backgroundPosition, 'center');
+    setSkinVariable('--theme-panel-size', panelSkin.backgroundSize, 'auto');
+    setSkinVariable('--theme-panel-repeat', panelSkin.backgroundRepeat, 'repeat');
+  }, [themeKey, theme.fontBody, theme.fontSerif, theme.fontWriting, theme.skin]);
 
   const push = (s, p = {}) => setStack(st => [...st, { screen: s, params: p }]);
   const pop  = () => setStack(st => st.length > 1 ? st.slice(0, -1) : st);
@@ -1163,6 +1300,7 @@ function AppReal() {
   };
 
   React.useEffect(() => firebase.auth().onAuthStateChanged(u => {
+    setCurrentUser(u || null);
     if (u) {
       setAuthState('auth');
       dbGetEntries().then(setEntries);
@@ -1180,7 +1318,10 @@ function AppReal() {
 
 
   const handleSignOut = async () => {
-    if (!window.confirm('当前是匿名账号。退出后将生成新的匿名身份，可能无法再访问旧数据。确定仍要退出吗？')) return;
+    const message = currentUser?.isAnonymous
+      ? '当前是匿名账号。退出后可能无法再访问旧数据。建议先绑定邮箱或备份数据。确定仍要退出吗？'
+      : `确定退出邮箱账户 ${currentUser?.email || ''} 吗？日记会保留在账户中，下次登录后仍可访问。`;
+    if (!window.confirm(message)) return;
     await firebase.auth().signOut();
     setEntries([]); setHexagrams([]); setStack([{ screen: 'home', params: {} }]);
   };
@@ -1192,7 +1333,27 @@ function AppReal() {
     catch (e) { alert('请先在 Firebase Console → Authentication 开启 Anonymous 匿名登录'); setStartLoading(false); }
   };
 
-  if (authState === 'welcome') return <WelcomeScreen theme={theme} onStart={handleStart} loading={startLoading}/>;
+  const handleBindEmail = async (email, password) => {
+    const user = firebase.auth().currentUser;
+    if (!user) throw new Error('当前没有可绑定的账户。');
+    if (!user.isAnonymous) throw new Error('当前账户已经绑定邮箱。');
+    const credential = firebase.auth.EmailAuthProvider.credential(email, password);
+    const result = await user.linkWithCredential(credential);
+    await result.user.sendEmailVerification().catch(() => {});
+    setCurrentUser(result.user);
+    return result.user;
+  };
+  const handlePasswordReset = email => firebase.auth().sendPasswordResetEmail(email);
+
+  if (authState === 'welcome') return <AuthChoiceScreen theme={theme} onGuest={handleStart}
+    onEmailLogin={(email, password) => firebase.auth().signInWithEmailAndPassword(email, password)}
+    onEmailRegister={async (email, password) => {
+      const result = await firebase.auth().createUserWithEmailAndPassword(email, password);
+      await result.user.sendEmailVerification().catch(() => {});
+      return result;
+    }}
+    onPasswordReset={handlePasswordReset}
+    loading={startLoading}/>;
 
   const { screen, params } = stack[stack.length - 1];
 
@@ -1327,6 +1488,9 @@ function AppReal() {
           hexagrams={hexagrams}
           buildLabel={APP_BUILD}
           syncState={syncState}
+          currentUser={currentUser}
+          onBindEmail={handleBindEmail}
+          onPasswordReset={handlePasswordReset}
           onImportData={importData}
           onClearData={clearAllData}
           onSignOut={handleSignOut}

@@ -32,7 +32,9 @@ function Timeline({ theme, entries, onOpen, onTab }) {
           backgroundColor: theme.paper, ...paperBg(entry.paper || 'plain', theme),
           fontFamily: 'inherit', cursor: 'pointer', overflow: 'hidden',
         }}>
-          <div style={{ background: 'rgba(255,253,247,.84)', borderRadius: 14, padding: '18px 12px', height: '100%' }}>
+          <div style={{ background: 'rgba(255,253,247,.84)', borderRadius: 14, padding: '18px 12px', height: '100%', position: 'relative', overflow: 'hidden', ...skin(theme, 'poemCard') }}>
+            <ThemeCardArt theme={theme} />
+            <ThemeMotif theme={theme} />
             <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 5 }}>{entry.poem.title}</div>
             <div style={{ width: 24, height: 1, background: theme.accent, margin: '12px auto' }}/>
             <PoemBody lines={entry.poem.lines || []} size={14} theme={theme}/>
@@ -46,7 +48,10 @@ function Timeline({ theme, entries, onOpen, onTab }) {
         {quotes.map(({ quote, entry }, index) => <button type="button" key={`${entry.id}-${index}`} onClick={() => onOpen(entry.id)} style={{
           width: '100%', textAlign: 'left', marginBottom: 10, padding: '17px 18px', borderRadius: 15,
           border: `0.5px solid ${theme.line}`, background: theme.surface, fontFamily: 'inherit', cursor: 'pointer',
+          position: 'relative', overflow: 'hidden', ...skin(theme, 'panel'),
         }}>
+          <ThemeCardArt theme={theme} kind="quote" />
+          <ThemeMotif theme={theme} variant="panel" />
           <div className="serif" style={{ fontSize: 16, color: theme.text, lineHeight: 1.75 }}>“{quote}”</div>
           <div style={{ marginTop: 7, fontSize: 11, color: theme.textMute }}>{entry.date} · {entry.title || entry.poem?.title || '日记'}</div>
         </button>)}
@@ -155,10 +160,11 @@ function Import({ theme, onBack, onTab }) {
       {/* drop zone */}
       <div style={{ padding: '24px 24px 0' }}>
         <div style={{
-          border: `1.5px dashed ${theme.accent}`,
           borderRadius: 18, padding: '32px 20px',
           background: theme.surface,
           textAlign: 'center',
+          ...skin(theme, 'panel'),
+          border: `1.5px dashed ${theme.accent}`,
         }}>
           <div style={{
             width: 46, height: 46, borderRadius: 23, background: theme.bg,
@@ -233,9 +239,108 @@ function Import({ theme, onBack, onTab }) {
 }
 
 // ──────────────────────────────────────────────────────────────────
+function EmailAccountCard({ theme, user, entriesCount, onBindEmail, onPasswordReset }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const [email, setEmail] = React.useState(user?.email || '');
+  const [password, setPassword] = React.useState('');
+  const [busy, setBusy] = React.useState(false);
+  const [message, setMessage] = React.useState('');
+  const isAnonymous = !user || user.isAnonymous;
+
+  const bind = async () => {
+    setMessage('');
+    if (!email.trim() || password.length < 6) {
+      setMessage('请输入邮箱，并使用至少 6 位密码。');
+      return;
+    }
+    setBusy(true);
+    try {
+      await onBindEmail(email.trim(), password);
+      setPassword('');
+      setExpanded(false);
+      setMessage('邮箱绑定成功，现有日记仍属于同一账户。');
+    } catch (error) {
+      setMessage(typeof friendlyAuthError === 'function' ? friendlyAuthError(error) : (error?.message || '绑定失败，请稍后重试。'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const reset = async () => {
+    setBusy(true);
+    setMessage('');
+    try {
+      await onPasswordReset(user?.email || email.trim());
+      setMessage('重置密码邮件已发送。');
+    } catch (error) {
+      setMessage(typeof friendlyAuthError === 'function' ? friendlyAuthError(error) : (error?.message || '发送失败，请稍后重试。'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const inputStyle = {
+    width: '100%', height: 42, borderRadius: 10, border: `1px solid ${theme.line}`,
+    background: theme.paper, color: theme.text, padding: '0 12px', fontFamily: 'inherit',
+    outline: 'none', boxSizing: 'border-box',
+  };
+
+  return (
+    <div className="theme-settings-account" style={{
+      background: theme.paper, borderRadius: 16, border: `1px solid ${theme.line}`,
+      padding: 18, ...skin(theme, 'panel'),
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: 22, background: theme.accent,
+          color: '#fff', display: 'grid', placeItems: 'center', fontSize: 18,
+        }}>{isAnonymous ? '匿' : '邮'}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ color: theme.text, fontSize: 15.5, fontWeight: 600 }}>
+            {isAnonymous ? '匿名日记账户' : user.email}
+          </div>
+          <div style={{ color: theme.textMute, fontSize: 11.5, marginTop: 3 }}>
+            已写 {entriesCount} 篇 · {isAnonymous ? '绑定邮箱后可跨设备登录' : '邮箱账户已绑定'}
+          </div>
+        </div>
+        <button type="button" onClick={() => setExpanded(value => !value)} style={{
+          border: `1px solid ${theme.line}`, borderRadius: 9, background: theme.surface,
+          color: theme.text, padding: '7px 10px', fontFamily: 'inherit', cursor: 'pointer',
+        }}>{expanded ? '收起' : isAnonymous ? '绑定邮箱' : '账户设置'}</button>
+      </div>
+      {expanded && (
+        <div style={{ marginTop: 16, paddingTop: 15, borderTop: `1px solid ${theme.line}` }}>
+          {isAnonymous ? (
+            <>
+              <div style={{ fontSize: 12, color: theme.textSoft, lineHeight: 1.7, marginBottom: 10 }}>
+                绑定会保留当前账户 UID 和全部日记，不会创建一份空白数据。
+              </div>
+              <input type="email" value={email} onChange={event => setEmail(event.target.value)}
+                placeholder="邮箱地址" autoComplete="email" style={inputStyle}/>
+              <input type="password" value={password} onChange={event => setPassword(event.target.value)}
+                placeholder="设置密码（至少 6 位）" autoComplete="new-password"
+                style={{ ...inputStyle, marginTop: 9 }}/>
+              <button type="button" disabled={busy} onClick={bind} style={{
+                width: '100%', height: 42, marginTop: 11, border: 0, borderRadius: 10,
+                background: theme.text, color: theme.paper, fontFamily: 'inherit', cursor: 'pointer',
+              }}>{busy ? '绑定中…' : '绑定邮箱并保留日记'}</button>
+            </>
+          ) : (
+            <button type="button" disabled={busy} onClick={reset} style={{
+              width: '100%', height: 42, border: `1px solid ${theme.line}`, borderRadius: 10,
+              background: theme.surface, color: theme.text, fontFamily: 'inherit', cursor: 'pointer',
+            }}>{busy ? '发送中…' : '发送重置密码邮件'}</button>
+          )}
+          {message && <div style={{ color: theme.textSoft, fontSize: 11.5, lineHeight: 1.6, marginTop: 10 }}>{message}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Settings
 // ──────────────────────────────────────────────────────────────────
-function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, entries = [], hexagrams = [], buildLabel = '', syncState = {}, onImportData, onClearData, onSignOut, onTab }) {
+function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, entries = [], hexagrams = [], buildLabel = '', syncState = {}, currentUser, onBindEmail, onPasswordReset, onImportData, onClearData, onSignOut, onTab }) {
   const [autoLoc, setAutoLoc_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoLoc') ?? 'true'));
   const [autoPoem, setAutoPoem_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoPoem') ?? 'true'));
   const [saveRej, setSaveRej_] = React.useState(() => JSON.parse(localStorage.getItem('d-saveRej') ?? 'false'));
@@ -339,11 +444,14 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
 
       {/* account card */}
       <div style={{ padding: '0 20px 24px' }}>
+        <EmailAccountCard theme={theme} user={currentUser} entriesCount={entriesCount}
+          onBindEmail={onBindEmail} onPasswordReset={onPasswordReset}/>
         <button type="button" onClick={() => alert('当前为 Firebase 匿名账户。请定期使用“数据备份”；清除浏览器数据或更换设备后，匿名账户可能无法找回。')} style={{
           width: '100%', border: 'none', textAlign: 'left', fontFamily: 'inherit', cursor: 'pointer',
           background: theme.paper, borderRadius: 18, padding: 18,
           border: `0.5px solid ${theme.line}`,
           display: 'flex', alignItems: 'center', gap: 14,
+          ...skin(theme, 'panel'),
         }}>
           <div style={{
             width: 48, height: 48, borderRadius: 24,
@@ -380,16 +488,30 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
                       width: '100%', borderRadius: key === 'morningPaper' ? 5 : key === 'seaSalt' ? 18 : 12,
                       background: tokens.paper,
                       border: active ? `1.5px solid ${theme.text}` : `0.5px solid ${theme.line}`,
-                      padding: 9, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                      padding: 8, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 5,
                       position: 'relative', overflow: 'hidden',
                       boxShadow: key === 'snowNight' ? `inset 0 0 0 1px ${tokens.line}` : 'none',
+                      ...skin(tokens, 'preview'),
                     }}>
-                      <div style={{ display: 'flex', gap: 4 }}>
-                        {swatch.map((c, i) => <div key={i} style={{ width: 9, height: 9, borderRadius: key === 'morningPaper' ? 1 : 5, background: c, border: i === 1 ? `0.5px solid ${theme.line}` : 'none' }}/>)}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 2 }}>
+                        <div style={{ display: 'flex', gap: 3 }}>
+                          {swatch.map((c, i) => <div key={i} style={{ width: 6, height: 6, borderRadius: key === 'morningPaper' ? 1 : 5, background: c, border: i === 1 ? `0.5px solid ${theme.line}` : 'none' }}/>)}
+                        </div>
+                        <div style={{ fontFamily: tokens.fontSerif, fontSize: 6.5, color: tokens.textMute, letterSpacing: .8 }}>今日</div>
                       </div>
-                      <div style={{
-                        fontFamily: tokens.fontSerif, fontSize: 14, color: tokens.text, letterSpacing: 2, alignSelf: 'flex-end', fontWeight: 500,
-                      }}>诗</div>
+                      <div className="theme-poem-card theme-preview-poem-card" style={{ flex: 1, minHeight: 42, padding: '7px 5px 5px', position: 'relative', overflow: 'hidden', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', ...skin(tokens, 'poemCard') }}>
+                        <ThemeCardArt theme={tokens} />
+                        <div style={{ fontFamily: tokens.fontSerif, fontSize: 12, color: tokens.text, letterSpacing: 2, fontWeight: 500, position: 'relative' }}>诗</div>
+                        <div style={{ width: 13, height: .7, background: tokens.accent, marginTop: 4, position: 'relative' }}/>
+                        <div style={{ width: '70%', borderTop: `1px solid ${tokens.line}`, marginTop: 5, position: 'relative' }}/>
+                      </div>
+                      <div style={{ height: 9, display: 'flex', alignItems: 'center', justifyContent: 'space-around', ...skin(tokens, 'nav') }}>
+                        <i style={{ width: 3, height: 3, borderRadius: 3, background: tokens.accent }}/>
+                        <i style={{ width: 3, height: 3, borderRadius: 3, background: tokens.textMute }}/>
+                        <i style={{ width: 9, height: 9, borderRadius: skin(tokens, 'primary').borderRadius || 5, background: skin(tokens, 'primary').background || tokens.text }}/>
+                        <i style={{ width: 3, height: 3, borderRadius: 3, background: tokens.textMute }}/>
+                        <i style={{ width: 3, height: 3, borderRadius: 3, background: tokens.textMute }}/>
+                      </div>
                       {active && (
                         <div style={{
                           position: 'absolute', top: 7, right: 7, width: 17, height: 17, borderRadius: 9,
@@ -443,7 +565,7 @@ function SettingsSection({ theme, title, children }) {
   return (
     <div style={{ marginBottom: 20 }}>
       <div style={{ padding: '0 28px 8px', fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>{title}</div>
-      <div className="theme-settings-panel" style={{ background: theme.surface, margin: '0 16px', borderRadius: 16, overflow: 'hidden' }}>{children}</div>
+      <div className="theme-settings-panel" style={{ background: theme.surface, margin: '0 16px', borderRadius: 16, overflow: 'hidden', ...skin(theme, 'panel') }}>{children}</div>
     </div>
   );
 }
@@ -503,8 +625,11 @@ function ExportHub({ theme, entry, onTab }) {
           aspectRatio: '1', borderRadius: 20, padding: '24px 22px',
           background: theme.paper, border: `0.5px solid ${theme.line}`,
           boxShadow: `0 12px 32px -16px ${theme.text}33`,
-          display: 'flex', flexDirection: 'column',
+          display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden',
+          ...skin(theme, 'poemCard'),
         }}>
+          <ThemeCardArt theme={theme} />
+          <ThemeMotif theme={theme} />
           <MiniShareCardContent theme={theme} entry={entry} />
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
@@ -830,6 +955,7 @@ function Hexagrams({ theme, hexes = [], onNew, onFollowUp, onTab }) {
           background: theme.paper, borderRadius: 20, padding: '20px 22px',
           border: `0.5px solid ${theme.line}`,
           display: 'flex', alignItems: 'center', gap: 16, cursor: 'pointer',
+          ...skin(theme, 'poemCard'),
         }}>
           <HexagramGlyph lines={[
             { type: 'yang' }, { type: 'yin' }, { type: 'yang' },
@@ -913,6 +1039,7 @@ function HexCard({ hex, theme, onFollowUp }) {
       background: theme.surface, borderRadius: 16, padding: '18px 18px',
       marginBottom: 12, display: 'flex', gap: 18, alignItems: 'flex-start',
       border: `0.5px solid ${theme.line}`,
+      ...skin(theme, 'panel'),
     }}>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         <HexagramGlyph lines={hex.lines} color={theme.text} size="md" />

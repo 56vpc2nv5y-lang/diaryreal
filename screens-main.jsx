@@ -7,22 +7,32 @@ function Home({ theme, entries, drafts = [], density = 'sparse', poemLayout = 'h
   const today = entries[0];
   const rest = entries.slice(1);
   const now = new Date();
-  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
   return (
     <Screen theme={theme} tab="home" onTab={onTab}>
       {/* header strip */}
-      <div style={{ padding: '64px 24px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 500 }}>{now.getFullYear()} · {months[now.getMonth()]} · {now.getDate()}</div>
-          <div className="serif" style={{ fontSize: 30, fontWeight: 600, letterSpacing: -0.5, marginTop: 4, color: theme.text }}>今日</div>
+      <div className="theme-home-header" style={{ padding: '64px 24px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="theme-home-heading">
+          <div className="theme-home-date" style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 500 }}>
+            {now.getFullYear()}.{String(now.getMonth() + 1).padStart(2, '0')}.{String(now.getDate()).padStart(2, '0')}
+            <span className="theme-home-weekday">　周{['日', '一', '二', '三', '四', '五', '六'][now.getDay()]}　·　{today?.time || '21:20'}</span>
+            <span className="theme-home-weather" aria-hidden="true">☼</span>
+          </div>
+          <div className="theme-home-place" style={{ color: theme.textSoft }}>
+            <IconPin color={theme.textSoft} size={11}/><span>{today?.place || '未记录地点'}</span>
+          </div>
+          <div className="serif theme-home-title" style={{ fontSize: 30, fontWeight: 600, letterSpacing: -0.5, marginTop: 4, color: theme.text }}>今日</div>
         </div>
-        <button type="button" aria-label="搜索" onClick={onSearch} style={{
-          width: 40, height: 40, borderRadius: 20, border: 'none',
-          background: theme.surface, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: `0 1px 0 ${theme.line}`, cursor: 'pointer'
-        }}>
-          <IconSearch color={theme.textSoft} size={17} />
-        </button>
+        <div className="theme-home-actions" style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <ThemeHeaderMark theme={theme} />
+          <button type="button" aria-label="搜索日记" className="theme-search-button" onClick={onSearch} style={{
+            width: 34, height: 34, borderRadius: 18, border: `0.5px solid ${theme.line}`,
+            background: theme.surface + 'aa', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: `0 1px 0 ${theme.line}`, cursor: 'pointer'
+          }}>
+            <span className="theme-journal-label">日记</span>
+            <IconSearch color={theme.textSoft} size={15} />
+          </button>
+        </div>
       </div>
 
       {/* drafts strip — quick captures not yet written up */}
@@ -45,19 +55,20 @@ function Home({ theme, entries, drafts = [], density = 'sparse', poemLayout = 'h
       )}
 
       {/* today's poem card */}
-      <div style={{ padding: '8px 20px 0' }}>
+      <div className="theme-today-wrap" style={{ padding: '8px 20px 0' }}>
         <TodayCard theme={theme} entry={today} layout={poemLayout} onClick={() => onOpen(today.id)} />
+        <HomeQuoteCard theme={theme} entry={today} onClick={() => onOpen(today.id)} />
       </div>
 
       {/* past divider */}
-      <div style={{ padding: '32px 24px 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div className="theme-past-divider" style={{ padding: '32px 24px 8px', display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>往 日</div>
         <div style={{ flex: 1, height: 0.5, background: theme.line }} />
         <div style={{ fontSize: 11, color: theme.textMute }}>{rest.length} 篇</div>
       </div>
 
       {/* list */}
-      <div style={{ padding: '0 24px 120px' }}>
+      <div className="theme-past-list" style={{ padding: '0 24px 120px' }}>
         {rest.map((e, i) =>
         <PastRow key={e.id} entry={e} theme={theme} onClick={() => onOpen(e.id)} isLast={i === rest.length - 1} dense={density === 'dense'} />
         )}
@@ -69,19 +80,27 @@ function Home({ theme, entries, drafts = [], density = 'sparse', poemLayout = 'h
 function TodayCard({ theme, entry, layout = 'horizontal', onClick }) {
   if (!entry) return null;
   const poem = entry.poem;
-  const [c1, c2] = sealChars(poem?.title || '日');
+  const activateOnKey = event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      onClick();
+    }
+  };
 
   // No poem yet — soft CTA
   if (!poem) {
     return (
-      <div className="theme-poem-card" onClick={onClick} style={{
+      <div className="theme-poem-card" onClick={onClick} onKeyDown={activateOnKey} role="button" tabIndex={0} style={{
         position: 'relative', background: theme.paper, borderRadius: 22,
         padding: '28px 26px 22px', cursor: 'pointer',
         border: `0.5px solid ${theme.line}`,
+        ...skin(theme, 'poemCard'),
       }}>
-        <div style={{ fontSize: 10, letterSpacing: 3, color: theme.textMute, fontWeight: 600, marginBottom: 16 }}>今 日 之 诗</div>
-        <div className="serif" style={{ fontSize: 17, color: theme.textSoft, letterSpacing: 2, lineHeight: 2 }}>还没有诗 · 摇一签</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 16, fontSize: 11.5, color: theme.textSoft }}>
+        <ThemeCardArt theme={theme} />
+        <ThemeMotif theme={theme} />
+        <div className="theme-poem-tag" style={{ fontSize: 10, letterSpacing: 3, color: theme.textMute, fontWeight: 600, marginBottom: 16 }}>今 日 之 诗</div>
+        <div className="serif theme-poem-empty" style={{ fontSize: 17, color: theme.textSoft, letterSpacing: 2, lineHeight: 2 }}>还没有诗 · 摇一签</div>
+        <div className="theme-poem-meta" style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 16, fontSize: 11.5, color: theme.textSoft }}>
           <IconPin color={theme.textSoft} size={11}/><span>{entry.place}</span>
           <span style={{ color: theme.textMute }}>·</span><span>{entry.time}</span>
         </div>
@@ -90,29 +109,33 @@ function TodayCard({ theme, entry, layout = 'horizontal', onClick }) {
   }
 
   return (
-    <div className="theme-poem-card" onClick={onClick} style={{
+    <div className="theme-poem-card" onClick={onClick} onKeyDown={activateOnKey} role="button" tabIndex={0} style={{
       position: 'relative', background: theme.paper, borderRadius: 22,
       padding: '28px 26px 22px', cursor: 'pointer',
       boxShadow: `0 1px 0 ${theme.line}, 0 12px 32px -16px ${theme.text}22`,
-      border: `0.5px solid ${theme.line}`
+      border: `0.5px solid ${theme.line}`,
+      ...skin(theme, 'poemCard'),
     }}>
+      <ThemeCardArt theme={theme} />
+      <ThemeMotif theme={theme} />
       {/* tag */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-        <div style={{ fontSize: 10, letterSpacing: 3, color: theme.textMute, fontWeight: 600 }}>
+      <div className="theme-poem-topline" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
+        <div className="theme-poem-tag" style={{ fontSize: 10, letterSpacing: 3, color: theme.textMute, fontWeight: 600 }}>
           今 日 之 诗
           <span style={{ marginLeft: 10, opacity: 0.7, letterSpacing: 1 }}>{poem.form || '五绝'}</span>
         </div>
-        <Seal char1={c1} char2={c2} theme={theme} size={32} />
+        <div className="theme-poem-seal"><Seal char1="诗" char2="签" theme={theme} size={32} /></div>
       </div>
 
       {/* title */}
-      <div className="serif" style={{
+      <div className="serif theme-poem-title" style={{
         fontSize: 30, fontWeight: 500, letterSpacing: 6,
         color: theme.text, lineHeight: 1.15, textAlign: 'center', paddingLeft: '0.3em',
       }}>{poem.title}</div>
 
-      <div style={{ width: 28, height: 0.8, background: theme.accent, margin: '14px auto 22px' }} />
+      <div className="theme-poem-rule" style={{ width: 28, height: 0.8, background: theme.accent, margin: '14px auto 22px' }} />
 
+      <div className="theme-poem-body">
       {layout === 'vertical' ? (
         <div style={{ display: 'flex', flexDirection: 'row-reverse', gap: 18, justifyContent: 'center', padding: '4px 0' }}>
           {poem.lines.map((ln, i) => (
@@ -122,9 +145,10 @@ function TodayCard({ theme, entry, layout = 'horizontal', onClick }) {
       ) : (
         <PoemBody lines={poem.lines} size={20} theme={theme} />
       )}
+      </div>
 
       {/* meta */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 22, fontSize: 11.5, color: theme.textSoft }}>
+      <div className="theme-poem-meta" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 22, fontSize: 11.5, color: theme.textSoft }}>
         {entry.mood && <span style={{ fontSize: 14, marginRight: 2 }}>{entry.mood}</span>}
         <IconPin color={theme.textSoft} size={11} />
         <span>{entry.place}</span>
@@ -136,6 +160,43 @@ function TodayCard({ theme, entry, layout = 'horizontal', onClick }) {
       }}>{entry.sign.timelineLine}</div>}
     </div>);
 
+}
+
+function HomeQuoteCard({ theme, entry, onClick }) {
+  if (!entry) return null;
+  const suggested = entry.quoteSuggestions?.[0];
+  const quote = entry.collectedQuotes?.[0]
+    || suggested?.quote
+    || entry.sign?.timelineLine
+    || entry.poem?.lines?.[entry.poem.lines.length - 1]
+    || entry.body?.slice(0, 34);
+  if (!quote) return null;
+  const quoteLabel = ['morningPaper', 'seaSalt', 'obsidianDawn', 'snowNight'].includes(theme?.key) ? 'AI 拾句' : '拾句';
+  return (
+    <div className="theme-home-quote">
+      <div
+        className="theme-quote-card"
+        onClick={onClick}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onClick();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        style={{
+        background: theme.surface, border: `0.5px solid ${theme.line}`,
+        borderRadius: 18, color: theme.text, ...skin(theme, 'panel'),
+      }}>
+        <ThemeCardArt theme={theme} kind="quote" />
+        <ThemeMotif theme={theme} variant="panel" />
+        <div className="theme-home-quote-title" style={{ color: theme.accent }}>{quoteLabel}</div>
+        <div className="serif theme-home-quote-text" style={{ color: theme.textSoft }}>“{quote}”</div>
+        <span className="theme-home-quote-arrow" style={{ color: theme.accent }}>›</span>
+      </div>
+    </div>
+  );
 }
 
 function PastRow({ entry, theme, onClick, isLast, dense }) {
@@ -202,6 +263,7 @@ function DraftCard({ draft, theme }) {
         width: 110, height: 90, borderRadius: 14, background: theme.surface,
         border: `0.5px solid ${theme.line}`, padding: 10,
         display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+        ...skin(theme, 'panel'),
       }}>
         <div style={{ fontSize: 11, color: theme.text, lineHeight: 1.3, fontWeight: 500,
           overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box',
@@ -1031,7 +1093,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
   };
 
   return (
-    <Screen theme={theme} noTab bg={customPaper ? '#fffdf7' : theme.bg} contentStyle={detailContentStyle}>
+    <Screen theme={theme} noTab bg={customPaper ? '#fffdf7' : undefined} contentStyle={detailContentStyle}>
       {/* top bar */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, padding: '50px 16px 0', display: 'flex', justifyContent: 'space-between', zIndex: 20 }}>
         <button type="button" aria-label="返回" onClick={onBack} style={{ width: 40, height: 40, borderRadius: 20, border: 'none', background: theme.surface + 'dd', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
@@ -1074,7 +1136,9 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
 
       {hasPoem ? (
       /* poem block */
-      <div className="theme-poem-hero" style={{ padding: '110px 24px 36px', background: customPaper ? 'rgba(255,253,247,.84)' : theme.paper, borderBottom: `0.5px solid ${theme.line}`, textAlign: 'center', position: 'relative' }}>
+      <div className="theme-poem-hero" style={{ padding: '110px 24px 36px', background: customPaper ? 'rgba(255,253,247,.84)' : theme.paper, borderBottom: `0.5px solid ${theme.line}`, textAlign: 'center', position: 'relative', ...(!customPaper ? skin(theme, 'hero') : {}) }}>
+          {!customPaper && <ThemeCardArt theme={theme} />}
+          {!customPaper && <ThemeMotif theme={theme} variant="hero" />}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>
               诗 签 <span style={{ marginLeft: 8, opacity: 0.7 }}>{e.poem.form || '五绝'}</span>
@@ -1088,7 +1152,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
         </div>) : (
 
       /* unpoemed — soft CTA, paper kept for visual continuity */
-      <div style={{ padding: '110px 32px 28px', background: customPaper ? 'rgba(255,253,247,.84)' : theme.paper, borderBottom: `0.5px solid ${theme.line}`, position: 'relative' }}>
+      <div style={{ padding: '110px 32px 28px', background: customPaper ? 'rgba(255,253,247,.84)' : theme.paper, borderBottom: `0.5px solid ${theme.line}`, position: 'relative', ...(!customPaper ? skin(theme, 'hero') : {}) }}>
           <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>本 篇 尚 未 求 诗</div>
           <div className="serif" style={{
           fontSize: 17, lineHeight: 1.85, color: theme.textSoft,
@@ -1119,7 +1183,9 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
       {e.sign && (
         <div style={{ padding: '24px 32px 0' }}>
           <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginBottom: 12 }}>今 日 判 语</div>
-          <div className="theme-sign-card" style={{ padding: '18px 18px', borderRadius: 16, background: theme.surface, border: `0.5px solid ${theme.line}` }}>
+          <div className="theme-sign-card" style={{ padding: '18px 18px', borderRadius: 16, background: theme.surface, border: `0.5px solid ${theme.line}`, position: 'relative', overflow: 'hidden', ...skin(theme, 'panel') }}>
+            <ThemeCardArt theme={theme} kind="quote" />
+            <ThemeMotif theme={theme} variant="panel" />
             <div className="serif" style={{ fontSize: 20, color: theme.seal, letterSpacing: 4, textAlign: 'center', marginBottom: 10 }}>{e.sign.title}</div>
             {(e.sign.judgmentLines || []).map((line, index) => <div key={index} className="serif" style={{ fontSize: 15, color: theme.text, lineHeight: 1.9, letterSpacing: 2, textAlign: 'center' }}>{line}</div>)}
             {e.sign.interpretation && <div style={{ marginTop: 14, paddingTop: 12, borderTop: `0.5px solid ${theme.line}`, color: theme.textSoft, fontSize: 12.5, lineHeight: 1.75 }}>{e.sign.interpretation}</div>}
@@ -1179,6 +1245,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
             <div key={n.id} style={{
               marginBottom: 12, padding: '14px 16px 14px 18px',
               background: theme.surface, borderRadius: 14,
+              ...skin(theme, 'panel'),
               borderLeft: `2.5px solid ${theme.seal}`,
             }}>
               <div className="serif" style={{
@@ -1212,13 +1279,15 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
           }}>{quoteBusy ? '正在拾句…' : (e.quoteSuggestions?.length ? '重新拾句' : '让 AI 拾句')}</button>
         </div>
         {(!e.quoteSuggestions || e.quoteSuggestions.length === 0) && (
-          <div style={{ padding: '16px 15px', borderRadius: 14, background: theme.surface, border: `0.5px dashed ${theme.line}`, color: theme.textMute, fontSize: 12.5, lineHeight: 1.7 }}>
+          <div style={{ padding: '16px 15px', borderRadius: 14, background: theme.surface, color: theme.textMute, fontSize: 12.5, lineHeight: 1.7, ...skin(theme, 'panel'), border: `0.5px dashed ${theme.line}` }}>
             这篇日记还没有拾句建议。点击“让 AI 拾句”，旧日记也可以补做。
           </div>
         )}
         {e.quoteSuggestions && e.quoteSuggestions.map((item, index) => {
             const collected = (e.collectedQuotes || []).includes(item.quote);
-            return <div className="theme-quote-card" key={index} style={{ marginBottom: 10, padding: '14px 15px', borderRadius: 14, background: theme.surface, border: `0.5px solid ${theme.line}` }}>
+            return <div className="theme-quote-card" key={index} style={{ marginBottom: 10, padding: '14px 15px', borderRadius: 14, background: theme.surface, border: `0.5px solid ${theme.line}`, position: 'relative', overflow: 'hidden', ...skin(theme, 'panel') }}>
+              <ThemeCardArt theme={theme} kind="quote" />
+              <ThemeMotif theme={theme} variant="panel" />
               <div className="serif" style={{ fontSize: 15, color: theme.text, lineHeight: 1.7 }}>“{item.quote}”</div>
               <details style={{ marginTop: 6, color: theme.textMute, fontSize: 11.5, lineHeight: 1.55 }}>
                 <summary style={{ cursor: 'pointer', listStyle: 'none' }}>为什么选它</summary>
@@ -1254,7 +1323,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
         {(e.notes || []).map((n, i) =>
         <div key={i} style={{
           padding: '14px 16px', borderRadius: 14, background: theme.surface,
-          marginBottom: 10, position: 'relative'
+          marginBottom: 10, position: 'relative', ...skin(theme, 'panel'),
         }}>
             <div style={{ fontSize: 11, color: theme.textMute, marginBottom: 6, letterSpacing: 0.5 }}>{n.date}</div>
             <div style={{ fontSize: 14, color: theme.text, lineHeight: 1.6 }}>{n.text}</div>
