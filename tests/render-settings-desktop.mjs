@@ -15,8 +15,8 @@ vm.createContext(sandbox);
 vm.runInContext(fs.readFileSync(path.join(root, 'data.js'), 'utf8'), sandbox);
 vm.runInContext(fs.readFileSync(path.join(root, 'themes-extra.js'), 'utf8'), sandbox);
 
-const keys = ['celadon', 'inkPlum', 'mossGarden', 'study', 'morningPaper', 'obsidianDawn', 'dusk', 'seaSalt', 'snowNight'];
-const groups = [['清 雅', keys.slice(0, 3)], ['温 暖', keys.slice(3, 6)], ['轻 盈', keys.slice(6)]];
+const keys = ['celadon', 'inkPlum', 'mossGarden', 'study', 'morningPaper', 'dusk', 'seaSalt'];
+const groups = [['清 雅', keys.slice(0, 3)], ['温 暖', keys.slice(3, 5)], ['轻 盈', keys.slice(5)]];
 const cssName = key => key.replace(/[A-Z]/g, match => `-${match.toLowerCase()}`);
 const styleToCss = style => Object.entries(style || {}).map(([key, value]) => `${cssName(key)}:${value}`).join(';');
 const styles = [...fs.readFileSync(path.join(root, 'index.html'), 'utf8').matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)]
@@ -44,12 +44,12 @@ body{overflow:auto!important;background:#e8e3ed!important}.app-screen{width:100v
 <div class="app-screen"><div class="app-scroll"><main class="settings-page">
   <header class="settings-header"><small>SETTINGS</small><h1>我</h1></header>
   <div class="settings-account-wrap"><div class="account">邮　jingyi021@e.ntu.edu.sg<br><small>已写 7 篇 · 邮箱账户已绑定</small></div></div>
-  <section class="settings-section settings-theme-section"><h3>主 题 皮 肤</h3><div class="theme-settings-panel"><p>推荐搭配：雾紫留白 · 小薇体</p>${themeGroups}</div></section>
+  <section class="settings-section settings-theme-section"><h3>主 题 皮 肤</h3><div class="theme-settings-panel"><p>推荐搭配：雾蓝盐白 · 楷体</p>${themeGroups}</div></section>
   ${settingPanel('写 作 与 生 诗', ['每日提醒　22:00', '自动记录位置', '日记生诗', '保存被否决的诗'])}
   ${settingPanel('导 入 与 导 出', ['导入过去日记', '导出与分享', '数据备份'])}
   ${settingPanel('云 同 步', ['Firestore　已同步', '跨设备同步　邮箱账户已启用'])}
   ${settingPanel('数 据', ['清除所有数据', '退出'])}
-  <div class="settings-version">版本 2026.06.16-r55</div>
+  <div class="settings-version">版本 2026.06.16-r56</div>
 </main></div>
 <nav class="app-tabbar">
   <button class="app-tab-item"><span>⌂</span><small>今日</small></button>
@@ -62,7 +62,7 @@ body{overflow:auto!important;background:#e8e3ed!important}.app-screen{width:100v
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, deviceScaleFactor: 1 });
 await page.setContent(html, { waitUntil: 'load' });
-await page.evaluate(() => { document.documentElement.dataset.diaryTheme = 'obsidianDawn'; });
+await page.evaluate(() => { document.documentElement.dataset.diaryTheme = 'seaSalt'; });
 await page.evaluate(() => document.fonts?.ready);
 const navLayout = await page.evaluate(() => {
   const nav = document.querySelector('.app-tabbar').getBoundingClientRect();
@@ -78,5 +78,5 @@ if (
 ) {
   throw new Error(`Desktop navigation is misaligned: ${JSON.stringify(navLayout)}`);
 }
-await page.screenshot({ path: path.join(root, 'output', 'playwright', 'r55-settings-feedback-nav.png'), fullPage: true });
+await page.screenshot({ path: path.join(root, 'output', 'playwright', 'r56-settings-feedback-nav.png'), fullPage: true });
 await browser.close();

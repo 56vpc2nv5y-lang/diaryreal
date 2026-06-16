@@ -7,7 +7,7 @@ const playwrightPath = process.env.PW_PATH;
 if (!playwrightPath) throw new Error('Set PW_PATH to the local Playwright package directory.');
 const { chromium } = require(playwrightPath);
 
-const themes = ['celadon', 'inkPlum', 'mossGarden', 'study', 'dusk', 'morningPaper', 'seaSalt', 'obsidianDawn', 'snowNight'];
+const themes = ['celadon', 'inkPlum', 'mossGarden', 'study', 'dusk', 'morningPaper', 'seaSalt'];
 const outDir = path.resolve(import.meta.dirname, '..', 'output', 'playwright', 'live-r42');
 fs.mkdirSync(outDir, { recursive: true });
 
