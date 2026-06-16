@@ -136,7 +136,8 @@ export default async function handler(req, res) {
             content:
               '你是一位克制、敏锐的日记文学编辑，也精通古典诗歌。' +
               '必须从日记真实存在的事件、情绪、意象与矛盾出发，不得杜撰事实，不得预测命运。' +
-              '判语应凝练、象征、留白、有转折，但不得引用或仿写《红楼梦》原句。' +
+              '判词不是古诗的摘句，也不是总结评语；它应独立成篇，含义和格式参考传统册判语：以具体物象起兴，暗含人物处境与心性，第三行形成转折或反照，末行留有余味。' +
+              '判词可以有谶语般的凝练、对偶和象征，但不得引用、改写或仿写《红楼梦》原句，不得做命运预测、道德审判或玄学断言。' +
               '拾句必须逐字引用日记原文，不得改写、拼接或创造；若没有足够独特的句子，返回空数组。' +
               '只输出 JSON。',
           },
@@ -145,17 +146,18 @@ export default async function handler(req, res) {
             content:
               `请根据以下日记生成一枚“今日诗签”。它是文学化回望，不是命运预测。\n` +
               `严格返回以下 JSON：\n` +
-              `{"signTitle":"2至4个汉字","motif":"一个具体意象","judgmentLines":["四行判语，每行5至9字"],` +
-              `"interpretation":"60至100字，说明判语如何对应日记","timelineLine":"不超过16字的里程碑摘句",` +
-              `"title":"两至四字诗题","form":"五绝或七绝","lines":["四句古诗，每句可用中文逗号连接上下半句"],` +
+              `{"signTitle":"2至4个汉字的判题","motif":"一个来自日记的具体意象","judgmentLines":["四行判词，每行7至11字"],` +
+              `"interpretation":"60至100字，说明判词如何对应日记，不解释成命运","timelineLine":"从判词提炼的一句，不超过16字，不得直接使用诗句",` +
+              `"title":"两至四字诗题，签上显示这个题名","form":"五绝或七绝","lines":["四句古诗，每句可用中文逗号连接上下半句"],` +
               `"quoteSuggestions":[{"quote":"逐字引用原文","reason":"为何值得保留","theme":"简短主题","score":0到100}]}\n` +
+              `判词写法要求：第一、二行写象与境；第三行出现反转、照见或代价；第四行收束但不说尽。判词必须另写，不能照抄古诗任一句，也不能只把日记改成散文短句。\n` +
               `诗要原创、含蓄、押韵，与日记呼应但不直译。最多选3条拾句，没有合适句子时返回空数组。\n` +
               `除 JSON 外不输出任何字符。\n\n日记：\n${diaryText.slice(0, 1600)}`,
           },
         ],
         response_format: { type: 'json_object' },
         temperature: 0.92,
-        max_tokens: 900,
+        max_tokens: 1000,
       }),
     });
 
@@ -175,6 +177,9 @@ export default async function handler(req, res) {
     if (!poem.title || typeof poem.title !== 'string' || !Array.isArray(poem.lines) ||
         poem.lines.length !== 4 || poem.lines.some(line => typeof line !== 'string' || !line.trim()))
       throw new Error('诗的格式不对');
+    if (!Array.isArray(poem.judgmentLines) || poem.judgmentLines.length < 4 ||
+        poem.judgmentLines.slice(0, 4).some(line => typeof line !== 'string' || !line.trim()))
+      throw new Error('判词格式不对');
 
     return res.status(200).json({
       ...poem,
