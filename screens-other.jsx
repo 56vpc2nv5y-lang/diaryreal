@@ -26,23 +26,7 @@ function Timeline({ theme, entries, onOpen, onTab }) {
         ))}
       </div>
 
-      {view === 'poems' && <div style={{ padding: '24px 20px 120px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
-        {poems.map(entry => <button type="button" key={entry.id} onClick={() => onOpen(entry.id)} style={{
-          minHeight: 260, borderRadius: 18, border: `0.5px solid ${theme.line}`, padding: '20px 18px',
-          backgroundColor: theme.paper, ...paperBg(entry.paper || 'plain', theme),
-          fontFamily: 'inherit', cursor: 'pointer', overflow: 'hidden',
-        }}>
-          <div style={{ background: 'rgba(255,253,247,.84)', borderRadius: 14, padding: '18px 12px', height: '100%', position: 'relative', overflow: 'hidden', ...skin(theme, 'poemCard') }}>
-            <ThemeCardArt theme={theme} />
-            <ThemeMotif theme={theme} />
-            <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 5 }}>{entry.poem.title}</div>
-            <div style={{ width: 24, height: 1, background: theme.accent, margin: '12px auto' }}/>
-            <PoemBody lines={entry.poem.lines || []} size={14} theme={theme}/>
-            <div style={{ marginTop: 12, fontSize: 10.5, color: theme.textMute }}>{entry.date}</div>
-          </div>
-        </button>)}
-        {!poems.length && <div className="serif" style={{ color: theme.textMute, padding: 40, textAlign: 'center' }}>摇出的诗会自动收入这里</div>}
-      </div>}
+      {view === 'poems' && <PoemBook theme={theme} entries={poems} onOpen={onOpen} />}
 
       {view === 'quotes' && <div style={{ padding: '24px 20px 120px' }}>
         {quotes.map(({ quote, entry }, index) => <button type="button" key={`${entry.id}-${index}`} onClick={() => onOpen(entry.id)} style={{
@@ -99,6 +83,7 @@ function YearMarker({ theme, year }) {
 
 function TimelineRow({ entry, theme, onClick, isFirst }) {
   const [c1, c2] = sealChars(entry.poem?.title || '日记');
+  const judgmentLine = entry.sign?.timelineLine || entry.sign?.judgmentLines?.[3] || entry.sign?.judgmentLines?.[0];
   return (
     <div onClick={onClick} style={{ position: 'relative', paddingLeft: 56, paddingBottom: 28, cursor: 'pointer' }}>
       {/* node */}
@@ -128,12 +113,134 @@ function TimelineRow({ entry, theme, onClick, isFirst }) {
         <span>{entry.place}</span>
       </div>
 
-      {/* a single haunting line from the poem */}
+      {/* a single judgment line for the milestone */}
       <div className="serif" style={{
         fontSize: 14, lineHeight: 1.7, color: theme.textSoft, letterSpacing: 1,
         paddingLeft: 12, borderLeft: `1.5px solid ${theme.accent}`,
         fontStyle: 'normal',
-      }}>{entry.sign?.timelineLine || entry.poem?.lines?.[entry.poem.lines.length - 1] || entry.body?.slice(0, 28) || '这一日被记下。'}</div>
+      }}>{judgmentLine || entry.body?.slice(0, 28) || '这一日被记下。'}</div>
+    </div>
+  );
+}
+
+function PoemBook({ theme, entries, onOpen }) {
+  const [page, setPage] = React.useState(0);
+  React.useEffect(() => {
+    if (page > Math.max(0, entries.length - 1)) setPage(Math.max(0, entries.length - 1));
+  }, [entries.length, page]);
+
+  if (!entries.length) {
+    return (
+      <div className="serif" style={{ color: theme.textMute, padding: 40, textAlign: 'center' }}>
+        摇出的诗会自动收入这里
+      </div>
+    );
+  }
+
+  const entry = entries[page];
+  const [c1, c2] = sealChars(entry.poem?.title || '诗签');
+  const motif = entry.sign?.motif || entry.poem?.title || '今日';
+  const canPrev = page > 0;
+  const canNext = page < entries.length - 1;
+  const turn = next => setPage(current => Math.max(0, Math.min(entries.length - 1, current + next)));
+
+  return (
+    <div style={{ padding: '20px 16px 120px' }}>
+      <style>{`
+        @keyframes poem-book-turn {
+          0% { transform: rotateY(-8deg) translateX(8px); opacity: .72; }
+          100% { transform: rotateY(0) translateX(0); opacity: 1; }
+        }
+      `}</style>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 8px 12px' }}>
+        <div style={{ fontSize: 11, color: theme.textMute, letterSpacing: 2 }}>
+          第 {page + 1} 页 · 共 {entries.length} 首
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" aria-label="上一页" disabled={!canPrev} onClick={() => turn(-1)} style={{
+            width: 34, height: 34, borderRadius: 17, border: `0.5px solid ${theme.line}`,
+            background: canPrev ? theme.paper : theme.surface, opacity: canPrev ? 1 : .45,
+            display: 'grid', placeItems: 'center', cursor: canPrev ? 'pointer' : 'default',
+          }}><IconChevron color={theme.textSoft} dir="left" size={12}/></button>
+          <button type="button" aria-label="下一页" disabled={!canNext} onClick={() => turn(1)} style={{
+            width: 34, height: 34, borderRadius: 17, border: `0.5px solid ${theme.line}`,
+            background: canNext ? theme.paper : theme.surface, opacity: canNext ? 1 : .45,
+            display: 'grid', placeItems: 'center', cursor: canNext ? 'pointer' : 'default',
+          }}><IconChevron color={theme.textSoft} dir="right" size={12}/></button>
+        </div>
+      </div>
+
+      <div style={{ perspective: 1100 }}>
+        <div key={entry.id} style={{
+          minHeight: 430,
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, .92fr) minmax(0, 1.08fr)',
+          borderRadius: '8px 18px 18px 8px',
+          overflow: 'hidden',
+          background: theme.paper,
+          border: `0.5px solid ${theme.line}`,
+          boxShadow: `0 18px 44px ${theme.text}22`,
+          transformOrigin: 'left center',
+          animation: 'poem-book-turn .42s cubic-bezier(.2,.8,.2,1)',
+        }}>
+          <div style={{
+            position: 'relative',
+            minHeight: 430,
+            padding: '26px 16px 20px',
+            background: `linear-gradient(150deg, ${theme.surface}, ${theme.paper})`,
+            borderRight: `0.5px solid ${theme.line}`,
+            overflow: 'hidden',
+          }}>
+            <ThemeCardArt theme={theme} kind="quote" />
+            <div style={{
+              position: 'absolute', inset: 22,
+              border: `1px solid ${theme.line}`,
+              opacity: .46,
+            }} />
+            <svg viewBox="0 0 150 210" style={{ position: 'relative', zIndex: 1, width: '100%', height: 220, marginTop: 24 }}>
+              <path d="M14 162c34-22 57 13 92-4 21-10 34-4 51 3" fill="none" stroke={theme.accent} strokeWidth="2" strokeLinecap="round" opacity=".52"/>
+              <path d="M42 72c21 11 34 28 44 54M73 105l-31-5M84 124l27-22M62 90l-4-32" fill="none" stroke={theme.accent} strokeWidth="1.5" strokeLinecap="round" opacity=".48"/>
+              <circle cx="106" cy="54" r="20" fill={theme.accent} opacity=".10"/>
+              <circle cx="106" cy="54" r="12" fill="none" stroke={theme.accent} opacity=".36"/>
+            </svg>
+            <div className="serif" style={{
+              position: 'relative', zIndex: 1,
+              writingMode: 'vertical-rl', textOrientation: 'upright',
+              margin: '8px auto 0', height: 118,
+              color: theme.textSoft, fontSize: 18, letterSpacing: 8,
+            }}>{motif}</div>
+            <div style={{ position: 'absolute', left: 16, bottom: 18, fontSize: 10, color: theme.textMute, letterSpacing: 2 }}>
+              插画为本地意象绘制
+            </div>
+          </div>
+
+          <div style={{ minHeight: 430, padding: '26px 20px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div style={{ fontSize: 10, color: theme.textMute, letterSpacing: 3, fontWeight: 600 }}>
+                诗 册
+              </div>
+              <Seal char1={c1} char2={c2} theme={theme} size={32} rotate={-4}/>
+            </div>
+            <button type="button" onClick={() => onOpen?.(entry.id)} className="serif" style={{
+              marginTop: 24,
+              border: 'none',
+              background: 'transparent',
+              color: theme.text,
+              fontFamily: 'inherit',
+              fontSize: 25,
+              letterSpacing: 7,
+              lineHeight: 1.2,
+              padding: '0 0 0 .45em',
+              cursor: 'pointer',
+            }}>{entry.poem.title}</button>
+            <div style={{ width: 28, height: 1, background: theme.accent, margin: '18px auto 22px' }} />
+            <PoemBody lines={entry.poem.lines || []} size={17} theme={theme}/>
+            <div style={{ marginTop: 'auto', width: '100%', color: theme.textMute, fontSize: 10.5, lineHeight: 1.7, letterSpacing: 1 }}>
+              {entry.date?.replace(/-/g, '.')} · {entry.place || '未记录地点'}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -421,8 +528,8 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         : '已同步';
   const themeGroups = [
     { label: '清雅', keys: ['celadon', 'inkPlum', 'mossGarden'] },
-    { label: '温暖', keys: ['study', 'morningPaper', 'obsidianDawn'] },
-    { label: '轻盈', keys: ['dusk', 'seaSalt', 'snowNight'] },
+    { label: '温暖', keys: ['study', 'morningPaper'] },
+    { label: '轻盈', keys: ['dusk', 'seaSalt'] },
   ];
   const themeRecommendations = {
     celadon: '青釉浅色信纸 · 楷体',
@@ -430,10 +537,8 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
     mossGarden: '苔庭信纸 · 楷体',
     study: '米白旧纸 · 楷体',
     morningPaper: '无图案信纸 · 楷体',
-    obsidianDawn: '晨曦暖白纸 · 楷体',
     dusk: '低对比浅色信纸 · 楷体',
-    seaSalt: '海蓝盐白信纸 · 楷体',
-    snowNight: '月夜雪坡信纸 · 楷体',
+    seaSalt: '雾蓝盐白信纸 · 楷体',
   };
   const accountStateLabel = currentUser?.isAnonymous ? 'Firebase 匿名账户' : '邮箱账户已绑定';
   const showDataNotice = () => alert([
@@ -514,7 +619,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
                       border: active ? `1.5px solid ${theme.text}` : `0.5px solid ${theme.line}`,
                       padding: 8, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 5,
                       position: 'relative', overflow: 'hidden',
-                      boxShadow: key === 'snowNight' ? `inset 0 0 0 1px ${tokens.line}` : 'none',
+                      boxShadow: 'none',
                       ...skin(tokens, 'preview'),
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 2 }}>
@@ -556,7 +661,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
       <SettingsSection theme={theme} title="写 作 与 生 诗">
         <SettingsRow theme={theme} label="每日提醒" detail="22:00" onClick={() => alert('提醒功能将在 App 版本支持')} />
         <SettingsRow theme={theme} label="自动记录位置" toggle on={autoLoc} onToggle={() => tog('d-autoLoc', !autoLoc, setAutoLoc_)} />
-        <SettingsRow theme={theme} label="日记生诗" toggle on={autoPoem} onToggle={() => tog('d-autoPoem', !autoPoem, setAutoPoem_)} detail="摇签可选" />
+        <SettingsRow theme={theme} label="日记生诗" toggle on={autoPoem} onToggle={() => tog('d-autoPoem', !autoPoem, setAutoPoem_)} detail="保存后摇签" />
         <SettingsRow theme={theme} label="保存被否决的诗" toggle on={saveRej} onToggle={() => tog('d-saveRej', !saveRej, setSaveRej_)} isLast />
       </SettingsSection>
 

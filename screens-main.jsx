@@ -171,7 +171,7 @@ function HomeQuoteCard({ theme, entry, onClick }) {
     || entry.poem?.lines?.[entry.poem.lines.length - 1]
     || entry.body?.slice(0, 34);
   if (!quote) return null;
-  const quoteLabel = ['morningPaper', 'seaSalt', 'obsidianDawn', 'snowNight'].includes(theme?.key) ? 'AI 拾句' : '拾句';
+  const quoteLabel = ['morningPaper', 'seaSalt'].includes(theme?.key) ? 'AI 拾句' : '拾句';
   return (
     <div className="theme-home-quote">
       <div
@@ -709,6 +709,7 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
   // state: 'ready' | 'shaking' | 'done'
   const e = entry;
   const [c1, c2] = sealChars(e.poem.title);
+  const judgmentLines = e.sign?.judgmentLines || [];
   return (
     <Screen theme={theme} noTab>
       {/* collapsed diary header */}
@@ -725,7 +726,17 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
       {state !== 'done' ?
       <div style={{ padding: '20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 480 }}>
           {/* stylized 签筒 */}
-          <div className="anim-shake" style={{ marginBottom: 36 }}>
+          <div className="anim-shake" onClick={state === 'ready' ? onShake : undefined}
+            onKeyDown={event => {
+              if (state !== 'ready') return;
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                onShake?.();
+              }
+            }}
+            role={state === 'ready' ? 'button' : undefined}
+            tabIndex={state === 'ready' ? 0 : undefined}
+            style={{ marginBottom: 36, cursor: state === 'ready' ? 'pointer' : 'default' }}>
             <div style={{
             width: 110, height: 160, borderRadius: '8px 8px 14px 14px',
             background: theme.surface,
@@ -748,6 +759,15 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
               position: 'absolute', left: 6, right: 6, top: 0, height: 8,
               background: theme.bg, borderRadius: '50% 50% 0 0 / 100% 100% 0 0'
             }} />
+              {state === 'shaking' && <div style={{
+                position: 'absolute', left: 55, top: 96,
+                width: 18, height: 96, borderRadius: '9px 9px 13px 13px',
+                background: `linear-gradient(180deg, ${theme.paper}, ${theme.accent}22)`,
+                border: `1px solid ${theme.accent}66`,
+                boxShadow: `0 10px 20px ${theme.text}22`,
+                transform: 'translateX(-50%) rotate(4deg)',
+                animation: 'sign-slip .72s ease-in-out infinite alternate',
+              }} />}
             </div>
           </div>
           <div className="serif" style={{ fontSize: 18, color: theme.text, letterSpacing: 4, marginBottom: 12 }}>
@@ -761,9 +781,9 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
           }} />
           )}
           </div>
-          <style>{`@keyframes pulse{0%,100%{opacity:0.2}50%{opacity:1}}`}</style>
+          <style>{`@keyframes pulse{0%,100%{opacity:0.2}50%{opacity:1}}@keyframes sign-slip{from{transform:translate(-50%,-8px) rotate(-3deg)}to{transform:translate(-50%,18px) rotate(5deg)}}`}</style>
           <div style={{ fontSize: 11, color: theme.textMute, marginTop: 40, letterSpacing: 2 }}>
-            {state === 'ready' ? '摇晃手机，或点击签筒' : '读取本篇日记 · 生成判语与原创诗'}
+            {state === 'ready' ? '摇晃手机，或点击签筒' : '读取本篇日记 · 生成判词与原创诗'}
           </div>
           {state === 'ready' && <button type="button" onClick={onShake} style={{
             marginTop: 24, height: 42, padding: '0 24px', borderRadius: 21,
@@ -776,7 +796,7 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
       <div className="no-scroll anim-rise" style={{ padding: '8px 28px 150px', textAlign: 'center', overflowY: 'auto', flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>
-              今 日 诗 签
+              今 日 落 签
             </div>
             <Seal char1={c1} char2={c2} theme={theme} size={40} rotate={-4} />
           </div>
@@ -789,14 +809,17 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontFamily: "'Noto Serif SC', serif", fontSize: 23, letterSpacing: 6,
             animation: 'sign-drop .7s cubic-bezier(.16,1,.3,1) both',
-          }}>{e.sign?.title || e.poem.title}</div>
+          }}>{e.poem.title}</div>
           <style>{`@keyframes sign-drop{from{transform:translateY(-90px) rotate(-5deg);opacity:0}to{transform:translateY(0) rotate(1deg);opacity:1}}`}</style>
 
-          {!!e.sign?.judgmentLines?.length && <div style={{
+          {!!judgmentLines.length && <div style={{
             margin: '0 auto 20px', padding: '16px 18px', maxWidth: 310,
             borderTop: `0.5px solid ${theme.line}`, borderBottom: `0.5px solid ${theme.line}`,
           }}>
-            {e.sign.judgmentLines.map((line, index) => <div key={index} className="serif" style={{
+            <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginBottom: 10 }}>
+              判 词{e.sign?.title ? <span style={{ marginLeft: 8, color: theme.seal }}>· {e.sign.title}</span> : null}
+            </div>
+            {judgmentLines.map((line, index) => <div key={index} className="serif" style={{
               color: theme.text, fontSize: 16, lineHeight: 1.95, letterSpacing: 3,
             }}>{line}</div>)}
           </div>}

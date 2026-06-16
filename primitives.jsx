@@ -24,7 +24,7 @@ function friendlyAiError(error, action = 'AI 生成') {
 }
 const DECOR_THEME_KEYS = new Set([
   'celadon', 'inkPlum', 'mossGarden', 'study', 'dusk',
-  'morningPaper', 'seaSalt', 'obsidianDawn', 'snowNight',
+  'morningPaper', 'seaSalt',
 ]);
 
 function ThemeDecor({ theme }) {
@@ -72,16 +72,6 @@ function ThemeDecor({ theme }) {
         <path d="M291 94c12-12 24-12 36 0 12-12 24-12 36 0M29 207c9-9 18-9 27 0 9-9 18-9 27 0"/>
         <circle cx="335" cy="152" r="2"/><circle cx="353" cy="179" r="1.5"/>
       </svg>
-      <svg className="theme-decor-svg decor-obsidianDawn" viewBox="0 0 390 844">
-        <circle cx="322" cy="104" r="34"/><circle cx="322" cy="104" r="21"/>
-        <path d="M322 54V34M322 174v-20M272 104h-20M392 104h-20M286 68l-14-14M372 154l-14-14M358 68l14-14M272 154l14-14"/>
-        <path d="M26 715h338M26 724h338"/>
-      </svg>
-      <svg className="theme-decor-svg decor-snowNight" viewBox="0 0 390 844">
-        <circle cx="318" cy="105" r="48"/><circle cx="337" cy="88" r="48"/>
-        <path d="M72 161v54m-24-41 48 28m-48 0 48-28M310 271v38m-17-29 34 20m-34 0 34-20"/>
-        <path d="M-15 690c75-38 132 20 207-5s135 16 214-8M-18 718c78-31 138 17 212-4s135 13 215-7"/>
-      </svg>
       <span className="theme-decor-mark mark-a"/><span className="theme-decor-mark mark-b"/><span className="theme-decor-mark mark-c"/>
     </div>
   );
@@ -104,8 +94,6 @@ function ThemeMotif({ theme, variant = 'card' }) {
     dusk: <><path d="M17 6a18 18 0 1 0 17 29A15 15 0 1 1 17 6z"/><path d="M34 38c10-7 20-7 30 0"/><circle cx="53" cy="10" r="1.5"/></>,
     morningPaper: <><path d="M4 5h56v36H4zM9 12h46M9 18h21M35 18h20M9 25h46M9 32h35"/><path d="M32 7v32"/></>,
     seaSalt: <><path d="M2 36c12-8 22 7 34-1s21 5 32-1M4 43c12-7 22 6 34-1s21 4 30-1M28 12c6-6 12-6 18 0 6-6 12-6 18 0"/></>,
-    obsidianDawn: <><circle cx="48" cy="17" r="9"/><path d="M48 2v6m0 18v6M33 17h6m18 0h6M9 7h5v35H9zM18 7h2v35h-2z"/></>,
-    snowNight: <><path d="M37 4v30M24 11l26 16M24 27l26-16M8 38c11-7 19 6 30-1s19 4 27-1"/><circle cx="58" cy="8" r="1.5"/></>,
   }[key];
   return (
     <svg className={`theme-card-motif theme-card-motif-${key}`} viewBox="0 0 70 48" style={common}
@@ -126,8 +114,6 @@ function ThemeHeaderMark({ theme }) {
     dusk: ['暮云', '微光留白'],
     morningPaper: ['晨报', '第1287期'],
     seaSalt: ['海盐', '海风轻拂'],
-    obsidianDawn: ['晨光', '曜石映日'],
-    snowNight: ['雪夜', '月色如雪'],
   };
   const [label, detail] = marks[key];
   return (

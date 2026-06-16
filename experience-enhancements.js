@@ -6,8 +6,8 @@
 
   const THEME_GROUPS = [
     ['清雅', ['青瓷', '墨梅', '苔庭']],
-    ['温暖', ['旧书房', '晨报', '曜石晨光']],
-    ['轻盈', ['暮云', '海盐', '雪夜']],
+    ['温暖', ['旧书房', '晨报']],
+    ['轻盈', ['暮云', '海盐']],
   ];
   const THEME_RECOMMENDATIONS = {
     celadon: '推荐：素雅浅色信纸 · 宋体或霞鹜文楷',
@@ -16,9 +16,7 @@
     study: '推荐：米白旧纸 · 宋体或霞鹜文楷',
     dusk: '推荐：低对比浅色信纸 · 小薇体',
     morningPaper: '推荐：无图案信纸 · 宋体',
-    seaSalt: '推荐：开阔浅蓝信纸 · 宋体',
-    obsidianDawn: '推荐：暖白矿物纸 · 小薇体',
-    snowNight: '推荐：月白或冰蓝信纸 · 小薇体',
+    seaSalt: '推荐：雾蓝盐白信纸 · 宋体',
   };
 
   const normalize = (value) => String(value || '').replace(/\s+/g, '').trim();

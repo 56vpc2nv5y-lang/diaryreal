@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.16-r55';
+const APP_BUILD = '2026.06.16-r56';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -202,6 +202,48 @@ async function apiPoem(diaryText) {
   return json;
 }
 
+function poemFromAiResult(result) {
+  if (!result || !Array.isArray(result.lines)) return null;
+  return {
+    title: String(result.title || result.signTitle || '未题').slice(0, 12),
+    form: String(result.form || '五绝').slice(0, 8),
+    lines: result.lines.map(String).slice(0, 4),
+  };
+}
+
+function signFromAiResult(result) {
+  if (!result) return null;
+  const judgmentLines = Array.isArray(result.judgmentLines)
+    ? result.judgmentLines.map(String).filter(Boolean).slice(0, 4)
+    : [];
+  const hasSignPayload = !!(result.signTitle || judgmentLines.length || result.interpretation || result.timelineLine || result.motif);
+  if (!hasSignPayload) return null;
+  const title = String(result.signTitle || result.title || '').slice(0, 8);
+  return {
+    title,
+    motif: String(result.motif || '').slice(0, 30),
+    judgmentLines,
+    interpretation: String(result.interpretation || '').slice(0, 500),
+    timelineLine: String(result.timelineLine || judgmentLines[3] || judgmentLines[0] || '').slice(0, 32),
+  };
+}
+
+function patchFromAiPoemResult(result) {
+  const poem = poemFromAiResult(result);
+  return {
+    ...(poem ? { poem } : {}),
+    sign: signFromAiResult(result),
+    quoteSuggestions: Array.isArray(result?.quoteSuggestions)
+      ? result.quoteSuggestions.filter(item => item && typeof item.quote === 'string').slice(0, 3)
+      : [],
+    poemCollected: !!poem,
+  };
+}
+
+function isAiPoemResult(result) {
+  return !!(result && (result.signTitle || result.judgmentLines || result.timelineLine || result.quoteSuggestions));
+}
+
 async function apiQuestion(question) {
   const token = await firebase.auth().currentUser?.getIdToken();
   const response = await aiFetch('/api/question', {
@@ -371,7 +413,7 @@ function EmptyHomeScreen({ theme, onCompose, onTab }) {
   const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const steps = [
     ['1', '写日记', '先把今天留下来，标题可写可不写。'],
-    ['2', '摇签选诗', '保存后再摇签，生成诗、判语和拾句。'],
+    ['2', '摇签选诗', '保存后进入摇签，生成诗、判词和拾句。'],
     ['3', '收入藏册', '喜欢的诗和句子会进入诗册、拾句册。'],
   ];
   return (
@@ -623,17 +665,23 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
     setSaving(true);
     setErr('');
     try {
+      const generated = poemArg || (isAiPoemResult(poem) ? poem : null);
+      const generatedPatch = generated ? patchFromAiPoemResult(generated) : {};
       const id = await dbSaveEntry({
         ...(entry || {}),
         ...(editing ? { id: entry.id } : {}),
         date: entryInfo.date, weekday: entryInfo.weekday, time: entryInfo.time,
         place, title: title.trim(), body: body.trim(), mood, flag, paper: activePaper,
-        tags: entry?.tags || [], poem: poemArg || poem || null,
+        tags: entry?.tags || [],
+        poem: generatedPatch.poem || poem || entry?.poem || null,
+        sign: generated ? generatedPatch.sign : (entry?.sign || null),
+        quoteSuggestions: generated ? generatedPatch.quoteSuggestions : (entry?.quoteSuggestions || []),
+        poemCollected: generated ? generatedPatch.poemCollected : (entry?.poemCollected !== false && !!(poem || entry?.poem)),
         notes: entry?.notes || [], inlineNotes: entry?.inlineNotes || [],
         photos: entry?.photos || [],
       });
       localStorage.removeItem(draftKey);
-      await onSaved({ id, body: body.trim(), editing });
+      await onSaved({ id, body: body.trim(), editing, hasGeneratedPoem: !!generated });
     } catch (e) { setErr('保存失败: ' + e.message); setSaving(false); }
   };
 
@@ -649,12 +697,13 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [body, saving, focusMode, title, mood, flag, place, activePaper]);
 
-  const fakeEntry = { body, poem: poem || { title: '…', form: '五绝', lines: ['', '', '', ''] } };
+  const displayPoem = poemFromAiResult(poem) || poem || { title: '…', form: '五绝', lines: ['', '', '', ''] };
+  const fakeEntry = { body, poem: displayPoem, sign: signFromAiResult(poem) };
 
   if (shake === 'gen')
     return <Shake theme={theme} state="shaking" entry={fakeEntry} onCancel={() => setShake('idle')}/>;
   if (shake === 'done' && poem)
-    return <Shake theme={theme} state="done" entry={{ ...fakeEntry, poem }}
+    return <Shake theme={theme} state="done" entry={fakeEntry}
       onRegen={doShake} onAccept={() => doSave(poem)} saving={saving} error={err}/>;
 
   const filled = body.trim().length > 0;
@@ -1205,6 +1254,20 @@ function AutoPoemShake({ theme, entry, onBack, onAccepted }) {
     }
   }, [entry.body]);
 
+  const requestAndGenerate = React.useCallback(async () => {
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+      try {
+        const permission = await DeviceMotionEvent.requestPermission();
+        if (permission !== 'granted') {
+          setError('没有获得摇晃感应权限，也可以点这里直接落签。');
+        }
+      } catch (_) {
+        // Some browsers expose the API but do not allow permission prompts.
+      }
+    }
+    generate();
+  }, [generate]);
+
   React.useEffect(() => {
     let last = 0;
     const onMotion = event => {
@@ -1221,26 +1284,15 @@ function AutoPoemShake({ theme, entry, onBack, onAccepted }) {
 
   const displayEntry = {
     ...entry,
-    poem: result ? { title: result.title, form: result.form, lines: result.lines } : { title: '待落', form: '', lines: ['', '', '', ''] },
-    sign: result ? {
-      title: result.signTitle,
-      motif: result.motif,
-      judgmentLines: result.judgmentLines,
-      interpretation: result.interpretation,
-      timelineLine: result.timelineLine,
-    } : null,
+    poem: poemFromAiResult(result) || { title: '待落', form: '', lines: ['', '', '', ''] },
+    sign: signFromAiResult(result),
   };
 
   const accept = async () => {
     if (!result) return;
     setSaving(true);
     try {
-      await onAccepted({
-        poem: displayEntry.poem,
-        sign: displayEntry.sign,
-        quoteSuggestions: result.quoteSuggestions || [],
-        poemCollected: true,
-      });
+      await onAccepted(patchFromAiPoemResult(result));
     } catch (err) {
       setError(err?.message || '收入失败，请稍后重试。');
       setSaving(false);
@@ -1248,7 +1300,7 @@ function AutoPoemShake({ theme, entry, onBack, onAccepted }) {
   };
 
   return <Shake theme={theme} state={state} entry={displayEntry} onCancel={onBack}
-    onShake={generate} onRegen={() => { setResult(null); setState('ready'); }}
+    onShake={requestAndGenerate} onRegen={() => { setResult(null); setState('ready'); }}
     onAccept={accept} saving={saving} error={error}/>;
 }
 
@@ -1537,9 +1589,10 @@ function AppReal() {
     case 'compose':
       return (
         <ComposeReal theme={theme} paper={paper} syncState={syncState} onChangePaper={setPaper} onBack={pop}
-          onSaved={async ({ id } = {}) => {
+          onSaved={async ({ id, hasGeneratedPoem } = {}) => {
             await refresh();
-            if (id) replace('saved', { id });
+            const autoPoem = JSON.parse(localStorage.getItem('d-autoPoem') ?? 'true');
+            if (id) replace(autoPoem && !hasGeneratedPoem ? 'shake' : 'saved', { id });
           }}
         />
       );

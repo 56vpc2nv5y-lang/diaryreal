@@ -1,4 +1,4 @@
-const CACHE_NAME = 'poem-diary-r55';
+const CACHE_NAME = 'poem-diary-r56';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -17,7 +17,6 @@ const APP_SHELL = [
   '/assets/themes/generated/ink-plum-bg.webp',
   '/assets/themes/generated/moss-garden-bg.webp',
   '/assets/themes/generated/sea-salt-bg.webp',
-  '/assets/themes/generated/snow-night-bg.webp',
   'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js',
   'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js',
