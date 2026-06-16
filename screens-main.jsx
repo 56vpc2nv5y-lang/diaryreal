@@ -813,26 +813,38 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
           <style>{`@keyframes sign-drop{from{transform:translateY(-90px) rotate(-5deg);opacity:0}to{transform:translateY(0) rotate(1deg);opacity:1}}`}</style>
 
           {!!judgmentLines.length && <div style={{
-            margin: '0 auto 20px', padding: '16px 18px', maxWidth: 310,
-            borderTop: `0.5px solid ${theme.line}`, borderBottom: `0.5px solid ${theme.line}`,
+            margin: '0 auto 22px', padding: '20px 22px 18px', maxWidth: 310,
+            background: `${theme.seal}0c`,
+            border: `1px solid ${theme.seal}28`,
+            borderRadius: 12,
+            textAlign: 'center',
           }}>
-            <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginBottom: 10 }}>
-              判 词{e.sign?.title ? <span style={{ marginLeft: 8, color: theme.seal }}>· {e.sign.title}</span> : null}
+            <div style={{ fontSize: 10, letterSpacing: 4, color: theme.seal, fontWeight: 600, marginBottom: 3 }}>
+              判 词{e.sign?.title ? <span style={{ marginLeft: 8 }}>· {e.sign.title}</span> : null}
             </div>
+            <div style={{ fontSize: 9.5, color: theme.textMute, letterSpacing: 1.5, marginBottom: 14 }}>以象起兴 · 照见今日</div>
             {judgmentLines.map((line, index) => <div key={index} className="serif" style={{
-              color: theme.text, fontSize: 16, lineHeight: 1.95, letterSpacing: 3,
+              color: theme.text, fontSize: 16, lineHeight: 2.05, letterSpacing: 3,
             }}>{line}</div>)}
           </div>}
 
           {e.sign?.interpretation && <div style={{
-            textAlign: 'left', margin: '0 auto 24px', maxWidth: 310,
-            color: theme.textSoft, fontSize: 12.5, lineHeight: 1.8,
+            textAlign: 'left', margin: '0 auto 26px', maxWidth: 310,
+            color: theme.textSoft, fontSize: 12.5, lineHeight: 1.85,
+            paddingLeft: 14, borderLeft: `2px solid ${theme.seal}40`,
           }}><span style={{ color: theme.seal, letterSpacing: 2 }}>解 语</span>　{e.sign.interpretation}</div>}
 
-          <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginTop: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, maxWidth: 310, margin: '0 auto 22px' }}>
+            <div style={{ flex: 1, height: 0.5, background: theme.line }} />
+            <div style={{ fontSize: 9, letterSpacing: 2, color: theme.textMute }}>诗</div>
+            <div style={{ flex: 1, height: 0.5, background: theme.line }} />
+          </div>
+
+          <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginBottom: 3 }}>
             今 日 之 诗 <span style={{ marginLeft: 8, opacity: 0.7 }}>{e.poem.form || '五绝'}</span>
           </div>
-          <div className="serif" style={{ fontSize: 28, fontWeight: 500, color: theme.text, letterSpacing: 8, marginTop: 16, lineHeight: 1.1, paddingLeft: '0.5em' }}>
+          <div style={{ fontSize: 9.5, color: theme.textMute, letterSpacing: 1.5, marginBottom: 14 }}>据日记原创的古体诗</div>
+          <div className="serif" style={{ fontSize: 28, fontWeight: 500, color: theme.text, letterSpacing: 8, lineHeight: 1.1, paddingLeft: '0.5em' }}>
             {e.poem.title}
           </div>
           <div style={{ width: 32, height: 1, background: theme.accent, margin: '16px auto 20px' }} />

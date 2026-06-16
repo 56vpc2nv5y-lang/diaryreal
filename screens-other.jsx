@@ -125,6 +125,7 @@ function TimelineRow({ entry, theme, onClick, isFirst }) {
 
 function PoemBook({ theme, entries, onOpen }) {
   const [page, setPage] = React.useState(0);
+  const [dir, setDir] = React.useState('next');
   React.useEffect(() => {
     if (page > Math.max(0, entries.length - 1)) setPage(Math.max(0, entries.length - 1));
   }, [entries.length, page]);
@@ -142,13 +143,20 @@ function PoemBook({ theme, entries, onOpen }) {
   const motif = entry.sign?.motif || entry.poem?.title || '今日';
   const canPrev = page > 0;
   const canNext = page < entries.length - 1;
-  const turn = next => setPage(current => Math.max(0, Math.min(entries.length - 1, current + next)));
+  const turn = delta => {
+    setDir(delta > 0 ? 'next' : 'prev');
+    setPage(current => Math.max(0, Math.min(entries.length - 1, current + delta)));
+  };
 
   return (
     <div style={{ padding: '20px 16px 120px' }}>
       <style>{`
         @keyframes poem-book-turn {
           0% { transform: rotateY(-8deg) translateX(8px); opacity: .72; }
+          100% { transform: rotateY(0) translateX(0); opacity: 1; }
+        }
+        @keyframes poem-book-turn-back {
+          0% { transform: rotateY(8deg) translateX(-8px); opacity: .72; }
           100% { transform: rotateY(0) translateX(0); opacity: 1; }
         }
       `}</style>
@@ -171,7 +179,7 @@ function PoemBook({ theme, entries, onOpen }) {
       </div>
 
       <div style={{ perspective: 1100 }}>
-        <div key={entry.id} style={{
+        <div key={`${entry.id}-${dir}`} style={{
           minHeight: 430,
           display: 'grid',
           gridTemplateColumns: 'minmax(0, .92fr) minmax(0, 1.08fr)',
@@ -180,8 +188,8 @@ function PoemBook({ theme, entries, onOpen }) {
           background: theme.paper,
           border: `0.5px solid ${theme.line}`,
           boxShadow: `0 18px 44px ${theme.text}22`,
-          transformOrigin: 'left center',
-          animation: 'poem-book-turn .42s cubic-bezier(.2,.8,.2,1)',
+          transformOrigin: dir === 'next' ? 'left center' : 'right center',
+          animation: `${dir === 'next' ? 'poem-book-turn' : 'poem-book-turn-back'} .42s cubic-bezier(.2,.8,.2,1)`,
         }}>
           <div style={{
             position: 'relative',
