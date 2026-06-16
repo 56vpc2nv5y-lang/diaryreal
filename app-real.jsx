@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.16-r52';
+const APP_BUILD = '2026.06.16-r55';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -171,9 +171,20 @@ async function dbGetHexagrams() {
   } catch (e) { return []; }
 }
 
+async function aiFetch(url, options, timeoutMs = 45000) {
+  if (!navigator.onLine) throw new Error('当前离线，无法连接 AI 服务');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function apiPoem(diaryText) {
   const token = await firebase.auth().currentUser?.getIdToken();
-  const r = await fetch('/api/poem', {
+  const r = await aiFetch('/api/poem', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -193,7 +204,7 @@ async function apiPoem(diaryText) {
 
 async function apiQuestion(question) {
   const token = await firebase.auth().currentUser?.getIdToken();
-  const response = await fetch('/api/question', {
+  const response = await aiFetch('/api/question', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -358,6 +369,11 @@ function WelcomeScreen({ theme, onStart, loading }) {
 function EmptyHomeScreen({ theme, onCompose, onTab }) {
   const d = new Date();
   const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const steps = [
+    ['1', '写日记', '先把今天留下来，标题可写可不写。'],
+    ['2', '摇签选诗', '保存后再摇签，生成诗、判语和拾句。'],
+    ['3', '收入藏册', '喜欢的诗和句子会进入诗册、拾句册。'],
+  ];
   return (
     <Screen theme={theme} tab="home" onTab={onTab}>
       <div style={{ padding: '64px 24px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -369,19 +385,54 @@ function EmptyHomeScreen({ theme, onCompose, onTab }) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 48px 0', textAlign: 'center' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '34px 28px 118px', textAlign: 'center' }}>
         <Seal char1="诗" char2="签" theme={theme} size={60} rotate={-3}/>
         <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 4, marginTop: 28, marginBottom: 12 }}>今天还没有日记</div>
         <div className="serif" style={{ fontSize: 15, color: theme.textSoft, lineHeight: 2, letterSpacing: 2 }}>
           写下今天的片段<br/>摇一摇，得一首古诗
         </div>
+        <div style={{ width: '100%', marginTop: 26, display: 'grid', gap: 10 }}>
+          {steps.map(([num, title, desc]) => (
+            <div key={num} style={{
+              display: 'flex', gap: 12, alignItems: 'center', textAlign: 'left',
+              padding: '13px 14px', borderRadius: 16,
+              background: theme.surface, border: `0.5px solid ${theme.line}`,
+              ...skin(theme, 'panel'),
+            }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: 14, flexShrink: 0,
+                display: 'grid', placeItems: 'center', background: theme.text,
+                color: theme.bg, fontSize: 12, fontWeight: 700,
+              }}>{num}</div>
+              <div style={{ flex: 1 }}>
+                <div className="serif" style={{ fontSize: 15.5, color: theme.text, letterSpacing: 1.5 }}>{title}</div>
+                <div style={{ fontSize: 11.5, color: theme.textMute, marginTop: 3, lineHeight: 1.55 }}>{desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
         <button onClick={onCompose} style={{
-          marginTop: 36, height: 52, padding: '0 40px', borderRadius: 26,
+          marginTop: 24, height: 52, padding: '0 40px', borderRadius: 26,
           border: 'none', background: theme.text, color: theme.bg,
           fontSize: 16, fontWeight: 600, letterSpacing: 3, fontFamily: 'inherit', cursor: 'pointer',
           boxShadow: `0 8px 24px ${theme.text}33`,
           ...skin(theme, 'primary'),
         }}>开 始 写</button>
+        <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+          <button type="button" onClick={() => onTab?.('settings')} style={{
+            height: 34, padding: '0 14px', borderRadius: 17,
+            border: `0.5px solid ${theme.line}`, background: theme.surface,
+            color: theme.textSoft, fontFamily: 'inherit', fontSize: 12, cursor: 'pointer',
+          }}>账户与备份</button>
+          <button type="button" onClick={() => onTab?.('timeline')} style={{
+            height: 34, padding: '0 14px', borderRadius: 17,
+            border: `0.5px solid ${theme.line}`, background: 'transparent',
+            color: theme.textMute, fontFamily: 'inherit', fontSize: 12, cursor: 'pointer',
+          }}>看看藏册</button>
+        </div>
+        <div style={{ marginTop: 12, fontSize: 10.5, color: theme.textMute, lineHeight: 1.6 }}>
+          日记会保存到当前 Firebase 账户；换设备前建议绑定邮箱或导出备份。
+        </div>
       </div>
     </Screen>
   );
@@ -565,7 +616,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
     if (!body.trim()) return;
     setShake('gen'); setErr('');
     try { const p = await apiPoem(body); setPoem(p); setShake('done'); }
-    catch (e) { setErr(e.message); setShake('idle'); }
+    catch (e) { setErr(friendlyAiError(e, '摇签生诗')); setShake('idle'); }
   };
 
   const doSave = async (poemArg) => {
@@ -789,10 +840,13 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
 
 function SavedEntryNext({ theme, entry, onGenerateQuotes, onShake, onOpen, onDone }) {
   const [quoteBusy, setQuoteBusy] = React.useState(false);
+  const [quoteError, setQuoteError] = React.useState('');
   const generateQuotes = async () => {
     if (!onGenerateQuotes || quoteBusy) return;
     setQuoteBusy(true);
+    setQuoteError('');
     try { await onGenerateQuotes(); }
+    catch (err) { setQuoteError(friendlyAiError(err, 'AI 拾句')); }
     finally { setQuoteBusy(false); }
   };
   return (
@@ -827,6 +881,11 @@ function SavedEntryNext({ theme, entry, onGenerateQuotes, onShake, onOpen, onDon
             height: 48, borderRadius: 24, border: `1px solid ${theme.accent}`, background: 'transparent', color: theme.accent,
             fontFamily: 'inherit', fontSize: 13.5, letterSpacing: 1.5, cursor: quoteBusy ? 'default' : 'pointer',
           }}>{quoteBusy ? '正在认真拾句…' : '让 AI 拾句'}</button>
+          {quoteError && <div style={{
+            padding: '12px 14px', borderRadius: 14, background: theme.surface,
+            border: `0.5px solid ${theme.line}`, color: theme.seal,
+            fontSize: 12, lineHeight: 1.7,
+          }}>{quoteError}</div>}
           <button type="button" onClick={onOpen} style={{
             height: 46, borderRadius: 23, border: `0.5px solid ${theme.line}`, background: theme.surface, color: theme.textSoft,
             fontFamily: 'inherit', fontSize: 13, cursor: 'pointer',
@@ -869,7 +928,7 @@ function trigramNamesFor(lines) {
 
 async function apiHexagram(question, hexName, lines, context = {}) {
   const token = await firebase.auth().currentUser?.getIdToken();
-  const r = await fetch('/api/hexagram', {
+  const r = await aiFetch('/api/hexagram', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -953,7 +1012,7 @@ function NewHexagram({ theme, initialQuestion = '', entryId = '', diaryContext =
         parentContext,
       });
       setInterp(result); setStep('done');
-    } catch(e) { setErr(e.message); setStep('setup'); }
+    } catch(e) { setErr(friendlyAiError(e, 'AI 解签')); setStep('setup'); }
   };
 
   const doSave = async () => {
@@ -1139,7 +1198,7 @@ function AutoPoemShake({ theme, entry, onBack, onAccepted }) {
       setResult(generated);
       setState('done');
     } catch (err) {
-      setError(err.message || '摇签失败');
+      setError(friendlyAiError(err, '摇签生诗'));
       setState('ready');
     } finally {
       running.current = false;
@@ -1183,7 +1242,7 @@ function AutoPoemShake({ theme, entry, onBack, onAccepted }) {
         poemCollected: true,
       });
     } catch (err) {
-      setError(err.message || '收入失败');
+      setError(err?.message || '收入失败，请稍后重试。');
       setSaving(false);
     }
   };

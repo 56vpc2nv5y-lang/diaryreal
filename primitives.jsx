@@ -3,6 +3,25 @@
 
 const W = 390, H = 844;
 const skin = (theme, part) => theme?.skin?.[part] || {};
+function friendlyAiError(error, action = 'AI 生成') {
+  const raw = String(error?.message || error || '');
+  if (!navigator.onLine || /Failed to fetch|NetworkError|ERR_NETWORK|Load failed|fetch/i.test(raw)) {
+    return `${action}暂时连不上服务。请确认网络正常，或稍后重试；日记已经可以先保存。`;
+  }
+  if (/timeout|aborted|AbortError|超时/i.test(raw)) {
+    return `${action}等太久了，可能是 Vercel 函数冷启动或模型响应慢。可以点重试，正文不会丢。`;
+  }
+  if (/401|403|未登录|auth/i.test(raw)) {
+    return `${action}需要重新确认登录状态。请到“我”页检查账户，再回来重试。`;
+  }
+  if (/429|rate|quota|额度|limit/i.test(raw)) {
+    return `${action}触发了频率或额度限制。先保存日记，过一会儿再试。`;
+  }
+  if (/non JSON|非 JSON|Vercel Functions|HTTP 5|500|502|503|504/i.test(raw)) {
+    return `${action}服务返回异常。请检查 Vercel 部署和环境变量，或稍后重试。`;
+  }
+  return `${action}失败：${raw || '未知错误'}。你可以先保存正文，稍后再补做。`;
+}
 const DECOR_THEME_KEYS = new Set([
   'celadon', 'inkPlum', 'mossGarden', 'study', 'dusk',
   'morningPaper', 'seaSalt', 'obsidianDawn', 'snowNight',

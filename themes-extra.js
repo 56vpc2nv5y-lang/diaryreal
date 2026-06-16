@@ -19,9 +19,9 @@
     fern: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 150"><g fill="none" stroke="#597a58" stroke-opacity=".62" stroke-linecap="round"><path stroke-width="2" d="M190 145C140 124 98 91 53 18"/><g stroke-width="1.2"><path d="m163 131 2-42m-19 30-35-7m18-5 7-39m-24 25-37-8m21-5 1-36M82 63 47 57m24-9-5-29"/></g></g><g fill="#729170" fill-opacity=".42"><ellipse cx="164" cy="89" rx="19" ry="5" transform="rotate(-78 164 89)"/><ellipse cx="111" cy="112" rx="19" ry="5" transform="rotate(12 111 112)"/><ellipse cx="136" cy="68" rx="18" ry="5" transform="rotate(-75 136 68)"/><ellipse cx="76" cy="84" rx="18" ry="5" transform="rotate(12 76 84)"/><ellipse cx="96" cy="44" rx="17" ry="5" transform="rotate(-84 96 44)"/><ellipse cx="48" cy="57" rx="16" ry="4" transform="rotate(10 48 57)"/></g></svg>`),
     waves: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 100" preserveAspectRatio="none"><path d="M0 58c68-25 123 21 191-3 68-24 119 17 199-4v49H0z" fill="#c9e5ef" fill-opacity=".75"/><path d="M0 73c67-21 126 18 194-4 69-22 122 15 196-1v32H0z" fill="#8cc3da" fill-opacity=".28"/><path d="M0 56c68-25 123 21 191-3 68-24 119 17 199-4" fill="none" stroke="#6eaac5" stroke-opacity=".42" stroke-width="1.2"/></svg>`),
     coastPaper: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 220" preserveAspectRatio="none"><path d="M0 192c70-14 117 8 190-4 70-12 126 8 200-5" fill="none" stroke="#6e9eac" stroke-opacity=".28" stroke-width="1.1"/><path d="M0 203c75-9 123 6 194-3 70-9 125 5 196-4" fill="none" stroke="#c2ab83" stroke-opacity=".22" stroke-width=".8"/><g fill="none" stroke="#557f8b" stroke-opacity=".28" stroke-width="1.1" stroke-linecap="round"><path d="M312 36c7-7 14-7 21 0 7-7 14-7 21 0M329 55c5-5 10-5 15 0 5-5 10-5 15 0"/></g></svg>`),
-    snowPaper: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 220" preserveAspectRatio="none"><g fill="none" stroke="#8ca0d5" stroke-opacity=".28" stroke-width=".8"><path d="M330 21v42m-18-31 36 21m-36 0 36-21"/></g><path d="M0 177c70-24 122 17 194-3 68-19 125 16 196-5v51H0z" fill="#fff" fill-opacity=".58"/><path d="M0 192c70-18 122 15 194-2 68-16 125 13 196-4v34H0z" fill="#d9e0f6" fill-opacity=".48"/></svg>`),
-    frostPaper: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 220" preserveAspectRatio="none"><path d="M390 0c-28 21-42 43-52 75m52-49-28 8m12-25-6 27m-14 16-24 5m11-20-4 22" fill="none" stroke="#91a9b9" stroke-opacity=".25" stroke-width="1.2" stroke-linecap="round"/><g fill="none" stroke="#9ab1c1" stroke-opacity=".24" stroke-width=".75"><path d="M54 37v28m-12-21 24 14m-24 0 24-14M315 104v20m-9-15 18 10m-18 0 18-10"/></g><path d="M0 202c68-13 124 8 193-3 67-11 128 7 197-4v25H0z" fill="#dce8ef" fill-opacity=".34"/></svg>`),
-    snow: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 844"><g fill="#fff" fill-opacity=".68"><circle cx="21" cy="47" r="1.2"/><circle cx="76" cy="29" r=".8"/><circle cx="132" cy="63" r="1.1"/><circle cx="203" cy="31" r=".8"/><circle cx="261" cy="78" r="1.3"/><circle cx="349" cy="47" r=".9"/><circle cx="44" cy="154" r=".8"/><circle cx="101" cy="128" r="1.1"/><circle cx="178" cy="170" r=".8"/><circle cx="301" cy="148" r="1.1"/><circle cx="365" cy="202" r=".7"/><circle cx="27" cy="338" r="1"/><circle cx="126" cy="310" r=".7"/><circle cx="237" cy="354" r="1.1"/><circle cx="341" cy="315" r=".9"/><circle cx="65" cy="512" r=".8"/><circle cx="167" cy="548" r="1.2"/><circle cx="273" cy="493" r=".8"/><circle cx="362" cy="563" r="1.1"/><circle cx="32" cy="690" r="1.1"/><circle cx="141" cy="735" r=".8"/><circle cx="252" cy="682" r="1.2"/><circle cx="338" cy="752" r=".8"/></g><g fill="none" stroke="#fff" stroke-opacity=".55" stroke-width=".8"><path d="M337 167v48m-21-36 42 24m-42 0 42-24M91 270v30m-13-22 26 15m-26 0 26-15"/></g></svg>`),
+    snowPaper: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 220" preserveAspectRatio="none"><rect width="390" height="220" fill="#fbfcff"/><g fill="none" stroke="#8ca0d5" stroke-opacity=".30" stroke-width=".8"><path d="M330 21v42m-18-31 36 21m-36 0 36-21M58 54v30m-13-22 26 15m-26 0 26-15"/></g><g fill="#9fb0e8" fill-opacity=".18"><circle cx="42" cy="34" r="1.1"/><circle cx="118" cy="25" r=".8"/><circle cx="268" cy="52" r="1.2"/><circle cx="354" cy="83" r=".9"/></g><path d="M0 166c70-22 121 12 194-4 67-15 125 14 196-7v65H0z" fill="#fff" fill-opacity=".88"/><path d="M0 188c70-19 122 13 194-4 68-15 125 11 196-5v41H0z" fill="#e2e9fb" fill-opacity=".74"/><path d="M0 174c70-22 121 12 194-4 67-15 125 14 196-7" fill="none" stroke="#b4c3ee" stroke-opacity=".38" stroke-width="1.1"/></svg>`),
+    frostPaper: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 220" preserveAspectRatio="none"><path d="M390 0c-28 21-42 43-52 75m52-49-28 8m12-25-6 27m-14 16-24 5m11-20-4 22" fill="none" stroke="#7891d0" stroke-opacity=".28" stroke-width="1.2" stroke-linecap="round"/><g fill="none" stroke="#91a7ef" stroke-opacity=".30" stroke-width=".75"><path d="M54 37v28m-12-21 24 14m-24 0 24-14M315 104v20m-9-15 18 10m-18 0 18-10M134 88v22m-10-16 20 11m-20 0 20-11"/></g><path d="M0 202c68-13 124 8 193-3 67-11 128 7 197-4v25H0z" fill="#dce8ff" fill-opacity=".46"/></svg>`),
+    snow: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 844"><g fill="#fff" fill-opacity=".74"><circle cx="21" cy="47" r="1.2"/><circle cx="76" cy="29" r=".8"/><circle cx="132" cy="63" r="1.1"/><circle cx="203" cy="31" r=".8"/><circle cx="261" cy="78" r="1.3"/><circle cx="349" cy="47" r=".9"/><circle cx="44" cy="154" r=".8"/><circle cx="101" cy="128" r="1.1"/><circle cx="178" cy="170" r=".8"/><circle cx="301" cy="148" r="1.1"/><circle cx="365" cy="202" r=".7"/><circle cx="27" cy="338" r="1"/><circle cx="126" cy="310" r=".7"/><circle cx="237" cy="354" r="1.1"/><circle cx="341" cy="315" r=".9"/><circle cx="65" cy="512" r=".8"/><circle cx="167" cy="548" r="1.2"/><circle cx="273" cy="493" r=".8"/><circle cx="362" cy="563" r="1.1"/><circle cx="32" cy="690" r="1.1"/><circle cx="141" cy="735" r=".8"/><circle cx="252" cy="682" r="1.2"/><circle cx="338" cy="752" r=".8"/></g><g fill="none" stroke="#fff" stroke-opacity=".62" stroke-width=".8"><path d="M337 167v48m-21-36 42 24m-42 0 42-24M91 270v30m-13-22 26 15m-26 0 26-15M308 430v24m-10-18 20 12m-20 0 20-12"/></g><path d="M-20 660c78-42 144 16 213-20 70-36 122 18 217-14v218H-20z" fill="#fff" fill-opacity=".38"/><path d="M-20 714c83-25 139 15 213-10 71-25 128 13 217-9v149H-20z" fill="#eef4ff" fill-opacity=".58"/></svg>`),
   };
   const skins = {
     celadon: {
@@ -186,26 +186,37 @@
       preview: { borderRadius: 18, backgroundImage: 'radial-gradient(circle at 86% 11%, rgba(255,205,126,.52) 0 4%, rgba(255,222,173,.22) 5% 18%, transparent 32%), linear-gradient(150deg, #fffdf8, #f7eee1)', boxShadow: 'none' },
     },
     snowNight: {
-      screen: { backgroundImage: `${art.snow}, radial-gradient(circle at 78% 8%, rgba(255,255,255,.96), transparent 21%), linear-gradient(180deg, #dbe8f0 0%, #eff5f7 43%, #f7f8f5 72%, #dfeaf0 100%)`, backgroundPosition: 'center, center', backgroundSize: 'cover, cover', backgroundRepeat: 'no-repeat' },
+      screen: {
+        backgroundImage: `${art.snow}, radial-gradient(circle at 78% 9%, rgba(255,255,255,.98) 0 8%, rgba(225,235,255,.52) 9% 21%, transparent 34%), radial-gradient(ellipse 88% 22% at 22% 30%, rgba(213,225,255,.34), transparent 62%), radial-gradient(ellipse 130% 34% at 50% 104%, rgba(255,255,255,.97) 0 62%, transparent 64%), linear-gradient(180deg, #6f82c9 0%, #98abdf 32%, #dbe8fb 62%, #fbfcff 100%)`,
+        backgroundPosition: 'center, center, center top, center bottom, center',
+        backgroundSize: 'cover, auto, 100% 280px, 100% 270px, cover',
+        backgroundRepeat: 'no-repeat',
+      },
       poemCard: {
-        borderRadius: 18, border: '1px solid rgba(137,164,180,.28)',
-        backgroundColor: '#fbfcfa',
-        backgroundImage: `${art.frostPaper}, linear-gradient(155deg, #fff, #f5f8f8)`,
+        borderRadius: '30px 30px 54px 54px', border: '1px solid rgba(255,255,255,.90)',
+        backgroundColor: '#fbfcff',
+        backgroundImage: `${art.snowPaper}, ${art.frostPaper}, linear-gradient(158deg, rgba(255,255,255,.98), rgba(242,247,255,.96))`,
         backgroundPosition: 'center, center', backgroundSize: '100% 100%, auto', backgroundRepeat: 'no-repeat',
-        boxShadow: '0 9px 22px rgba(74,105,122,.11)',
+        boxShadow: '0 16px 38px rgba(42,58,127,.20), inset 0 1px 0 rgba(255,255,255,.95)',
       },
-      hero: { backgroundImage: `${art.frostPaper}, linear-gradient(155deg, #fff, #f5f8f8)`, backgroundPosition: 'center, center', backgroundSize: '100% 100%, auto', backgroundRepeat: 'no-repeat' },
+      hero: { backgroundImage: `${art.snowPaper}, ${art.frostPaper}, linear-gradient(158deg, rgba(255,255,255,.98), rgba(242,247,255,.96))`, backgroundPosition: 'center, center, center', backgroundSize: '100% 100%, 100% 100%, auto', backgroundRepeat: 'no-repeat' },
       panel: {
-        borderRadius: 15, border: '1px solid rgba(137,164,180,.24)', backgroundColor: '#f9fbfa',
-        backgroundImage: `${art.frostPaper}, linear-gradient(155deg, #fff, #f2f7f8)`,
+        borderRadius: '22px 22px 34px 34px', border: '1px solid rgba(255,255,255,.78)', backgroundColor: '#f6f9ff',
+        backgroundImage: `${art.frostPaper}, linear-gradient(158deg, rgba(255,255,255,.88), rgba(232,240,255,.96))`,
         backgroundPosition: 'center, center', backgroundSize: '100% 100%, auto', backgroundRepeat: 'no-repeat',
-        boxShadow: '0 6px 16px rgba(74,105,122,.09)',
+        boxShadow: '0 12px 28px rgba(47,63,122,.15), inset 0 1px 0 rgba(255,255,255,.80)',
       },
-      nav: { borderTop: '1px solid rgba(117,148,165,.24)', background: '#f5f8f8', boxShadow: '0 -4px 14px rgba(74,105,122,.07)' },
-      tabItem: { borderRadius: 8, border: '1px solid transparent', background: 'transparent', boxShadow: 'none' },
-      tabActive: { color: '#496f83', borderBottom: '2px solid #86a6b7' },
-      primary: { background: '#668da1', borderRadius: 10, boxShadow: '0 5px 13px rgba(73,111,131,.22)' },
-      preview: { borderRadius: 14, backgroundImage: 'linear-gradient(180deg, #dbe8f0, #f7f8f5)', backgroundPosition: 'center', backgroundSize: 'cover', backgroundRepeat: 'no-repeat' },
+      nav: { borderTop: '1px solid rgba(255,255,255,.60)', background: 'linear-gradient(180deg, rgba(249,252,255,.82), rgba(226,235,255,.90))', boxShadow: '0 -8px 24px rgba(46,64,145,.13)' },
+      tabItem: { borderRadius: 17, border: '1px solid rgba(255,255,255,.62)', background: 'rgba(255,255,255,.42)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,.76), 0 4px 12px rgba(64,82,154,.10)' },
+      tabActive: { color: '#244a94', borderBottom: '2px solid #8fa9ee' },
+      primary: { background: 'radial-gradient(circle at 34% 28%, rgba(255,255,255,.74), transparent 30%), linear-gradient(145deg, #a8baff, #506cc8)', borderRadius: 28, boxShadow: '0 9px 22px rgba(50,75,157,.32)' },
+      preview: {
+        borderRadius: 22,
+        backgroundImage: `${art.snow}, radial-gradient(circle at 78% 13%, rgba(255,255,255,.96) 0 9%, rgba(232,239,255,.50) 10% 23%, transparent 34%), radial-gradient(ellipse 112% 36% at 50% 105%, rgba(255,255,255,.98) 0 62%, transparent 64%), linear-gradient(180deg, #7488cf 0%, #a9b8e7 42%, #edf4ff 76%, #fff)`,
+        backgroundPosition: 'center',
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+      },
     },
   };
 
@@ -452,11 +463,11 @@
     },
   });
 
-  // 雪夜：月光映雪的明亮安宁，而非沉重深夜。
+  // 雪夜：清亮蓝紫夜空、月白雪地与轻盈冰晶。
   window.THEMES.snowNight = makeTheme(window.THEMES.dusk, {
     key: 'snowNight',
     name: '雪夜',
-    description: '月色如雪，心静自明',
+    description: '月色照雪，明净向前',
     fontSerif: fonts.refined,
     fontWriting: fonts.writing,
     fontBody: fonts.song,
@@ -464,19 +475,19 @@
     writingSpacing: '0.095em',
     writingLineHeight: 2.05,
     palette: {
-      bg: '#e4edf1',
-      paper: '#fbfcfa',
-      card: '#fbfcfa',
-      surface: '#fbfcfa',
-      panel: '#f1f6f7',
-      ink: '#496f83',
-      muted: '#829ca9',
-      accent: '#668da1',
-      accentSoft: '#dce8ed',
-      line: '#b9cbd3',
-      border: '#d3dfe3',
-      nav: '#f5f8f8',
-      seal: '#86a6b7',
+      bg: '#c8d6f2',
+      paper: '#fbfcff',
+      card: '#fbfcff',
+      surface: '#f7faff',
+      panel: '#e9f0ff',
+      ink: '#244a94',
+      muted: '#7791c6',
+      accent: '#5d78d6',
+      accentSoft: '#dfe8ff',
+      line: '#b7c8f1',
+      border: '#d7e2fb',
+      nav: '#edf3ff',
+      seal: '#91a7ef',
     },
   });
 

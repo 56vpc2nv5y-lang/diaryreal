@@ -96,7 +96,7 @@ function EnhancedHexagrams({ theme, hexes = [], onNew, onFollowUp, onAnalyze, on
     if (!question.trim() || !onAnalyze) return;
     setBusy(true); setError('');
     try { setAnalysis(await onAnalyze(question.trim())); }
-    catch (err) { setError(err.message || '分析失败'); }
+    catch (err) { setError(friendlyAiError(err, 'AI 分析')); }
     finally { setBusy(false); }
   };
   return (

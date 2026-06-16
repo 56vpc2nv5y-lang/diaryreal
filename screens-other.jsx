@@ -433,8 +433,29 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
     obsidianDawn: '晨曦暖白纸 · 楷体',
     dusk: '低对比浅色信纸 · 楷体',
     seaSalt: '海蓝盐白信纸 · 楷体',
-    snowNight: '月白或冰蓝信纸 · 楷体',
+    snowNight: '月夜雪坡信纸 · 楷体',
   };
+  const accountStateLabel = currentUser?.isAnonymous ? 'Firebase 匿名账户' : '邮箱账户已绑定';
+  const showDataNotice = () => alert([
+    '数据保存说明',
+    '',
+    '1. 日记、诗签、拾句和卦象保存在你的 Firebase 用户数据下。',
+    '2. 浏览器本地只保存主题、草稿、开关等偏好。',
+    '3. 匿名账户更换设备或清除浏览器数据后可能找不回；邮箱账户可以重新登录找回。',
+    '4. “数据备份”会导出 JSON 文件，建议重要日记定期备份。',
+  ].join('\n'));
+  const showPrivacyNotice = () => alert([
+    '隐私说明',
+    '',
+    '这是一款日记应用，默认不做公开展示。AI 生诗、拾句、理问时，会把对应正文发送到后端 AI 接口处理。',
+    '如果某篇内容极其私密，可以先保存正文，稍后再决定是否使用 AI 功能。',
+  ].join('\n'));
+  const showDeleteNotice = () => alert([
+    '删除与备份',
+    '',
+    '“清除所有数据”会删除当前账户下的日记和卦象，无法撤销。',
+    '执行前建议先点“数据备份”导出 JSON；之后也可以用“导入过去日记”恢复。'
+  ].join('\n'));
   return (
     <Screen theme={theme} tab="settings" onTab={onTab}>
       <div className="settings-page">
@@ -447,7 +468,9 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
       <div className="settings-account-wrap" style={{ padding: '0 20px 24px' }}>
         <EmailAccountCard theme={theme} user={currentUser} entriesCount={entriesCount}
           onBindEmail={onBindEmail} onPasswordReset={onPasswordReset}/>
-        <button type="button" onClick={() => alert('当前为 Firebase 匿名账户。请定期使用“数据备份”；清除浏览器数据或更换设备后，匿名账户可能无法找回。')} style={{
+        <button type="button" onClick={() => alert(currentUser?.isAnonymous
+          ? '当前为 Firebase 匿名账户。请定期使用“数据备份”；清除浏览器数据或更换设备后，匿名账户可能无法找回。'
+          : `当前为邮箱账户：${currentUser?.email || '已绑定'}。日记会跟随此账户同步，建议仍定期导出 JSON 备份。`)} style={{
           width: '100%', border: 'none', textAlign: 'left', fontFamily: 'inherit', cursor: 'pointer',
           background: theme.paper, borderRadius: 18, padding: 18,
           border: `0.5px solid ${theme.line}`,
@@ -461,7 +484,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
           }}>林</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 16, color: theme.text, fontWeight: 500 }}>我的日记</div>
-            <div style={{ fontSize: 11.5, color: theme.textMute, marginTop: 3, letterSpacing: 0.5 }}>已写 {entriesCount} 篇 · Firebase 匿名账户</div>
+            <div style={{ fontSize: 11.5, color: theme.textMute, marginTop: 3, letterSpacing: 0.5 }}>已写 {entriesCount} 篇 · {accountStateLabel}</div>
           </div>
           <IconChevron color={theme.textMute} dir="right" size={14}/>
         </button>
@@ -544,6 +567,16 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         <SettingsRow theme={theme} label="数据备份" detail={`JSON · ${entriesCount} 篇`} onClick={downloadBackup} isLast />
       </SettingsSection>
 
+      <SettingsSection theme={theme} title="安 全 与 隐 私">
+        <SettingsRow theme={theme} label="数据保存在哪里" detail={accountStateLabel} onClick={showDataNotice} />
+        <SettingsRow theme={theme} label="AI 会读取什么" detail="仅在生成时发送" onClick={showPrivacyNotice} />
+        <SettingsRow theme={theme} label="删除与恢复说明" detail="先备份再清除" onClick={showDeleteNotice} isLast />
+      </SettingsSection>
+
+      <SettingsSection theme={theme} title="用 户 反 馈">
+        <FeedbackBox theme={theme} buildLabel={buildLabel} currentUser={currentUser} />
+      </SettingsSection>
+
       <SettingsSection theme={theme} title="云 同 步">
         <SettingsRow theme={theme} label="Firestore" detail={syncDetail} onClick={() => alert(syncState.error ? `最近一次同步失败：${syncState.error}` : syncDetail)} />
         <SettingsRow theme={theme} label="跨设备同步"
@@ -562,6 +595,71 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
       <div className="settings-bottom-spacer" style={{ height: 100 }} />
       </div>
     </Screen>
+  );
+}
+
+function FeedbackBox({ theme, buildLabel = '', currentUser }) {
+  const [text, setText] = React.useState('');
+  const [copied, setCopied] = React.useState(false);
+  const targetEmail = '18926135948@163.com';
+  const canSend = text.trim().length >= 3;
+  const buildBody = () => [
+    text.trim(),
+    '',
+    '---',
+    `版本：${buildLabel || 'unknown'}`,
+    `账户：${currentUser?.email || (currentUser?.isAnonymous ? '匿名账户' : '未登录')}`,
+    `页面：${location.href}`,
+    `设备：${navigator.userAgent}`,
+  ].join('\n');
+  const copyFeedback = async () => {
+    const body = buildBody();
+    try {
+      await navigator.clipboard.writeText(`收件人：${targetEmail}\n\n${body}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      window.prompt('复制以下内容后发给我：', `收件人：${targetEmail}\n\n${body}`);
+    }
+  };
+  const sendMail = () => {
+    if (!canSend) return;
+    const subject = encodeURIComponent(`诗签用户反馈 · ${buildLabel || 'web'}`);
+    const body = encodeURIComponent(buildBody());
+    window.location.href = `mailto:${targetEmail}?subject=${subject}&body=${body}`;
+  };
+  return (
+    <div style={{ padding: 16 }}>
+      <div style={{ fontSize: 13, color: theme.textSoft, lineHeight: 1.7, marginBottom: 10 }}>
+        写下问题或建议，点击发送会打开你的邮箱应用，并自动填好收件人。
+      </div>
+      <textarea value={text} onChange={event => setText(event.target.value)} maxLength={1200}
+        placeholder="例如：我希望诗签页可以…… / 这里有个 bug……"
+        style={{
+          width: '100%', minHeight: 112, resize: 'vertical', borderRadius: 14,
+          border: `0.5px solid ${theme.line}`, background: theme.paper, color: theme.text,
+          outline: 'none', padding: 13, fontFamily: 'inherit', fontSize: 14.5, lineHeight: 1.7,
+        }}/>
+      <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+        <button type="button" onClick={sendMail} disabled={!canSend} style={{
+          flex: 1, height: 42, borderRadius: 21, border: 'none',
+          background: canSend ? theme.text : theme.surfaceSoft,
+          color: canSend ? theme.bg : theme.textMute,
+          fontFamily: 'inherit', cursor: canSend ? 'pointer' : 'default', letterSpacing: 1.5,
+          ...skin(theme, 'primary'),
+          opacity: canSend ? 1 : .55,
+        }}>发送邮件</button>
+        <button type="button" onClick={copyFeedback} disabled={!canSend} style={{
+          width: 96, height: 42, borderRadius: 21, border: `0.5px solid ${theme.line}`,
+          background: theme.surface, color: theme.textSoft,
+          fontFamily: 'inherit', cursor: canSend ? 'pointer' : 'default',
+          opacity: canSend ? 1 : .55,
+        }}>{copied ? '已复制' : '复制'}</button>
+      </div>
+      <div style={{ fontSize: 11, color: theme.textMute, marginTop: 9 }}>
+        收件邮箱：{targetEmail}
+      </div>
+    </div>
   );
 }
 

@@ -1035,7 +1035,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
     if (!onGeneratePoem) return;
     setBusy(true); setActionError('');
     try { await onGeneratePoem(); }
-    catch (err) { setActionError('生成诗失败：' + (err?.message || '未知错误')); }
+    catch (err) { setActionError(friendlyAiError(err, '摇签生诗')); }
     finally { setBusy(false); }
   };
 
@@ -1043,7 +1043,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
     if (!onGenerateQuotes) return;
     setQuoteBusy(true); setActionError('');
     try { await onGenerateQuotes(); }
-    catch (err) { setActionError('AI 拾句失败：' + (err?.message || '未知错误')); }
+    catch (err) { setActionError(friendlyAiError(err, 'AI 拾句')); }
     finally { setQuoteBusy(false); }
   };
 
