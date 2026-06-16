@@ -215,7 +215,7 @@ function TabBar({ theme, active = 'home', onChange }) {
   const items = [
     { id: 'home', label: '今日', icon: IconHome },
     { id: 'timeline', label: '藏册', icon: IconTimeline },
-    { id: 'compose', label: '', icon: IconPlus, primary: true },
+    { id: 'sign', label: '', icon: IconPlus, primary: true },
     { id: 'hex', label: '问', icon: IconHex },
     { id: 'settings', label: '我', icon: IconUser },
   ];
@@ -234,7 +234,7 @@ function TabBar({ theme, active = 'home', onChange }) {
         if (it.primary) {
           const themedPrimary = DECOR_THEME_KEYS.has(theme?.key);
           return (
-            <button key={it.id} type="button" aria-label="写日记"
+            <button key={it.id} type="button" aria-label="诗签"
               className="app-tab-item app-tab-primary"
               onClick={() => onChange && onChange(it.id)}
               style={{

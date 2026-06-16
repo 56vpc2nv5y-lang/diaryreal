@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.15-r50';
+const APP_BUILD = '2026.06.16-r52';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -382,6 +382,96 @@ function EmptyHomeScreen({ theme, onCompose, onTab }) {
           boxShadow: `0 8px 24px ${theme.text}33`,
           ...skin(theme, 'primary'),
         }}>开 始 写</button>
+      </div>
+    </Screen>
+  );
+}
+
+function SignLanding({ theme, entries = [], onCompose, onShake, onOpen, onTab }) {
+  const latest = entries[0] || null;
+  const poemEntry = entries.find(entry => entry?.poem?.title && Array.isArray(entry.poem.lines));
+  const displayEntry = latest?.poem ? latest : poemEntry;
+  const canShakeLatest = !!latest?.id && !!latest?.body?.trim();
+  const meta = entry => [entry?.date, entry?.place, entry?.time].filter(Boolean).join(' · ');
+
+  return (
+    <Screen theme={theme} tab="sign" onTab={onTab}>
+      <div style={{ padding: '64px 24px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <div style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 600 }}>POEM LOT</div>
+          <div className="serif" style={{ fontSize: 32, fontWeight: 600, marginTop: 4, color: theme.text }}>签</div>
+          <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 8, lineHeight: 1.7 }}>这里收住诗签，不会自动跳进写日记。</div>
+        </div>
+        <Seal char1="诗" char2="签" theme={theme} size={42} rotate={-4}/>
+      </div>
+
+      <div style={{ padding: '22px 22px 126px' }}>
+        {displayEntry?.poem ? (
+          <div className="theme-poem-card" style={{
+            borderRadius: 26,
+            padding: '34px 24px 28px',
+            background: theme.paper,
+            border: `0.5px solid ${theme.line}`,
+            boxShadow: `0 10px 30px ${theme.text}12`,
+            textAlign: 'center',
+            position: 'relative',
+            ...skin(theme, 'poemCard'),
+          }}>
+            <ThemeMotif theme={theme} variant="hero" />
+            <div style={{ fontSize: 10, color: theme.textMute, letterSpacing: 3, fontWeight: 600 }}>最近诗签</div>
+            <div className="serif" style={{ fontSize: 30, color: theme.text, letterSpacing: 8, marginTop: 18, paddingLeft: '0.5em' }}>
+              {displayEntry.poem.title}
+            </div>
+            <div style={{ width: 32, height: 1, background: theme.accent, margin: '16px auto 22px' }} />
+            <PoemBody lines={displayEntry.poem.lines} size={19} theme={theme} />
+            <div style={{ fontSize: 11, color: theme.textMute, marginTop: 22 }}>{meta(displayEntry)}</div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 24 }}>
+              <button type="button" onClick={() => onOpen(displayEntry.id)} style={{
+                flex: 1, height: 44, borderRadius: 22, border: `0.5px solid ${theme.line}`,
+                background: theme.surface, color: theme.text, fontFamily: 'inherit', cursor: 'pointer',
+              }}>查看日记</button>
+              {canShakeLatest && <button type="button" onClick={() => onShake(latest.id)} style={{
+                flex: 1.2, height: 44, borderRadius: 22, border: 'none',
+                background: theme.text, color: theme.bg, fontFamily: 'inherit', cursor: 'pointer',
+                ...skin(theme, 'primary'),
+              }}>{latest?.poem ? '再摇一签' : '为今日摇签'}</button>}
+            </div>
+          </div>
+        ) : (
+          <div className="theme-quote-card" style={{
+            borderRadius: 24,
+            padding: '42px 28px',
+            background: theme.paper,
+            border: `0.5px solid ${theme.line}`,
+            textAlign: 'center',
+            ...skin(theme, 'panel'),
+          }}>
+            <div className="serif" style={{ fontSize: 24, color: theme.text, letterSpacing: 4 }}>还没有可摇的签</div>
+            <div style={{ color: theme.textSoft, fontSize: 13, lineHeight: 1.8, marginTop: 14 }}>
+              先保存一篇日记，再回来摇签选诗。底部按钮会一直保留，不需要先退出这个页面。
+            </div>
+            <button type="button" onClick={onCompose} style={{
+              height: 46, padding: '0 28px', borderRadius: 23, marginTop: 28,
+              border: 'none', background: theme.text, color: theme.bg,
+              fontFamily: 'inherit', cursor: 'pointer', letterSpacing: 2,
+              ...skin(theme, 'primary'),
+            }}>写新日记</button>
+          </div>
+        )}
+
+        {latest && !latest.poem && canShakeLatest && (
+          <button type="button" onClick={() => onShake(latest.id)} style={{
+            width: '100%', marginTop: 14, height: 52, borderRadius: 26,
+            border: `0.5px solid ${theme.line}`, background: theme.surface,
+            color: theme.text, fontFamily: 'inherit', cursor: 'pointer', letterSpacing: 2,
+          }}>为最近一篇日记摇签</button>
+        )}
+
+        {(displayEntry || latest) && <button type="button" onClick={onCompose} style={{
+          width: '100%', marginTop: 12, height: 48, borderRadius: 24,
+          border: 'none', background: 'transparent', color: theme.textSoft,
+          fontFamily: 'inherit', cursor: 'pointer', letterSpacing: 2,
+        }}>写新日记</button>}
       </div>
     </Screen>
   );
@@ -1267,7 +1357,7 @@ function AppReal() {
 
   const push = (s, p = {}) => setStack(st => [...st, { screen: s, params: p }]);
   const pop  = () => setStack(st => st.length > 1 ? st.slice(0, -1) : st);
-  const reset = s => setStack([{ screen: s, params: {} }]);
+  const reset = (s, p = {}) => setStack([{ screen: s, params: p }]);
   const replace = (s, p = {}) => setStack(st => [...st.slice(0, -1), { screen: s, params: p }]);
 
   const tabHandler = t => t === 'compose' ? push('compose') : reset(t);
@@ -1371,6 +1461,16 @@ function AppReal() {
           onOpen={id => push('detail', { id })}
           onCompose={() => push('compose')}
           onSearch={() => push('search')}
+          onTab={tabHandler}
+        />
+      );
+
+    case 'sign':
+      return (
+        <SignLanding theme={theme} entries={entries}
+          onCompose={() => push('compose')}
+          onShake={id => push('shake', { id })}
+          onOpen={id => push('detail', { id })}
           onTab={tabHandler}
         />
       );

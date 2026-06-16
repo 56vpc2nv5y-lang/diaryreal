@@ -426,14 +426,14 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
   ];
   const themeRecommendations = {
     celadon: '青釉浅色信纸 · 楷体',
-    inkPlum: '宣纸留白 · 宋体',
+    inkPlum: '宣纸留白 · 楷体',
     mossGarden: '苔庭信纸 · 楷体',
-    study: '米白旧纸 · 宋体或霞鹜文楷',
-    morningPaper: '无图案信纸 · 宋体',
-    obsidianDawn: '暖白矿物纸 · 小薇体',
-    dusk: '低对比浅色信纸 · 小薇体',
-    seaSalt: '开阔浅蓝信纸 · 宋体',
-    snowNight: '月白或冰蓝信纸 · 小薇体',
+    study: '米白旧纸 · 楷体',
+    morningPaper: '无图案信纸 · 楷体',
+    obsidianDawn: '晨曦暖白纸 · 楷体',
+    dusk: '低对比浅色信纸 · 楷体',
+    seaSalt: '海蓝盐白信纸 · 楷体',
+    snowNight: '月白或冰蓝信纸 · 楷体',
   };
   return (
     <Screen theme={theme} tab="settings" onTab={onTab}>

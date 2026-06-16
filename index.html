@@ -111,7 +111,7 @@
   .theme-header-mark-mossGarden span { background: rgba(73,107,75,.12); }
   .theme-header-mark-study span { border-color: rgba(103,77,51,.35); background: rgba(255,247,225,.45); }
   .theme-header-mark-dusk span { border-color: rgba(128,109,145,.3); background: rgba(255,255,255,.3); }
-  .theme-header-mark-obsidianDawn span { color: #292b2a; border-color: rgba(185,139,69,.58); }
+  .theme-header-mark-obsidianDawn span { color: #9d642d; border-color: rgba(185,139,69,.58); }
   .theme-header-mark-snowNight { color: rgba(255,255,255,.92); }
 
   .theme-card-art {
@@ -643,8 +643,8 @@
     html[data-diary-theme="obsidianDawn"] :is(.theme-poem-card, .theme-poem-hero, .theme-sign-card, .theme-quote-card, .theme-settings-panel, .theme-saved-card) {
       border-radius: 18px !important;
       border-color: rgba(41,43,42,.25) !important;
-      box-shadow: inset 4px 0 0 #292b2a, 0 10px 28px rgba(41,43,42,.10) !important;
-      background-image: linear-gradient(120deg, rgba(255,255,255,.50), rgba(185,139,69,.035)) !important;
+      box-shadow: 0 10px 28px rgba(132,91,48,.10) !important;
+      background-image: radial-gradient(circle at 86% 12%, rgba(255,205,126,.30), transparent 28%), linear-gradient(150deg, #fffdf8, #fbf2e4) !important;
     }
     html[data-diary-theme="obsidianDawn"] .app-tabbar {
       border-top: 1px solid rgba(41,43,42,.20);
@@ -778,17 +778,20 @@
       background-image: repeating-linear-gradient(0deg, rgba(60,54,45,.10) 0, rgba(60,54,45,.10) 1px, transparent 1px, transparent 7px) !important;
     }
     .theme-preview-seaSalt {
-      border-radius: 22px !important;
-      background-image: url("assets/themes/generated/sea-salt-bg.webp") !important;
+      border-radius: 18px !important;
+      background-image:
+        radial-gradient(ellipse 78% 20% at 18% 92%, rgba(128,207,225,.38) 0 58%, transparent 60%),
+        radial-gradient(ellipse 82% 22% at 86% 101%, rgba(66,157,185,.24) 0 58%, transparent 60%),
+        linear-gradient(180deg, #dff3f6, #f7fbf8) !important;
       background-position: center !important;
       background-size: cover !important;
     }
     .theme-preview-obsidianDawn {
-      border-radius: 10px !important;
-      box-shadow: inset 0 1px 0 rgba(196,143,65,.40) !important;
+      border-radius: 18px !important;
+      box-shadow: none !important;
       background-image:
-        radial-gradient(circle at 88% 9%, rgba(234,190,112,.25), transparent 25%),
-        linear-gradient(145deg, #fffdf8, #f5f1e8) !important;
+        radial-gradient(circle at 86% 11%, rgba(255,205,126,.52) 0 4%, rgba(255,222,173,.22) 5% 18%, transparent 32%),
+        linear-gradient(150deg, #fffdf8, #f7eee1) !important;
       background-size: auto !important;
     }
     .theme-preview-snowNight {
@@ -1620,49 +1623,100 @@
       content: none !important;
     }
 
-    /* Classical type pairings: restrained Kai and Song typefaces. */
-    html[data-diary-theme="celadon"] :is(.theme-home-title, .theme-poem-title, .theme-home-quote-title),
-    .theme-preview-celadon .theme-preview-poem-card > div:nth-of-type(1) {
+    /* One calm Kai type system across every skin and writing surface. */
+    html[data-diary-theme] :is(body, button, input, textarea, select, .serif, .diary-writing, .theme-home-title, .theme-poem-title, .theme-home-quote-title),
+    .theme-card-preview,
+    .theme-card-preview * {
       font-family: "KaiTi", "STKaiti", "Kaiti SC", "Noto Serif SC", serif !important;
-      font-weight: 400 !important;
     }
-    html[data-diary-theme="inkPlum"] :is(.theme-home-title, .theme-poem-title, .theme-home-quote-title),
-    .theme-preview-inkPlum .theme-preview-poem-card > div:nth-of-type(1) {
-      font-family: "Noto Serif SC", "Songti SC", "SimSun", serif !important;
-      font-weight: 400 !important;
+    .theme-card-preview .theme-preview-poem-card {
+      box-shadow: 0 4px 12px rgba(72,61,48,.08) !important;
     }
-    html[data-diary-theme="mossGarden"] :is(.theme-home-title, .theme-poem-title, .theme-home-quote-title),
-    .theme-preview-mossGarden .theme-preview-poem-card > div:nth-of-type(1) {
-      font-family: "KaiTi", "STKaiti", "Kaiti SC", "Noto Serif SC", serif !important;
-      font-weight: 400 !important;
-    }
-    html[data-diary-theme="inkPlum"] .theme-poem-title {
-      font-size: 31px !important;
-      letter-spacing: 6px !important;
+    .theme-card-preview .theme-preview-poem-card::before {
+      display: none !important;
     }
 
-    /* Obsidian dawn: warm paper, one mineral edge, one restrained sunrise. */
-    html[data-diary-theme="obsidianDawn"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero) {
-      border: 1px solid rgba(48,49,47,.24) !important;
-      border-radius: 14px !important;
+    /* Sea salt: open blue-white stationery with a visible tide line. */
+    html[data-diary-theme="seaSalt"] .app-screen:not(.app-screen-custom-bg) {
+      background-image: var(--theme-screen-image) !important;
+    }
+    html[data-diary-theme="seaSalt"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero) {
+      border: 1px solid rgba(72,145,168,.24) !important;
+      border-radius: 22px !important;
+      background-color: #f9ffff !important;
+      background-image: var(--theme-poem-image) !important;
+      box-shadow: 0 12px 28px rgba(54,126,151,.13) !important;
+    }
+    html[data-diary-theme="seaSalt"] :is(.theme-quote-card, .theme-sign-card, .theme-saved-card) {
+      border: 1px solid rgba(72,145,168,.20) !important;
+      border-radius: 18px !important;
+      background-color: #f8ffff !important;
+      background-image: var(--theme-panel-image) !important;
+      box-shadow: 0 8px 20px rgba(54,126,151,.10) !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tabbar {
+      border-top: 1px solid rgba(72,145,168,.20) !important;
+      background: rgba(245,252,252,.96) !important;
+      box-shadow: 0 -5px 18px rgba(54,126,151,.08) !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tab-item {
+      color: #24657a !important;
+      background: rgba(255,255,255,.74) !important;
+      box-shadow: 0 3px 10px rgba(54,126,151,.10) !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tab-primary {
+      background: linear-gradient(145deg, #69bfd4, #2e7f9d) !important;
+      color: #fff !important;
+      box-shadow: 0 7px 18px rgba(46,127,157,.26) !important;
+    }
+
+    /* Dawn: warm sunlit paper, no black mineral edge. */
+    html[data-diary-theme="obsidianDawn"] .app-screen:not(.app-screen-custom-bg) {
       background-image:
-        radial-gradient(circle at 91% 8%, rgba(232,186,105,.30), transparent 23%),
-        linear-gradient(145deg, #fffefa, #f7f3eb) !important;
-      box-shadow: inset 0 1px 0 rgba(185,139,69,.36), 0 7px 18px rgba(48,46,42,.09) !important;
+        radial-gradient(circle at 82% 9%, rgba(255,205,126,.56) 0 4%, rgba(255,220,164,.24) 5% 16%, transparent 32%),
+        linear-gradient(180deg, #fff8eb 0%, #f7efe2 58%, #efe8df 100%) !important;
+    }
+    html[data-diary-theme="obsidianDawn"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero) {
+      border: 1px solid rgba(177,130,76,.20) !important;
+      border-radius: 22px !important;
+      background-image:
+        radial-gradient(circle at 86% 12%, rgba(255,205,126,.48) 0 3%, rgba(255,222,173,.20) 4% 18%, transparent 31%),
+        linear-gradient(150deg, #fffdf8, #fbf2e4) !important;
+      box-shadow: 0 12px 28px rgba(132,91,48,.12) !important;
     }
     html[data-diary-theme="obsidianDawn"] :is(.theme-quote-card, .theme-sign-card, .theme-saved-card) {
-      border: 1px solid rgba(48,49,47,.19) !important;
-      border-radius: 12px !important;
+      border: 1px solid rgba(177,130,76,.18) !important;
+      border-radius: 18px !important;
       background-image:
-        radial-gradient(circle at 93% 10%, rgba(232,186,105,.23), transparent 25%),
-        linear-gradient(145deg, #fffefa, #f7f3eb) !important;
-      box-shadow: inset 0 1px 0 rgba(185,139,69,.24), 0 5px 14px rgba(48,46,42,.07) !important;
+        radial-gradient(circle at 90% 14%, rgba(255,205,126,.30), transparent 28%),
+        linear-gradient(150deg, #fffdf8, #f8efe3) !important;
+      box-shadow: 0 8px 20px rgba(132,91,48,.09) !important;
+    }
+    html[data-diary-theme="obsidianDawn"] .theme-header-mark span {
+      color: #9d642d !important;
+      border-color: rgba(197,138,66,.42) !important;
+    }
+    html[data-diary-theme="obsidianDawn"] .app-tabbar {
+      border-top: 1px solid rgba(177,130,76,.18) !important;
+      background: rgba(255,249,239,.96) !important;
+      box-shadow: 0 -5px 18px rgba(132,91,48,.07) !important;
+    }
+    html[data-diary-theme="obsidianDawn"] .app-tab-item {
+      color: #6d4c32 !important;
+      border-color: transparent !important;
+      background: rgba(255,255,255,.56) !important;
+      box-shadow: none !important;
+    }
+    html[data-diary-theme="obsidianDawn"] .app-tab-primary {
+      background: linear-gradient(145deg, #e5ad61, #b77734) !important;
+      color: #fff !important;
+      box-shadow: 0 7px 17px rgba(183,119,52,.24) !important;
     }
     html[data-diary-theme="obsidianDawn"] .theme-home-quote .theme-quote-card::after {
-      content: '一';
+      content: '日';
       top: 14px;
       right: 17px;
-      color: #bd8c43;
+      color: #c58a42;
       font-size: 14px;
       letter-spacing: 0;
     }
@@ -1825,16 +1879,16 @@
 
 <!-- ── Shared data (THEMES, HEXAGRAMS, TAGS) ─────────────────── -->
 <script src="data.js?v=20260615-r48"></script>
-<script src="themes-extra.js?v=2026.06.15-r50"></script>
+<script src="themes-extra.js?v=2026.06.16-r52"></script>
 
 <!-- ── UI components (load order matters) ────────────────────── -->
-<script type="text/babel" src="primitives.jsx?v=20260615-r48"></script>
+<script type="text/babel" src="primitives.jsx?v=2026.06.16-r52"></script>
 <script type="text/babel" src="screens-main.jsx?v=20260615-r48"></script>
 <script type="text/babel" src="screens-other.jsx?v=20260615-r48"></script>
 <script type="text/babel" src="enhancements.jsx?v=20260615-r48"></script>
 
 <!-- ── Real app ──────────────────────────────────────────────── -->
-<script type="text/babel" src="app-real.jsx?v=20260615-r48"></script>
+<script type="text/babel" src="app-real.jsx?v=2026.06.16-r52"></script>
 
 <script>
   if ('serviceWorker' in navigator) {

@@ -49,7 +49,7 @@ body{overflow:auto!important;background:#e8e3ed!important}.app-screen{width:100v
   ${settingPanel('导 入 与 导 出', ['导入过去日记', '导出与分享', '数据备份'])}
   ${settingPanel('云 同 步', ['Firestore　已同步', '跨设备同步　邮箱账户已启用'])}
   ${settingPanel('数 据', ['清除所有数据', '退出'])}
-  <div class="settings-version">版本 2026.06.15-r50</div>
+  <div class="settings-version">版本 2026.06.16-r52</div>
 </main></div>
 <nav class="app-tabbar">
   <button class="app-tab-item"><span>⌂</span><small>今日</small></button>
@@ -62,7 +62,7 @@ body{overflow:auto!important;background:#e8e3ed!important}.app-screen{width:100v
 const browser = await chromium.launch({ channel: 'msedge', headless: true });
 const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, deviceScaleFactor: 1 });
 await page.setContent(html, { waitUntil: 'load' });
-await page.evaluate(() => { document.documentElement.dataset.diaryTheme = 'dusk'; });
+await page.evaluate(() => { document.documentElement.dataset.diaryTheme = 'obsidianDawn'; });
 await page.evaluate(() => document.fonts?.ready);
 const navLayout = await page.evaluate(() => {
   const nav = document.querySelector('.app-tabbar').getBoundingClientRect();
@@ -78,5 +78,5 @@ if (
 ) {
   throw new Error(`Desktop navigation is misaligned: ${JSON.stringify(navLayout)}`);
 }
-await page.screenshot({ path: path.join(root, 'output', 'playwright', 'r50-settings-floating-nav.png'), fullPage: true });
+await page.screenshot({ path: path.join(root, 'output', 'playwright', 'r52-settings-sign-route.png'), fullPage: true });
 await browser.close();
