@@ -1003,7 +1003,7 @@ async function createPoemCardBlob(entry, theme) {
   });
 }
 
-function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onAddNote, onCollectQuote, onRejectQuote, onGenerateQuotes, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
+function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onToggleFeatured, onAddNote, onCollectQuote, onRejectQuote, onGenerateQuotes, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
   const e = entry;
   const hasPoem = showPoem && !!e.poem;
   const appTheme = theme;
@@ -1180,10 +1180,38 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
             </div>
             <Seal char1={c1} char2={c2} theme={theme} size={42} rotate={-4} />
           </div>
-          <div className="serif" style={{ fontSize: 28, fontWeight: 500, color: theme.text, letterSpacing: 8, marginTop: 16, lineHeight: 1.1, paddingLeft: '0.5em' }}>{e.poem.title}</div>
+          <div className="serif poem-title-main" style={{ fontSize: 28, fontWeight: 500, color: theme.text, letterSpacing: 8, marginTop: 16, lineHeight: 1.1, paddingLeft: '0.5em' }}>{e.poem.title}</div>
           <div style={{ width: 28, height: 1, background: theme.accent, margin: '18px auto 24px' }} />
           <PoemBody lines={e.poem.lines} size={21} theme={theme} />
-          <div style={{ fontSize: 11, color: theme.textMute, marginTop: 28, letterSpacing: 1.5 }}>根据本篇日记生成 · AI</div>
+
+          {/* 判词 & 解语 in detail view */}
+          {!!e.sign?.judgmentLines?.length && (
+            <div style={{ marginTop: 26, padding: '14px 18px 12px', borderRadius: 10, background: `${theme.seal}0a`, border: `1px solid ${theme.seal}1e`, textAlign: 'center' }}>
+              <div style={{ fontSize: 9, letterSpacing: 3.5, color: theme.seal, fontWeight: 600, marginBottom: 10 }}>
+                判 词{e.sign.title ? `　·　${e.sign.title}` : ''}
+              </div>
+              {e.sign.judgmentLines.slice(0, 4).map((line, i) => (
+                <div key={i} className="serif" style={{ color: theme.text, fontSize: 14.5, lineHeight: 2.0, letterSpacing: 2.5 }}>{line}</div>
+              ))}
+            </div>
+          )}
+          {e.sign?.interpretation && (
+            <div style={{ marginTop: 12, fontSize: 11.5, color: theme.textSoft, lineHeight: 1.85, textAlign: 'left', paddingLeft: 12, borderLeft: `1.5px solid ${theme.seal}30`, letterSpacing: .5 }}>
+              {e.sign.interpretation}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
+            <div style={{ fontSize: 11, color: theme.textMute, letterSpacing: 1.5 }}>根据本篇日记生成 · AI</div>
+            {onToggleFeatured && (
+              <button type="button" onClick={onToggleFeatured} style={{
+                height: 26, padding: '0 10px', borderRadius: 13, border: `1px solid ${e.featured ? theme.seal : theme.line}`,
+                background: e.featured ? `${theme.seal}14` : 'transparent',
+                color: e.featured ? theme.seal : theme.textMute,
+                fontSize: 10, letterSpacing: 1.5, fontFamily: 'inherit', cursor: 'pointer',
+              }}>{e.featured ? '★ 已置顶' : '☆ 置顶诗签'}</button>
+            )}
+          </div>
         </div>) : (
 
       /* unpoemed — soft CTA, paper kept for visual continuity */
@@ -1255,7 +1283,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
             <div style={{ fontSize: 11, color: theme.seal, letterSpacing: 1 }}>· {e.inlineNotes.length} 点评</div>
           )}
         </div>
-        <div style={{ fontFamily: theme.fontWriting || theme.fontSerif, fontSize: 16, lineHeight: theme.writingLineHeight || 2.0, color: theme.text, letterSpacing: theme.writingSpacing ?? 0.4 }}>
+        <div className="diary-writing" style={{ fontFamily: theme.fontWriting || theme.fontSerif, fontSize: 16, lineHeight: theme.writingLineHeight || 2.0, color: theme.text, letterSpacing: theme.writingSpacing ?? 0.4 }}>
           {renderBodyWithAnchors(e.body, e.inlineNotes, theme)}
         </div>
         {/* tags */}

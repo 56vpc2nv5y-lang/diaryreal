@@ -482,8 +482,9 @@ function EmptyHomeScreen({ theme, onCompose, onTab }) {
 
 function SignLanding({ theme, entries = [], onCompose, onShake, onOpen, onTab }) {
   const latest = entries[0] || null;
+  const featuredEntry = entries.find(en => en.featured && en.poem?.title && Array.isArray(en.poem.lines));
   const poemEntry = entries.find(entry => entry?.poem?.title && Array.isArray(entry.poem.lines));
-  const displayEntry = latest?.poem ? latest : poemEntry;
+  const displayEntry = featuredEntry || (latest?.poem ? latest : poemEntry);
   const canShakeLatest = !!latest?.id && !!latest?.body?.trim();
   const meta = entry => [entry?.date, entry?.place, entry?.time].filter(Boolean).join(' · ');
 
@@ -1631,6 +1632,14 @@ function AppReal() {
       return <Detail theme={theme} entry={entry} onBack={pop}
         onEdit={() => push('edit', { id: entry.id })}
         onToggleFlag={() => updateEntry(entry.id, { flag: !entry.flag })}
+        onToggleFeatured={async () => {
+          const wasFeatured = !!entry.featured;
+          if (!wasFeatured) {
+            const cur = entries.find(en => en.featured);
+            if (cur && cur.id !== entry.id) await updateEntry(cur.id, { featured: false });
+          }
+          await updateEntry(entry.id, { featured: !wasFeatured });
+        }}
         onAddNote={text => updateEntry(entry.id, {
           notes: [...(entry.notes || []), { date: new Date().toLocaleString('zh-CN', { hour12: false }), text }],
         })}

@@ -574,7 +574,7 @@ function PoemBody({ lines, size = 22, theme, color, weight = 500 }) {
     : size;
   const spacing = longest >= 12 ? '0.16em' : longest > 8 ? '0.25em' : '0.42em';
   return (
-    <div className="serif" style={{
+    <div className="serif poem-body-lines" style={{
       textAlign: 'center', color: color || theme.text, fontWeight: weight,
       width: '100%', overflow: 'visible',
     }}>
