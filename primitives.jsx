@@ -566,7 +566,41 @@ function splitPoemLines(lines) {
   }).filter(Boolean);
 }
 
+function isLatinPoem(lines) {
+  const text = (lines || []).join(' ');
+  const latin = (text.match(/[A-Za-z]/g) || []).length;
+  const han = (text.match(/[一-鿿]/g) || []).length;
+  return latin > han && latin > 0;
+}
+
 function PoemBody({ lines, size = 22, theme, color, weight = 500 }) {
+  // English / Shakespearean sonnet: left-aligned, wrapping, quatrain spacing.
+  if (isLatinPoem(lines)) {
+    const enLines = (lines || []).map(line => String(line || '').trim()).filter(Boolean);
+    const many = enLines.length > 6;
+    const fontSize = many ? Math.max(13, Math.min(size - 4, 16)) : Math.min(size, 19);
+    const isSonnet = enLines.length === 14;
+    return (
+      <div className="serif poem-body-lines poem-body-en" style={{
+        textAlign: 'left', color: color || theme.text, fontWeight: weight,
+        width: '100%', maxWidth: 520, margin: '0 auto', overflow: 'visible',
+        fontStyle: 'italic',
+      }}>
+        {enLines.map((ln, i) => {
+          const couplet = isSonnet && i >= 12;
+          const quatrainGap = isSonnet && (i === 4 || i === 8 || i === 12);
+          return (
+            <div key={i} style={{
+              fontSize, lineHeight: 1.7,
+              paddingLeft: couplet ? '1.4em' : 0,
+              marginTop: quatrainGap ? '0.62em' : 0,
+            }}>{ln}</div>
+          );
+        })}
+      </div>
+    );
+  }
+
   const displayLines = splitPoemLines(lines);
   const longest = Math.max(1, ...displayLines.map(line => Array.from(line).length));
   const fittedSize = longest > 8

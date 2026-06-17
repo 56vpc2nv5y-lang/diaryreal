@@ -710,6 +710,10 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
   const e = entry;
   const [c1, c2] = sealChars(e.poem.title);
   const judgmentLines = e.sign?.judgmentLines || [];
+  const enSign = e.sign?.style === 'en-sonnet' || e.poem?.style === 'en-sonnet';
+  const lbl = enSign
+    ? { drop: 'TODAY\'S LOT', judgment: 'ORACLE', sub: 'Drawn in image · mirrored in today', reading: 'READING', poem: 'SONNET' }
+    : { drop: '今 日 落 签', judgment: '判 词', sub: '以象起兴 · 照见今日', reading: '解 语', poem: '诗' };
   return (
     <Screen theme={theme} noTab>
       {/* collapsed diary header */}
@@ -796,12 +800,19 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
       <div className="no-scroll anim-rise" style={{ padding: '8px 28px 150px', textAlign: 'center', overflowY: 'auto', flex: 1 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>
-              今 日 落 签
+              {lbl.drop}
             </div>
             <Seal char1={c1} char2={c2} theme={theme} size={40} rotate={-4} />
           </div>
 
-          <div style={{
+          <div style={enSign ? {
+            maxWidth: 280, minHeight: 56, margin: '18px auto 20px', borderRadius: '10px',
+            background: `linear-gradient(135deg, ${theme.accent}, ${theme.text})`, color: theme.bg,
+            boxShadow: `0 14px 34px ${theme.text}33`, padding: '14px 22px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: "'Noto Serif SC', serif", fontStyle: 'italic', fontSize: 19, letterSpacing: 1,
+            animation: 'sign-drop .7s cubic-bezier(.16,1,.3,1) both',
+          } : {
             width: 64, minHeight: 214, margin: '18px auto 20px', borderRadius: '8px 8px 20px 20px',
             background: `linear-gradient(180deg, ${theme.accent}, ${theme.text})`, color: theme.bg,
             boxShadow: `0 14px 34px ${theme.text}33`, padding: '18px 10px',
@@ -820,11 +831,12 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
             textAlign: 'center',
           }}>
             <div style={{ fontSize: 10, letterSpacing: 4, color: theme.seal, fontWeight: 600, marginBottom: 3 }}>
-              判 词{e.sign?.title ? <span style={{ marginLeft: 8 }}>· {e.sign.title}</span> : null}
+              {lbl.judgment}{e.sign?.title ? <span style={{ marginLeft: 8 }}>· {e.sign.title}</span> : null}
             </div>
-            <div style={{ fontSize: 9.5, color: theme.textMute, letterSpacing: 1.5, marginBottom: 14 }}>以象起兴 · 照见今日</div>
+            <div style={{ fontSize: 9.5, color: theme.textMute, letterSpacing: 1.5, marginBottom: 14 }}>{lbl.sub}</div>
             {judgmentLines.map((line, index) => <div key={index} className="serif" style={{
-              color: theme.text, fontSize: 16, lineHeight: 2.05, letterSpacing: 3,
+              color: theme.text, fontSize: enSign ? 14 : 16, lineHeight: enSign ? 1.7 : 2.05,
+              letterSpacing: enSign ? 0.5 : 3, fontStyle: enSign ? 'italic' : 'normal',
             }}>{line}</div>)}
           </div>}
 
@@ -832,11 +844,11 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
             textAlign: 'left', margin: '0 auto 26px', maxWidth: 310,
             color: theme.textSoft, fontSize: 12.5, lineHeight: 1.85,
             paddingLeft: 14, borderLeft: `2px solid ${theme.seal}40`,
-          }}><span style={{ color: theme.seal, letterSpacing: 2 }}>解 语</span>　{e.sign.interpretation}</div>}
+          }}><span style={{ color: theme.seal, letterSpacing: 2 }}>{lbl.reading}</span>　{e.sign.interpretation}</div>}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, maxWidth: 310, margin: '0 auto 22px' }}>
             <div style={{ flex: 1, height: 0.5, background: theme.line }} />
-            <div style={{ fontSize: 9, letterSpacing: 2, color: theme.textMute }}>诗</div>
+            <div style={{ fontSize: 9, letterSpacing: 2, color: theme.textMute }}>{lbl.poem}</div>
             <div style={{ flex: 1, height: 0.5, background: theme.line }} />
           </div>
 
@@ -1031,6 +1043,10 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
     backgroundSize: `100% 100%, ${detailPaper.backgroundSize || '100% 100%'}`,
   } : detailPaper;
   const [c1, c2] = sealChars(e.poem?.title || '日记');
+  const enSign = e.sign?.style === 'en-sonnet' || e.poem?.style === 'en-sonnet';
+  const dlbl = enSign
+    ? { lot: 'LOT', judgment: 'ORACLE', from: 'Drawn from this entry · AI' }
+    : { lot: '诗 签', judgment: '判 词', from: '根据本篇日记生成 · AI' };
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [noteOpen, setNoteOpen] = React.useState(false);
   const [noteText, setNoteText] = React.useState('');
@@ -1176,11 +1192,11 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
           {!customPaper && <ThemeMotif theme={theme} variant="hero" />}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>
-              诗 签 <span style={{ marginLeft: 8, opacity: 0.7 }}>{e.poem.form || '五绝'}</span>
+              {dlbl.lot} <span style={{ marginLeft: 8, opacity: 0.7 }}>{e.poem.form || (enSign ? 'sonnet' : '五绝')}</span>
             </div>
             <Seal char1={c1} char2={c2} theme={theme} size={42} rotate={-4} />
           </div>
-          <div className="serif poem-title-main" style={{ fontSize: 28, fontWeight: 500, color: theme.text, letterSpacing: 8, marginTop: 16, lineHeight: 1.1, paddingLeft: '0.5em' }}>{e.poem.title}</div>
+          <div className="serif poem-title-main" style={{ fontSize: enSign ? 24 : 28, fontWeight: 500, color: theme.text, letterSpacing: enSign ? 1 : 8, fontStyle: enSign ? 'italic' : 'normal', marginTop: 16, lineHeight: 1.15, paddingLeft: enSign ? 0 : '0.5em' }}>{e.poem.title}</div>
           <div style={{ width: 28, height: 1, background: theme.accent, margin: '18px auto 24px' }} />
           <PoemBody lines={e.poem.lines} size={21} theme={theme} />
 
@@ -1188,10 +1204,10 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
           {!!e.sign?.judgmentLines?.length && (
             <div style={{ marginTop: 26, padding: '14px 18px 12px', borderRadius: 10, background: `${theme.seal}0a`, border: `1px solid ${theme.seal}1e`, textAlign: 'center' }}>
               <div style={{ fontSize: 9, letterSpacing: 3.5, color: theme.seal, fontWeight: 600, marginBottom: 10 }}>
-                判 词{e.sign.title ? `　·　${e.sign.title}` : ''}
+                {dlbl.judgment}{e.sign.title ? `　·　${e.sign.title}` : ''}
               </div>
               {e.sign.judgmentLines.slice(0, 4).map((line, i) => (
-                <div key={i} className="serif" style={{ color: theme.text, fontSize: 14.5, lineHeight: 2.0, letterSpacing: 2.5 }}>{line}</div>
+                <div key={i} className="serif" style={{ color: theme.text, fontSize: 14.5, lineHeight: enSign ? 1.7 : 2.0, letterSpacing: enSign ? 0.3 : 2.5, fontStyle: enSign ? 'italic' : 'normal' }}>{line}</div>
               ))}
             </div>
           )}
@@ -1202,7 +1218,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
           )}
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
-            <div style={{ fontSize: 11, color: theme.textMute, letterSpacing: 1.5 }}>根据本篇日记生成 · AI</div>
+            <div style={{ fontSize: 11, color: theme.textMute, letterSpacing: 1.5 }}>{dlbl.from}</div>
             {onToggleFeatured && (
               <button type="button" onClick={onToggleFeatured} style={{
                 height: 26, padding: '0 10px', borderRadius: 13, border: `1px solid ${e.featured ? theme.seal : theme.line}`,

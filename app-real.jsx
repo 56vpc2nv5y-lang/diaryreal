@@ -182,7 +182,12 @@ async function aiFetch(url, options, timeoutMs = 45000) {
   }
 }
 
-async function apiPoem(diaryText) {
+function poemStyle() {
+  const saved = localStorage.getItem('d-poemStyle');
+  return saved === 'en-sonnet' ? 'en-sonnet' : 'zh-classical';
+}
+
+async function apiPoem(diaryText, style = poemStyle()) {
   const token = await firebase.auth().currentUser?.getIdToken();
   const r = await aiFetch('/api/poem', {
     method: 'POST',
@@ -190,7 +195,7 @@ async function apiPoem(diaryText) {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify({ diaryText }),
+    body: JSON.stringify({ diaryText, style }),
   });
   const text = await r.text();
   let json;
@@ -204,27 +209,31 @@ async function apiPoem(diaryText) {
 
 function poemFromAiResult(result) {
   if (!result || !Array.isArray(result.lines)) return null;
+  const isSonnet = result.style === 'en-sonnet' || result.form === 'sonnet' || result.lines.length > 4;
   return {
-    title: String(result.title || result.signTitle || '未题').slice(0, 12),
-    form: String(result.form || '五绝').slice(0, 8),
-    lines: result.lines.map(String).slice(0, 4),
+    title: String(result.title || result.signTitle || (isSonnet ? 'Untitled' : '未题')).slice(0, isSonnet ? 48 : 12),
+    form: String(result.form || (isSonnet ? 'sonnet' : '五绝')).slice(0, 12),
+    style: isSonnet ? 'en-sonnet' : 'zh-classical',
+    lines: result.lines.map(String).slice(0, isSonnet ? 14 : 4),
   };
 }
 
 function signFromAiResult(result) {
   if (!result) return null;
+  const isSonnet = result.style === 'en-sonnet' || result.form === 'sonnet';
   const judgmentLines = Array.isArray(result.judgmentLines)
     ? result.judgmentLines.map(String).filter(Boolean).slice(0, 4)
     : [];
   const hasSignPayload = !!(result.signTitle || judgmentLines.length || result.interpretation || result.timelineLine || result.motif);
   if (!hasSignPayload) return null;
-  const title = String(result.signTitle || result.title || '').slice(0, 8);
+  const title = String(result.signTitle || result.title || '').slice(0, isSonnet ? 40 : 8);
   return {
     title,
-    motif: String(result.motif || '').slice(0, 30),
+    style: isSonnet ? 'en-sonnet' : 'zh-classical',
+    motif: String(result.motif || '').slice(0, isSonnet ? 60 : 30),
     judgmentLines,
-    interpretation: String(result.interpretation || '').slice(0, 500),
-    timelineLine: String(result.timelineLine || judgmentLines[3] || judgmentLines[0] || '').slice(0, 32),
+    interpretation: String(result.interpretation || '').slice(0, 600),
+    timelineLine: String(result.timelineLine || judgmentLines[3] || judgmentLines[0] || '').slice(0, isSonnet ? 80 : 32),
   };
 }
 
@@ -658,7 +667,11 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
   const doShake = async () => {
     if (!body.trim()) return;
     setShake('gen'); setErr('');
-    try { const p = await apiPoem(body); setPoem(p); setShake('done'); }
+    try {
+      const p = await apiPoem(body);
+      window.PLAN?.recordShake?.(); // metering hook (free today; see MONETIZATION.md)
+      setPoem(p); setShake('done');
+    }
     catch (e) { setErr(friendlyAiError(e, '摇签生诗')); setShake('idle'); }
   };
 
@@ -1409,11 +1422,108 @@ function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPas
         <i style={{ flex: 1, borderTop: `1px solid ${theme.line}` }}/><span>或者</span><i style={{ flex: 1, borderTop: `1px solid ${theme.line}` }}/>
       </div>
       <button type="button" disabled={loading} onClick={onGuest} style={{
-        height: 46, border: `1px solid ${theme.line}`, borderRadius: 12,
+        width: '100%', height: 46, border: `1px solid ${theme.line}`, borderRadius: 12,
         background: theme.paper, color: theme.text, fontFamily: 'inherit',
       }}>{loading ? '正在进入…' : '先匿名使用'}</button>
       <div style={{ marginTop: 12, color: theme.textMute, fontSize: 10.5, lineHeight: 1.7, textAlign: 'center' }}>
         匿名使用后，也可以在“我”中绑定邮箱并保留全部日记。
+      </div>
+    </div>
+  );
+}
+
+// Gentle one-time nudge for anonymous writers: bind an email so the diary
+// (which lives only in this browser's anonymous account) cannot be lost.
+function BindEmailNudge({ theme, onBindEmail, onClose }) {
+  const [show, setShow] = React.useState(false);
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [busy, setBusy] = React.useState(false);
+  const [message, setMessage] = React.useState('');
+  const [done, setDone] = React.useState(false);
+
+  const finish = () => { localStorage.setItem('d-bindNudgeDone', '1'); onClose(); };
+  const later = () => { localStorage.setItem('d-bindNudgeDone', '1'); onClose(); };
+
+  const bind = async () => {
+    setMessage('');
+    if (!email.trim() || password.length < 6) { setMessage('请输入邮箱，并使用至少 6 位密码。'); return; }
+    setBusy(true);
+    try {
+      await onBindEmail(email.trim(), password);
+      setDone(true);
+      localStorage.setItem('d-bindNudgeDone', '1');
+    } catch (error) {
+      setMessage(typeof friendlyAuthError === 'function' ? friendlyAuthError(error) : (error?.message || '绑定失败，请稍后重试。'));
+    } finally { setBusy(false); }
+  };
+
+  const input = {
+    width: '100%', height: 44, borderRadius: 10, border: `1px solid ${theme.line}`,
+    background: theme.paper, color: theme.text, padding: '0 12px', fontFamily: 'inherit',
+    outline: 'none', boxSizing: 'border-box', marginTop: 9,
+  };
+
+  return (
+    <div onClick={later} style={{
+      position: 'fixed', inset: 0, zIndex: 4000, background: 'rgba(20,16,10,.5)',
+      display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
+      backdropFilter: 'blur(2px)',
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        width: '100%', maxWidth: W, background: theme.surface,
+        borderRadius: '22px 22px 0 0', padding: '26px 24px calc(30px + env(safe-area-inset-bottom))',
+        boxShadow: '0 -12px 40px rgba(0,0,0,.25)', animation: 'sign-drop .4s cubic-bezier(.16,1,.3,1) both',
+      }}>
+        {done ? (
+          <>
+            <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 1 }}>已绑定，日记安全了</div>
+            <div style={{ marginTop: 10, color: theme.textSoft, fontSize: 13, lineHeight: 1.8 }}>
+              现在可以在任意设备用这个邮箱登录，找回全部日记。已向邮箱发送了验证邮件。
+            </div>
+            <button type="button" onClick={finish} style={{
+              width: '100%', height: 46, marginTop: 18, border: 0, borderRadius: 12,
+              background: theme.text, color: theme.paper, fontFamily: 'inherit', fontSize: 14, cursor: 'pointer',
+            }}>好的</button>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: 10.5, letterSpacing: 3, color: theme.seal, fontWeight: 600 }}>留 住 你 写 下 的</div>
+            <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 1, marginTop: 8 }}>给日记绑定一个邮箱</div>
+            <div style={{ marginTop: 10, color: theme.textSoft, fontSize: 13, lineHeight: 1.8 }}>
+              现在的日记保存在这台设备的匿名账户里，清除浏览器数据或换设备后会找不回。
+              绑定邮箱后日记仍是同一份，还能跨设备同步 —— 只需半分钟。
+            </div>
+            {!show ? (
+              <div style={{ marginTop: 18, display: 'grid', gap: 10 }}>
+                <button type="button" onClick={() => setShow(true)} style={{
+                  height: 48, border: 0, borderRadius: 12, background: theme.text, color: theme.paper,
+                  fontFamily: 'inherit', fontSize: 14, fontWeight: 600, letterSpacing: 1, cursor: 'pointer',
+                }}>绑定邮箱并保留日记</button>
+                <button type="button" onClick={later} style={{
+                  height: 44, border: `1px solid ${theme.line}`, borderRadius: 12, background: 'transparent',
+                  color: theme.textSoft, fontFamily: 'inherit', fontSize: 13, cursor: 'pointer',
+                }}>以后再说</button>
+              </div>
+            ) : (
+              <>
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="邮箱地址" autoComplete="email" style={input}/>
+                <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+                  placeholder="设置密码（至少 6 位）" autoComplete="new-password" style={input}/>
+                <button type="button" disabled={busy} onClick={bind} style={{
+                  width: '100%', height: 46, marginTop: 12, border: 0, borderRadius: 12,
+                  background: theme.text, color: theme.paper, fontFamily: 'inherit', fontSize: 14, cursor: 'pointer',
+                }}>{busy ? '绑定中…' : '完成绑定'}</button>
+                <button type="button" onClick={later} style={{
+                  width: '100%', height: 40, marginTop: 8, border: 0, background: 'transparent',
+                  color: theme.textMute, fontFamily: 'inherit', fontSize: 12, cursor: 'pointer',
+                }}>以后再说</button>
+              </>
+            )}
+            {message && <div style={{ color: theme.seal, fontSize: 11.5, lineHeight: 1.6, marginTop: 10 }}>{message}</div>}
+          </>
+        )}
       </div>
     </div>
   );
@@ -1437,6 +1547,7 @@ function AppReal() {
   );
   const [startLoading, setStartLoading] = React.useState(false);
   const [syncState, setSyncState] = React.useState(() => syncSnapshot());
+  const [nudge, setNudge] = React.useState(false);
 
   const theme = window.THEMES[themeKey] || window.THEMES.celadon;
   const setThemeKey = k => { localStorage.setItem('diary-theme', k); setThemeKey_(k); };
@@ -1518,6 +1629,14 @@ function AppReal() {
     return () => window.removeEventListener(SYNC_EVENT, update);
   }, []);
 
+  // First-entry nudge: once an anonymous writer has a saved entry, gently invite
+  // them (one time) to bind an email so the diary cannot be lost with the browser.
+  React.useEffect(() => {
+    if (authState !== 'auth' || !currentUser?.isAnonymous) return;
+    if (entries.length < 1 || localStorage.getItem('d-bindNudgeDone')) return;
+    if (stack[stack.length - 1]?.screen === 'home') setNudge(true);
+  }, [authState, currentUser, entries.length, stack]);
+
 
   const handleSignOut = async () => {
     const message = currentUser?.isAnonymous
@@ -1565,6 +1684,11 @@ function AppReal() {
 
   const entryById = id => entries.find(e => e.id === id);
 
+  const nudgeOverlay = nudge
+    ? <BindEmailNudge theme={theme} onBindEmail={handleBindEmail} onClose={() => setNudge(false)} />
+    : null;
+
+  const screenEl = (() => {
   switch (screen) {
     case 'home':
       return (
@@ -1729,6 +1853,14 @@ function AppReal() {
         <EmptyHomeScreen theme={theme} onCompose={() => push('compose')} onTab={tabHandler}/>
       );
   }
+  })();
+
+  return (
+    <>
+      {screenEl}
+      {nudgeOverlay}
+    </>
+  );
 }
 
 class AppErrorBoundary extends React.Component {

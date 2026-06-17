@@ -354,7 +354,7 @@ function Import({ theme, onBack, onTab }) {
 }
 
 // ──────────────────────────────────────────────────────────────────
-function EmailAccountCard({ theme, user, entriesCount, onBindEmail, onPasswordReset }) {
+function EmailAccountCard({ theme, user, entriesCount, onBindEmail, onPasswordReset, onSignOut }) {
   const [expanded, setExpanded] = React.useState(false);
   const [email, setEmail] = React.useState(user?.email || '');
   const [password, setPassword] = React.useState('');
@@ -439,6 +439,23 @@ function EmailAccountCard({ theme, user, entriesCount, onBindEmail, onPasswordRe
                 width: '100%', height: 42, marginTop: 11, border: 0, borderRadius: 10,
                 background: theme.text, color: theme.paper, fontFamily: 'inherit', cursor: 'pointer',
               }}>{busy ? '绑定中…' : '绑定邮箱并保留日记'}</button>
+              {onSignOut && (
+                <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '14px 0 0' }}>
+                    <div style={{ flex: 1, height: 1, background: theme.line }}/>
+                    <span style={{ fontSize: 10.5, color: theme.textMute }}>或者</span>
+                    <div style={{ flex: 1, height: 1, background: theme.line }}/>
+                  </div>
+                  <button type="button" onClick={onSignOut} style={{
+                    width: '100%', height: 42, marginTop: 10, border: `1px solid ${theme.line}`,
+                    borderRadius: 10, background: 'transparent', color: theme.textSoft,
+                    fontFamily: 'inherit', cursor: 'pointer', fontSize: 13,
+                  }}>退出，用已有账户登录</button>
+                  <div style={{ fontSize: 10.5, color: theme.textMute, marginTop: 6, lineHeight: 1.6 }}>
+                    退出后，匿名日记建议先备份。可在"导入与导出"中导出 JSON。
+                  </div>
+                </>
+              )}
             </>
           ) : (
             <button type="button" disabled={busy} onClick={reset} style={{
@@ -459,10 +476,38 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
   const [autoLoc, setAutoLoc_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoLoc') ?? 'true'));
   const [autoPoem, setAutoPoem_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoPoem') ?? 'true'));
   const [saveRej, setSaveRej_] = React.useState(() => JSON.parse(localStorage.getItem('d-saveRej') ?? 'false'));
+  const [poemStyle, setPoemStyle_] = React.useState(() => localStorage.getItem('d-poemStyle') === 'en-sonnet' ? 'en-sonnet' : 'zh-classical');
   const fileRef = React.useRef(null);
   const tog = (key, val, setter) => { localStorage.setItem(key, JSON.stringify(val)); setter(val); };
+  const togglePoemStyle = () => {
+    const next = poemStyle === 'en-sonnet' ? 'zh-classical' : 'en-sonnet';
+    localStorage.setItem('d-poemStyle', next);
+    setPoemStyle_(next);
+  };
 
   const backupText = () => JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), entries, hexagrams }, null, 2);
+
+  const backupMarkdown = () => {
+    const esc = s => String(s || '').trim();
+    const blocks = (entries || []).map(e => {
+      const head = `## ${esc(e.title) || '无题'}\n\n*${esc(e.date)} ${esc(e.weekday)} ${esc(e.time)}${e.place ? ' · ' + esc(e.place) : ''}${e.mood ? ' · ' + esc(e.mood) : ''}*`;
+      const body = esc(e.body);
+      const sign = e.sign ? `\n\n> **${esc(e.sign.title)}**\n>\n${(e.sign.judgmentLines || []).map(l => '> ' + esc(l)).join('\n')}${e.sign.interpretation ? '\n>\n> ' + esc(e.sign.interpretation) : ''}` : '';
+      const poem = e.poem && Array.isArray(e.poem.lines) ? `\n\n**〈${esc(e.poem.title)}〉** ${esc(e.poem.form)}\n\n${e.poem.lines.map(esc).join('\n')}` : '';
+      const tags = (e.tags || []).length ? `\n\n${e.tags.map(t => '#' + esc(t)).join(' ')}` : '';
+      return `${head}\n\n${body}${sign}${poem}${tags}`;
+    });
+    return `# 诗签 · 日记导出\n\n导出时间：${new Date().toLocaleString('zh-CN')} · 共 ${blocks.length} 篇\n\n---\n\n${blocks.join('\n\n---\n\n')}\n`;
+  };
+
+  const downloadMarkdown = () => {
+    const blob = new Blob([backupMarkdown()], { type: 'text/markdown' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `诗签日记-${new Date().toISOString().slice(0, 10)}.md`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
 
   const downloadBackup = () => {
     const blob = new Blob([backupText()], { type: 'application/json' });
@@ -580,7 +625,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
       {/* account card */}
       <div className="settings-account-wrap" style={{ padding: '0 20px 24px' }}>
         <EmailAccountCard theme={theme} user={currentUser} entriesCount={entriesCount}
-          onBindEmail={onBindEmail} onPasswordReset={onPasswordReset}/>
+          onBindEmail={onBindEmail} onPasswordReset={onPasswordReset} onSignOut={onSignOut}/>
         <button type="button" onClick={() => alert(currentUser?.isAnonymous
           ? '当前为 Firebase 匿名账户。请定期使用“数据备份”；清除浏览器数据或更换设备后，匿名账户可能无法找回。'
           : `当前为邮箱账户：${currentUser?.email || '已绑定'}。日记会跟随此账户同步，建议仍定期导出 JSON 备份。`)} style={{
@@ -670,6 +715,9 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         <SettingsRow theme={theme} label="每日提醒" detail="22:00" onClick={() => alert('提醒功能将在 App 版本支持')} />
         <SettingsRow theme={theme} label="自动记录位置" toggle on={autoLoc} onToggle={() => tog('d-autoLoc', !autoLoc, setAutoLoc_)} />
         <SettingsRow theme={theme} label="日记生诗" toggle on={autoPoem} onToggle={() => tog('d-autoPoem', !autoPoem, setAutoPoem_)} detail="保存后摇签" />
+        <SettingsRow theme={theme} label="诗体风格"
+          detail={poemStyle === 'en-sonnet' ? '英文 · 莎士比亚十四行诗' : '中文 · 古体诗'}
+          onClick={togglePoemStyle} />
         <SettingsRow theme={theme} label="保存被否决的诗" toggle on={saveRej} onToggle={() => tog('d-saveRej', !saveRej, setSaveRej_)} isLast />
       </SettingsSection>
 
@@ -677,7 +725,8 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         <input ref={fileRef} type="file" accept=".json,.txt,.md" onChange={importFile} style={{ display: 'none' }}/>
         <SettingsRow theme={theme} label="导入过去日记" detail=".json · .txt · .md" onClick={() => fileRef.current?.click()} />
         <SettingsRow theme={theme} label="导出与分享" detail="系统分享 · JSON" onClick={shareBackup} />
-        <SettingsRow theme={theme} label="数据备份" detail={`JSON · ${entriesCount} 篇`} onClick={downloadBackup} isLast />
+        <SettingsRow theme={theme} label="数据备份" detail={`JSON · ${entriesCount} 篇`} onClick={downloadBackup} />
+        <SettingsRow theme={theme} label="导出 Markdown" detail={`可读文本 · ${entriesCount} 篇`} onClick={downloadMarkdown} isLast />
       </SettingsSection>
 
       <SettingsSection theme={theme} title="安 全 与 隐 私">

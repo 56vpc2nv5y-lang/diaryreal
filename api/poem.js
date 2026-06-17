@@ -3,6 +3,7 @@
 // DeepSeek API key lives in Vercel env vars (never exposed to browser).
 
 import { authorizePersonalApp } from '../lib/api-auth.js';
+import { rateLimit } from '../lib/rate-limit.js';
 
 export default async function handler(req, res) {
   const nativeFetch = globalThis.fetch;
@@ -104,6 +105,7 @@ export default async function handler(req, res) {
   };
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (!rateLimit(req, res, { limit: 12, windowMs: 60_000, name: 'poem' })) return;
   if (!(await authorizePersonalApp(req, res))) return;
 
   let body = req.body || {};
@@ -111,6 +113,8 @@ export default async function handler(req, res) {
     try { body = JSON.parse(body); } catch { return res.status(400).json({ error: '请求内容不是有效 JSON' }); }
   }
   const { diaryText } = body;
+  const style = body.style === 'en-sonnet' ? 'en-sonnet' : 'zh-classical';
+  const isSonnet = style === 'en-sonnet';
   if (!diaryText || !diaryText.trim())
     return res.status(400).json({ error: '日记内容不能为空' });
   if (diaryText.trim().length > 10000)
@@ -120,6 +124,68 @@ export default async function handler(req, res) {
   if (!apiKey)
     return res.status(500).json({ error: 'DEEPSEEK_API_KEY 未配置' });
 
+  // ── Prompt builders ─────────────────────────────────────────────
+  const classicalMessages = [
+    {
+      role: 'system',
+      content:
+        '你是一位克制、敏锐的日记文学编辑，也精通古典诗歌。' +
+        '必须从日记真实存在的事件、情绪、意象与矛盾出发，不得杜撰事实，不得预测命运。' +
+        '判词不是古诗的摘句，也不是总结评语；它应独立成篇，含义和格式参考传统册判语：以具体物象起兴，暗含人物处境与心性，第三行形成转折或反照，末行留有余味。' +
+        '判词结构示例（仅供格式参考，不得抄写）：第一行写具体物象，如"灯下残茶映窗影"；第二行写与人相关的处境，如"手中棋子未曾落"；第三行出现反转或代价，如"此局未算人已散"；第四行收束但不说尽，如"局外人亦在局中"。每行七字为宜，可用对仗，忌口号化。' +
+        '判词可以有谶语般的凝练、对偶和象征，但不得引用、改写或仿写《红楼梦》原句，不得做命运预测、道德审判或玄学断言。' +
+        '拾句必须逐字引用日记原文，不得改写、拼接或创造；若没有足够独特的句子，返回空数组。对于200字以内的短篇日记或情感性日记，只要句子传递了作者真实感受且有具体细节，即可入选，无需极高文学标准。' +
+        '只输出 JSON。',
+    },
+    {
+      role: 'user',
+      content:
+        `请根据以下日记生成一枚“今日诗签”。它是文学化回望，不是命运预测。\n` +
+        `严格返回以下 JSON：\n` +
+        `{"signTitle":"2至4个汉字的判题","motif":"一个来自日记的具体意象","judgmentLines":["四行判词，每行7至11字"],` +
+        `"interpretation":"60至100字，说明判词如何对应日记，不解释成命运","timelineLine":"从判词提炼的一句，不超过16字，不得直接使用诗句",` +
+        `"title":"两至四字诗题，签上显示这个题名","form":"五绝或七绝","lines":["四句古诗，每句可用中文逗号连接上下半句"],` +
+        `"quoteSuggestions":[{"quote":"逐字引用原文","reason":"为何值得保留","theme":"简短主题","score":0到100}]}\n` +
+        `判词写法要求：第一、二行写象与境；第三行出现反转、照见或代价；第四行收束但不说尽。判词必须另写，不能照抄古诗任一句，也不能只把日记改成散文短句。\n` +
+        `诗要原创、含蓄、押韵，与日记呼应但不直译。最多选3条拾句，没有合适句子时返回空数组。\n` +
+        `除 JSON 外不输出任何字符。\n\n日记：\n${diaryText.slice(0, 1600)}`,
+    },
+  ];
+
+  const sonnetMessages = [
+    {
+      role: 'system',
+      content:
+        'You are a discerning literary editor and a master of English verse in the tradition of Shakespeare. ' +
+        'You read a personal diary entry (it may be written in Chinese) and draw from it a "lot" — a fortune-sign — made of two distinct parts. ' +
+        'Work only from what the diary actually contains: its real events, moods, images and tensions. ' +
+        'Never invent facts, never foretell the future, never moralize, never make mystical or astrological claims.\n' +
+        '1) THE ORACLE — four short, gnomic lines in the manner of an old emblem-book motto or a sundial inscription: terse, image-first, symbolic. ' +
+        'A light Early-Modern English flavour is welcome but it must stay readable. The oracle is NOT a summary and must NOT reuse any line of the sonnet. ' +
+        'Line 1 sets a concrete image; line 2 glimpses the writer\'s situation through it; line 3 brings a turn, a cost or a reflection; line 4 closes with an aftertaste, not a verdict.\n' +
+        '2) THE SONNET — a Shakespearean sonnet of EXACTLY fourteen lines: rhyme scheme strictly ABAB CDCD EFEF GG; ' +
+        'iambic pentameter (ten syllables per line, five unstressed-stressed feet, with only rare and natural metrical substitutions and never padding); ' +
+        'a volta — a turn of thought — at line 9 or in the final couplet. The sonnet must be original and allusive, faithful to the diary yet never a literal restatement of it. ' +
+        'Quote suggestions must be copied VERBATIM from the diary in its original language; if none are truly worth keeping, return an empty array. ' +
+        'Output JSON only.',
+    },
+    {
+      role: 'user',
+      content:
+        `From the diary below, cast today's "lot": a literary mirror, not a prophecy.\n` +
+        `Return strictly this JSON (and nothing else):\n` +
+        `{"signTitle":"a 2-4 word English name for the lot","motif":"one concrete image taken from the diary",` +
+        `"judgmentLines":["exactly four oracle lines, 4 to 9 words each"],` +
+        `"interpretation":"40 to 80 words in English: how the oracle answers to the diary; never frame it as fate",` +
+        `"timelineLine":"one English line distilled from the oracle, under 12 words, not copied from the sonnet",` +
+        `"title":"a 1-3 word English title for the sonnet","form":"sonnet",` +
+        `"lines":["the 14 lines of a Shakespearean sonnet, one line per array item, rhyming ABAB CDCD EFEF GG in iambic pentameter"],` +
+        `"quoteSuggestions":[{"quote":"verbatim from the diary, in its original language","reason":"why it is worth keeping","theme":"short theme","score":0-100}]}\n` +
+        `Hard rules: "lines" MUST contain exactly 14 items and obey the ABAB CDCD EFEF GG rhyme scheme; the oracle is written separately and must not copy any sonnet line; keep at most 3 quote suggestions. Output nothing but the JSON.\n\n` +
+        `Diary:\n${diaryText.slice(0, 1600)}`,
+    },
+  ];
+
   try {
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',
@@ -127,38 +193,13 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
       },
-      signal: AbortSignal.timeout(25000),
+      signal: AbortSignal.timeout(isSonnet ? 30000 : 25000),
       body: JSON.stringify({
         model: 'deepseek-chat',
-        messages: [
-          {
-            role: 'system',
-            content:
-              '你是一位克制、敏锐的日记文学编辑，也精通古典诗歌。' +
-              '必须从日记真实存在的事件、情绪、意象与矛盾出发，不得杜撰事实，不得预测命运。' +
-              '判词不是古诗的摘句，也不是总结评语；它应独立成篇，含义和格式参考传统册判语：以具体物象起兴，暗含人物处境与心性，第三行形成转折或反照，末行留有余味。' +
-              '判词结构示例（仅供格式参考，不得抄写）：第一行写具体物象，如"灯下残茶映窗影"；第二行写与人相关的处境，如"手中棋子未曾落"；第三行出现反转或代价，如"此局未算人已散"；第四行收束但不说尽，如"局外人亦在局中"。每行七字为宜，可用对仗，忌口号化。' +
-              '判词可以有谶语般的凝练、对偶和象征，但不得引用、改写或仿写《红楼梦》原句，不得做命运预测、道德审判或玄学断言。' +
-              '拾句必须逐字引用日记原文，不得改写、拼接或创造；若没有足够独特的句子，返回空数组。对于200字以内的短篇日记或情感性日记，只要句子传递了作者真实感受且有具体细节，即可入选，无需极高文学标准。' +
-              '只输出 JSON。',
-          },
-          {
-            role: 'user',
-            content:
-              `请根据以下日记生成一枚“今日诗签”。它是文学化回望，不是命运预测。\n` +
-              `严格返回以下 JSON：\n` +
-              `{"signTitle":"2至4个汉字的判题","motif":"一个来自日记的具体意象","judgmentLines":["四行判词，每行7至11字"],` +
-              `"interpretation":"60至100字，说明判词如何对应日记，不解释成命运","timelineLine":"从判词提炼的一句，不超过16字，不得直接使用诗句",` +
-              `"title":"两至四字诗题，签上显示这个题名","form":"五绝或七绝","lines":["四句古诗，每句可用中文逗号连接上下半句"],` +
-              `"quoteSuggestions":[{"quote":"逐字引用原文","reason":"为何值得保留","theme":"简短主题","score":0到100}]}\n` +
-              `判词写法要求：第一、二行写象与境；第三行出现反转、照见或代价；第四行收束但不说尽。判词必须另写，不能照抄古诗任一句，也不能只把日记改成散文短句。\n` +
-              `诗要原创、含蓄、押韵，与日记呼应但不直译。最多选3条拾句，没有合适句子时返回空数组。\n` +
-              `除 JSON 外不输出任何字符。\n\n日记：\n${diaryText.slice(0, 1600)}`,
-          },
-        ],
+        messages: isSonnet ? sonnetMessages : classicalMessages,
         response_format: { type: 'json_object' },
-        temperature: 0.92,
-        max_tokens: 1000,
+        temperature: isSonnet ? 0.85 : 0.92,
+        max_tokens: isSonnet ? 1400 : 1000,
       }),
     });
 
@@ -175,20 +216,26 @@ export default async function handler(req, res) {
     content = content.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
     const poem = JSON.parse(content);
 
+    const expectedLines = isSonnet ? 14 : 4;
     if (!poem.title || typeof poem.title !== 'string' || !Array.isArray(poem.lines) ||
-        poem.lines.length !== 4 || poem.lines.some(line => typeof line !== 'string' || !line.trim()))
-      throw new Error('诗的格式不对');
+        poem.lines.length !== expectedLines || poem.lines.some(line => typeof line !== 'string' || !line.trim()))
+      throw new Error(isSonnet ? `十四行诗须为 ${expectedLines} 行` : '诗的格式不对');
     if (!Array.isArray(poem.judgmentLines) || poem.judgmentLines.length < 4 ||
         poem.judgmentLines.slice(0, 4).some(line => typeof line !== 'string' || !line.trim()))
-      throw new Error('判词格式不对');
+      throw new Error(isSonnet ? 'oracle 格式不对' : '判词格式不对');
 
+    const signTitleMax = isSonnet ? 40 : 8;
+    const motifMax = isSonnet ? 60 : 30;
     return res.status(200).json({
       ...poem,
-      signTitle: typeof poem.signTitle === 'string' ? poem.signTitle.slice(0, 8) : poem.title,
-      motif: typeof poem.motif === 'string' ? poem.motif.slice(0, 30) : '',
+      style,
+      form: typeof poem.form === 'string' ? poem.form : (isSonnet ? 'sonnet' : '五绝'),
+      lines: poem.lines.map(String).slice(0, expectedLines),
+      signTitle: typeof poem.signTitle === 'string' ? poem.signTitle.slice(0, signTitleMax) : poem.title,
+      motif: typeof poem.motif === 'string' ? poem.motif.slice(0, motifMax) : '',
       judgmentLines: Array.isArray(poem.judgmentLines) ? poem.judgmentLines.map(String).slice(0, 4) : [],
-      interpretation: typeof poem.interpretation === 'string' ? poem.interpretation.slice(0, 500) : '',
-      timelineLine: typeof poem.timelineLine === 'string' ? poem.timelineLine.slice(0, 32) : '',
+      interpretation: typeof poem.interpretation === 'string' ? poem.interpretation.slice(0, 600) : '',
+      timelineLine: typeof poem.timelineLine === 'string' ? poem.timelineLine.slice(0, isSonnet ? 80 : 32) : '',
       quoteSuggestions: Array.isArray(poem.quoteSuggestions)
         ? poem.quoteSuggestions.filter(item => item && typeof item.quote === 'string').slice(0, 3)
         : [],
