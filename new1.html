@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Particle Effects · 文字粒子特效</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #06080d;
+      --bg-editor: #090b12;
+      --border:    #1c1f2e;
+      --border-hi: #2e3250;
+      --text:      #e0dbd4;
+      --muted:     #484b60;
+      --accent:    #b8895a;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      font-family: 'Playfair Display', 'Noto Serif SC', Georgia, serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 52px 24px 100px;
+    }
+
+    /* ── Header ── */
+    .hdr {
+      text-align: center;
+      margin-bottom: 38px;
+      user-select: none;
+    }
+    .hdr-title {
+      font-size: clamp(1.5rem, 3.5vw, 2.4rem);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+    }
+    .hdr-sub {
+      margin-top: 10px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      font-style: italic;
+      letter-spacing: 0.04em;
+    }
+    .hdr-rule {
+      width: 48px;
+      height: 1px;
+      background: var(--border-hi);
+      margin: 16px auto 0;
+    }
+
+    /* ── Lang Tabs ── */
+    .lang-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 22px;
+      user-select: none;
+    }
+    .lang-tab {
+      padding: 6px 22px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-family: inherit;
+      font-size: 0.82rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.18s, color 0.18s, border-color 0.18s;
+    }
+    .lang-tab:hover { border-color: var(--border-hi); color: var(--text); }
+    .lang-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ── Editor Wrapper ── */
+    .editor-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 880px;
+      overflow: visible;
+    }
+
+    #editor {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      min-height: 340px;
+      padding: 38px 44px;
+      font-size: clamp(1.25rem, 2.4vw, 1.75rem);
+      line-height: 1.85;
+      background: var(--bg-editor);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      outline: none;
+      caret-color: var(--accent);
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--text);
+      transition: border-color 0.2s;
+      text-wrap: pretty;
+    }
+    #editor:focus { border-color: var(--border-hi); }
+    #editor:empty::before {
+      content: attr(data-placeholder);
+      color: var(--muted);
+      font-style: italic;
+      pointer-events: none;
+    }
+
+    /* canvas lives here via JS */
+    #particle-canvas {
+      position: absolute;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* ─────────────────────────────────────
+       Keyword CSS effects
+    ───────────────────────────────────── */
+
+    /* FIRE */
+    .word-fire {
+      color: #ff7533;
+      text-shadow:
+        0 0 5px rgba(255,110,30,.9),
+        0 0 13px rgba(255,60,0,.7),
+        0 0 28px rgba(220,0,0,.3);
+      animation: kw-fire 130ms ease-in-out infinite alternate;
+    }
+    @keyframes kw-fire {
+      from {
+        text-shadow: 0 0 4px #ff8833, 0 0 10px #ff4400, 0 0 22px rgba(200,0,0,.2);
+        filter: brightness(.94);
+      }
+      to {
+        text-shadow: 0 0 9px #ffaa44, 0 0 20px #ff6600, 0 0 36px rgba(255,80,0,.45);
+        filter: brightness(1.12);
+      }
+    }
+
+    /* SMOKE */
+    .word-smoke {
+      color: #8e8ea8;
+      text-shadow: 0 1px 6px rgba(100,100,130,.4);
+      animation: kw-smoke 2.8s ease-in-out infinite alternate;
+    }
+    @keyframes kw-smoke {
+      from { opacity: .62; filter: blur(.2px); letter-spacing: 0; }
+      to   { opacity: .88; filter: blur(.5px); letter-spacing: .04em; }
+    }
+
+    /* METAL */
+    .word-metal {
+      background: linear-gradient(
+        108deg,
+        #5a5a6a 0%,
+        #b0b0c0 18%,
+        #e8e8f0 33%,
+        #ffffff 42%,
+        #e0e0e8 52%,
+        #9090a0 65%,
+        #c8c8d8 80%,
+        #7a7a8a 94%,
+        #a8a8b8 100%
+      );
+      background-size: 300% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: kw-metal-shine 2.8s linear infinite;
+    }
+    @keyframes kw-metal-shine {
+      from { background-position: 210% center; }
+      to   { background-position: -90% center; }
+    }
+
+    /* WIND */
+    .word-wind {
+      color: #7ec8f4;
+      font-style: italic;
+      text-shadow: 0 0 12px rgba(80,180,255,.28);
+      animation: kw-wind 1.9s ease-in-out infinite alternate;
+    }
+    @keyframes kw-wind {
+      from { letter-spacing: 0;     opacity: .78; }
+      to   { letter-spacing: .07em; opacity: 1; }
+    }
+
+    /* ── Legend ── */
+    .legend {
+      margin-top: 22px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      user-select: none;
+    }
+    .legend-chip {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 14px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color .15s, color .15s, background .15s;
+      white-space: nowrap;
+    }
+    .legend-chip:hover {
+      border-color: var(--border-hi);
+      color: var(--text);
+      background: rgba(255,255,255,.03);
+    }
+    .legend-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .chip-fire .legend-dot  { background: #ff7533; box-shadow: 0 0 5px #ff4400; }
+    .chip-smoke .legend-dot { background: #8e8ea8; }
+    .chip-metal .legend-dot {
+      background: linear-gradient(135deg, #888 0%, #fff 50%, #888 100%);
+    }
+    .chip-wind .legend-dot  { background: #7ec8f4; box-shadow: 0 0 5px rgba(80,180,255,.5); }
+
+    .hint {
+      margin-top: 14px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      font-style: italic;
+      opacity: .7;
+    }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+
+<body>
+
+  <header class="hdr">
+    <h1 class="hdr-title">Text Particle Effects<br><span style="font-size:.72em;letter-spacing:.06em;font-style:italic;opacity:.7">文字粒子特效</span></h1>
+    <p class="hdr-sub">Type keywords to summon the elements &nbsp;/&nbsp; 输入关键词，唤醒元素之力</p>
+    <div class="hdr-rule"></div>
+  </header>
+
+  <div class="lang-tabs">
+    <button class="lang-tab active" data-lang="en" onclick="switchLang('en')">English</button>
+    <button class="lang-tab"        data-lang="zh" onclick="switchLang('zh')">中文</button>
+  </div>
+
+  <div class="editor-wrap" id="editor-wrap">
+    <div id="editor"
+      contenteditable="true"
+      spellcheck="false"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      data-placeholder="Start typing…">
+    </div>
+    <canvas id="particle-canvas"></canvas>
+  </div>
+
+  <div class="legend" id="legend"></div>
+  <p class="hint" id="hint"></p>
+
+  <script>
+  /* ═══════════════════════════════════════════════════
+     DATA
+  ═══════════════════════════════════════════════════ */
+  const KEYWORDS = {
+    en: {
+      fire:  ['inferno','burning','blaze','flame','ember','fire','burn'],
+      smoke: ['smog','haze','mist','vapor','fog','smoke'],
+      metal: ['titanium','chrome','copper','silver','steel','iron','metal'],
+      wind:  ['cyclone','tornado','gale','breeze','storm','gust','wind'],
+    },
+    zh: {
+      fire:  ['熊熊烈火','烈火','火焰','炎火','燃烧','炎','焰','火'],
+      smoke: ['烟尘','烟雾','迷雾','尘','烟','雾'],
+      metal: ['钢铁','铁器','金属','铜','银','铁','钢'],
+      wind:  ['飓风','暴风','狂风','旋风','微风','风'],
+    }
+  };
+
+  const SAMPLE = {
+    en:
+`The fire crackled beneath the ancient metal arch, sending smoke spiraling into the moonlit sky. A gust of wind swept across the valley, scattering ember and blaze like fallen stars through the fog.
+
+The iron gates groaned under the gale, their chrome surfaces gleaming cold through the mist. Steel towers rose into the haze, their silhouettes blurred by smoke and storm.
+
+Fire and wind danced in an eternal waltz — smoke curling between the metal pillars, the inferno reflected in every silver surface.`,
+    zh:
+`火焰在古老的金属拱门下熊熊燃烧，烟雾盘旋升入月夜苍穹。一阵狂风席卷山谷，将余烬和烈火吹散如坠星，穿过弥漫的雾。
+
+钢铁大门在暴风中低吟，铁的冷面在烟雾中隐隐发光。钢的高塔刺破烟尘，轮廓在迷雾与旋风之间模糊消散。
+
+火与风共舞，演绎亘古的韵律——烟在金属廊柱间缭绕，熊熊烈火倒映于每一寸银灰的铁面之上。`
+  };
+
+  const LEGEND_INFO = {
+    en: [
+      { effect:'fire',  words:['fire','flame','blaze','ember'] },
+      { effect:'smoke', words:['smoke','fog','mist','haze'] },
+      { effect:'metal', words:['metal','steel','iron','chrome'] },
+      { effect:'wind',  words:['wind','gale','storm','breeze'] },
+    ],
+    zh: [
+      { effect:'fire',  words:['火','火焰','炎','烈火'] },
+      { effect:'smoke', words:['烟','雾','烟雾','烟尘'] },
+      { effect:'metal', words:['金属','钢','铁','钢铁'] },
+      { effect:'wind',  words:['风','狂风','暴风','微风'] },
+    ]
+  };
+
+  /* ═══════════════════════════════════════════════════
+     PARTICLE
+  ═══════════════════════════════════════════════════ */
+  class Particle {
+    constructor(x, y, effect) {
+      this.x = x; this.y = y; this.effect = effect;
+      this.life = 1; this.dead = false;
+      const r = Math.random;
+
+      if (effect === 'fire') {
+        this.vx    = (r()-.5)*1.6;
+        this.vy    = -(r()*3+1.4);
+        this.rad   = r()*6+3;
+        this.decay = .022+r()*.02;
+        this.hue   = r()*25;           // red→orange
+      } else if (effect === 'smoke') {
+        this.vx    = (r()-.5)*.55;
+        this.vy    = -(r()*.7+.22);
+        this.rad   = r()*10+7;
+        this.decay = .006+r()*.007;
+        this.gray  = 42+r()*32;
+      } else if (effect === 'metal') {
+        const a = r()*Math.PI*2, s = r()*2.8+.9;
+        this.vx    = Math.cos(a)*s;
+        this.vy    = Math.sin(a)*s-.9;
+        this.rad   = r()*2.8+.6;
+        this.decay = .04+r()*.045;
+        this.bri   = 68+r()*32;
+      } else if (effect === 'wind') {
+        this.vx    = r()*5.5+3;
+        this.vy    = (r()-.5)*.9;
+        this.rad   = r()*1.6+.4;
+        this.len   = r()*20+10;
+        this.decay = .022+r()*.016;
+      }
+    }
+
+    update() {
+      this.x += this.vx; this.y += this.vy;
+      this.life -= this.decay;
+      if (this.life <= 0) { this.dead = true; return; }
+
+      if (this.effect === 'fire') {
+        this.vx += (Math.random()-.5)*.28;
+        this.rad *= .976;
+        this.hue  = Math.min(58, this.hue+.45);
+      } else if (this.effect === 'smoke') {
+        this.rad += .13;
+        this.vx  += (Math.random()-.5)*.04;
+      } else if (this.effect === 'metal') {
+        this.vy += .1;
+      }
+    }
+
+    draw(ctx) {
+      if (this.dead) return;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, this.life);
+
+      if (this.effect === 'fire') {
+        const lit = 50+(1-this.life)*42;
+        const g = ctx.createRadialGradient(this.x,this.y,0, this.x,this.y,this.rad);
+        g.addColorStop(0,   `hsla(${this.hue+15},100%,${lit}%,1)`);
+        g.addColorStop(.55, `hsla(${this.hue*.5},100%,${lit*.65}%,.7)`);
+        g.addColorStop(1,   `hsla(0,100%,20%,0)`);
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(this.x,this.y,this.rad,0,Math.PI*2);
+        ctx.fill();
+
+      } else if (this.effect === 'smoke') {
+        ctx.globalAlpha = this.life*.32;
+        const g = ctx.createRadialGradient(this.x,this.y,0, this.x,this.y,this.rad);
+        g.addColorStop(0, `hsla(230,8%,${this.gray}%,.9)`);
+        g.addColorStop(1, `hsla(230,8%,${this.gray}%,0)`);
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(this.x,this.y,this.rad,0,Math.PI*2);
+        ctx.fill();
+
+      } else if (this.effect === 'metal') {
+        ctx.fillStyle = `hsl(210,14%,${this.bri}%)`;
+        ctx.shadowColor = `hsl(210,40%,92%)`;
+        ctx.shadowBlur  = 5;
+        ctx.translate(this.x, this.y);
+        ctx.rotate(Math.PI/4);
+        ctx.fillRect(-this.rad/2,-this.rad/2,this.rad,this.rad);
+
+      } else if (this.effect === 'wind') {
+        ctx.globalAlpha = this.life*.75;
+        ctx.strokeStyle = `hsla(205,70%,78%,1)`;
+        ctx.lineWidth   = this.rad;
+        ctx.lineCap     = 'round';
+        ctx.beginPath();
+        ctx.moveTo(this.x-this.vx*2.8, this.y-this.vy*2.8);
+        ctx.lineTo(this.x, this.y);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════
+     STATE
+  ═══════════════════════════════════════════════════ */
+  let currentLang  = 'en';
+  let particles    = [];
+  let emitters     = [];
+  let debTimer     = null;
+  let isComposing  = false;
+
+  const editor     = document.getElementById('editor');
+  const canvas     = document.getElementById('particle-canvas');
+  const ctx        = canvas.getContext('2d');
+  const wrap       = document.getElementById('editor-wrap');
+
+  /* ═══════════════════════════════════════════════════
+     CANVAS
+  ═══════════════════════════════════════════════════ */
+  const ABOVE = 130;   // px to extend canvas above editor (particles rise)
+
+  function resizeCanvas() {
+    const wr = wrap.getBoundingClientRect();
+    canvas.style.top    = `-${ABOVE}px`;
+    canvas.style.left   = '-24px';
+    canvas.style.width  = `${wr.width+48}px`;
+    canvas.style.height = `${wr.height+ABOVE+80}px`;
+    canvas.width  = wr.width  + 48;
+    canvas.height = wr.height + ABOVE + 80;
+  }
+
+  function updateEmitters() {
+    const cr = canvas.getBoundingClientRect();
+    emitters = [];
+    editor.querySelectorAll('[data-effect]').forEach(span => {
+      const sr = span.getBoundingClientRect();
+      emitters.push({
+        x: sr.left - cr.left,
+        y: sr.top  - cr.top,
+        w: sr.width,
+        h: sr.height,
+        effect: span.dataset.effect
+      });
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════
+     ANIMATION LOOP
+  ═══════════════════════════════════════════════════ */
+  function emitParticles() {
+    emitters.forEach(em => {
+      const R = Math.random;
+      let n = 0;
+      if      (em.effect==='fire')  n = 3;
+      else if (em.effect==='smoke') n = 1;
+      else if (em.effect==='metal') n = R()<.28 ? 2 : 0;
+      else if (em.effect==='wind')  n = 2;
+
+      for (let i=0;i<n;i++) {
+        const px = em.x + R()*em.w;
+        let   py;
+        if      (em.effect==='fire')  py = em.y + em.h*(.55+R()*.45);
+        else if (em.effect==='smoke') py = em.y + R()*em.h*.6;
+        else if (em.effect==='metal') py = em.y + R()*em.h;
+        else                          py = em.y + em.h*.35 + R()*em.h*.45;
+        particles.push(new Particle(px, py, em.effect));
+      }
+    });
+    if (particles.length > 650) particles.splice(0, particles.length-650);
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    emitParticles();
+    for (let i=particles.length-1; i>=0; i--) {
+      particles[i].update();
+      particles[i].draw(ctx);
+      if (particles[i].dead) particles.splice(i,1);
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════
+     HIGHLIGHT BUILD
+  ═══════════════════════════════════════════════════ */
+  function buildHTML(text, lang) {
+    // Build sorted keyword list (longest first → Chinese multi-char priority)
+    const kws = [];
+    Object.entries(KEYWORDS[lang]).forEach(([effect, words]) => {
+      words.forEach(w => kws.push({w, effect}));
+    });
+    kws.sort((a,b) => b.w.length - a.w.length);
+
+    // Mark character positions
+    const marks = new Array(text.length).fill(null);
+    kws.forEach(({w, effect}) => {
+      const lo = text.toLowerCase(), lw = w.toLowerCase();
+      let pos = 0;
+      while ((pos = lo.indexOf(lw, pos)) !== -1) {
+        // English: require word boundary
+        if (lang==='en') {
+          const pre  = pos===0 || /\W/.test(text[pos-1]);
+          const post = pos+w.length>=text.length || /\W/.test(text[pos+w.length]);
+          if (!pre||!post) { pos++; continue; }
+        }
+        // Don't overwrite
+        let blocked = false;
+        for (let i=pos; i<pos+w.length; i++) if (marks[i]) { blocked=true; break; }
+        if (!blocked) {
+          for (let i=pos; i<pos+w.length; i++)
+            marks[i] = { effect, start: i===pos, end: i===pos+w.length-1 };
+        }
+        pos += w.length;
+      }
+    });
+
+    // Build output HTML
+    const esc = c => c==='&'?'&amp;':c==='<'?'&lt;':c==='>'?'&gt;':c==='\n'?'<br>':c;
+    let html='', inSpan=false;
+
+    for (let i=0; i<text.length; i++) {
+      const ch=text[i], m=marks[i];
+      if (m) {
+        if (m.start) {
+          if (inSpan) html+='</span>';
+          html+=`<span class="word-${m.effect}" data-effect="${m.effect}">`;
+          inSpan=true;
+        }
+        html+=esc(ch);
+        if (m.end) { html+='</span>'; inSpan=false; }
+      } else {
+        if (inSpan) { html+='</span>'; inSpan=false; }
+        html+=esc(ch);
+      }
+    }
+    if (inSpan) html+='</span>';
+    return html;
+  }
+
+  /* ═══════════════════════════════════════════════════
+     CARET SAVE / RESTORE
+     Using Range.toString() — consistent before+after
+  ═══════════════════════════════════════════════════ */
+  function saveCaret() {
+    const sel = window.getSelection();
+    if (!sel||!sel.rangeCount) return -1;
+    const range = sel.getRangeAt(0);
+    const pre   = range.cloneRange();
+    pre.selectNodeContents(editor);
+    pre.setEnd(range.startContainer, range.startOffset);
+    return pre.toString().length;
+  }
+
+  function restoreCaret(target) {
+    if (target < 0) return;
+    let count=0, found=false;
+    const range = document.createRange();
+
+    function walk(node) {
+      if (found) return;
+      if (node.nodeType===Node.TEXT_NODE) {
+        if (count+node.length >= target) {
+          range.setStart(node, target-count);
+          range.collapse(true);
+          found=true; return;
+        }
+        count+=node.length;
+      } else {
+        for (const c of node.childNodes) walk(c);
+      }
+    }
+    walk(editor);
+    if (!found) { range.selectNodeContents(editor); range.collapse(false); }
+    const sel=window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  /* ═══════════════════════════════════════════════════
+     REBUILD
+  ═══════════════════════════════════════════════════ */
+  function rebuildHighlights() {
+    const pos  = saveCaret();
+    const text = editor.innerText;   // preserves \n
+    editor.innerHTML = buildHTML(text, currentLang);
+    restoreCaret(pos);
+    updateEmitters();
+    resizeCanvas();
+  }
+
+  /* ═══════════════════════════════════════════════════
+     LANGUAGE SWITCH
+  ═══════════════════════════════════════════════════ */
+  function switchLang(lang) {
+    if (lang===currentLang) return;
+    currentLang = lang;
+    document.querySelectorAll('.lang-tab').forEach(t =>
+      t.classList.toggle('active', t.dataset.lang===lang)
+    );
+    particles = [];
+    editor.innerHTML = buildHTML(SAMPLE[lang], lang);
+    buildLegend();
+    updateHint();
+    updateEmitters();
+    resizeCanvas();
+  }
+
+  /* ═══════════════════════════════════════════════════
+     LEGEND
+  ═══════════════════════════════════════════════════ */
+  function buildLegend() {
+    const legend = document.getElementById('legend');
+    legend.innerHTML = LEGEND_INFO[currentLang].map(({effect, words}) => `
+      <div class="legend-chip chip-${effect}" onclick="insertWord('${words[0]}')" title="Click to insert · 点击插入">
+        <span class="legend-dot"></span>
+        <span>${words.join(' · ')}</span>
+      </div>`
+    ).join('');
+  }
+
+  function updateHint() {
+    const h = document.getElementById('hint');
+    h.textContent = currentLang==='en'
+      ? 'Click a chip to insert · Edit freely · Keywords trigger live effects'
+      : '点击标签插入关键词 · 自由编辑 · 关键词触发实时粒子效果';
+  }
+
+  function insertWord(word) {
+    editor.focus();
+    const sel=window.getSelection();
+    if (sel&&sel.rangeCount) {
+      const range=sel.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(document.createTextNode(' '+word+' '));
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+    clearTimeout(debTimer);
+    debTimer=setTimeout(rebuildHighlights, 200);
+  }
+
+  /* ═══════════════════════════════════════════════════
+     EVENTS
+  ═══════════════════════════════════════════════════ */
+  editor.addEventListener('compositionstart', ()=>{ isComposing=true; });
+  editor.addEventListener('compositionend',   ()=>{
+    isComposing=false;
+    clearTimeout(debTimer);
+    debTimer=setTimeout(rebuildHighlights, 180);
+  });
+
+  editor.addEventListener('input', ()=>{
+    if (isComposing) return;
+    clearTimeout(debTimer);
+    debTimer=setTimeout(rebuildHighlights, 280);
+  });
+
+  // Intercept Enter → insert <br> instead of browser <div>
+  editor.addEventListener('keydown', e=>{
+    if (e.key==='Enter') {
+      e.preventDefault();
+      const sel=window.getSelection();
+      if (!sel||!sel.rangeCount) return;
+      const range=sel.getRangeAt(0);
+      range.deleteContents();
+      const br=document.createElement('br');
+      range.insertNode(br);
+      // Move cursor after br
+      range.setStartAfter(br);
+      range.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(range);
+      clearTimeout(debTimer);
+      debTimer=setTimeout(rebuildHighlights, 280);
+    }
+  });
+
+  // Keep emitter positions in sync when user scrolls or resizes
+  window.addEventListener('resize', ()=>{ resizeCanvas(); updateEmitters(); });
+  editor.addEventListener('scroll', updateEmitters);
+
+  /* ═══════════════════════════════════════════════════
+     INIT
+  ═══════════════════════════════════════════════════ */
+  editor.innerHTML = buildHTML(SAMPLE['en'], 'en');
+  buildLegend();
+  updateHint();
+  resizeCanvas();
+  updateEmitters();
+  animate();
+
+  // Keep emitters fresh as editor grows
+  setInterval(()=>{ resizeCanvas(); updateEmitters(); }, 1200);
+  </script>
+</body>
+</html>

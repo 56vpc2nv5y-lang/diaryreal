@@ -123,12 +123,150 @@ function TimelineRow({ entry, theme, onClick, isFirst }) {
   );
 }
 
+// ──────────────────────────────────────────────────────────────────
+// 诗册插画库 — 免费静态国风插画（零成本、零存储、可主题化）
+// 每首诗按关键词+季节确定性分配一幅水墨小景；未来可在付费期换成 AI 逐篇配图。
+// ──────────────────────────────────────────────────────────────────
+const BOOK_SCENES = {
+  // 远山
+  mountains: (t) => (<>
+    <circle cx="113" cy="50" r="17" fill={t.seal} opacity=".12" />
+    <circle cx="113" cy="50" r="17" fill="none" stroke={t.seal} strokeWidth="1" opacity=".34" />
+    <path d="M0 150 Q42 112 74 138 T150 122" fill="none" stroke={t.textSoft} strokeWidth="1.4" strokeLinecap="round" opacity=".5" />
+    <path d="M0 176 Q40 142 78 166 T150 150" fill="none" stroke={t.accent} strokeWidth="1.6" strokeLinecap="round" opacity=".55" />
+    <path d="M0 214 Q48 168 96 198 Q124 215 150 188 L150 220 L0 220 Z" fill={t.accent} opacity=".14" />
+    <path d="M0 214 Q48 168 96 198 Q124 215 150 188" fill="none" stroke={t.accent} strokeWidth="1.8" strokeLinecap="round" opacity=".5" />
+  </>),
+  // 孤月 · 水波
+  moon: (t) => (<>
+    <circle cx="104" cy="56" r="22" fill={t.seal} opacity=".13" />
+    <circle cx="104" cy="56" r="22" fill="none" stroke={t.seal} strokeWidth="1.1" opacity=".4" />
+    <path d="M90 49c6 5 6 13 0 18" fill="none" stroke={t.seal} strokeWidth="1" opacity=".3" />
+    {[150, 168, 186].map((y, i) => (
+      <path key={i} d={`M8 ${y} q34 -9 67 0 t67 0`} fill="none" stroke={t.accent} strokeWidth="1.2" strokeLinecap="round" opacity={0.46 - i * 0.1} />
+    ))}
+  </>),
+  // 梅枝
+  plum: (t) => (<>
+    <path d="M16 214 C40 170 58 140 70 92 C76 66 84 50 96 36" fill="none" stroke={t.accent} strokeWidth="2.4" strokeLinecap="round" opacity=".62" />
+    <path d="M58 132 C72 126 84 118 92 104M70 92 C84 92 96 84 104 72M64 112 C54 108 46 100 42 88" fill="none" stroke={t.accent} strokeWidth="1.5" strokeLinecap="round" opacity=".5" />
+    {[[98, 34], [108, 70], [90, 104], [44, 86], [70, 56]].map(([x, y], i) => (
+      <g key={i}>
+        <circle cx={x} cy={y} r="5.5" fill={t.seal} opacity=".18" />
+        <circle cx={x} cy={y} r="5.5" fill="none" stroke={t.seal} strokeWidth="1" opacity=".5" />
+        <circle cx={x} cy={y} r="1.2" fill={t.seal} opacity=".6" />
+      </g>
+    ))}
+  </>),
+  // 江帆 · 流水
+  river: (t) => (<>
+    {[120, 138, 156, 174, 192].map((y, i) => (
+      <path key={i} d={`M6 ${y} q36 -7 72 0 t66 0`} fill="none" stroke={t.accent} strokeWidth="1.2" strokeLinecap="round" opacity={0.5 - i * 0.07} />
+    ))}
+    <path d="M92 116 l0 -44 28 44 z" fill={t.seal} opacity=".14" />
+    <path d="M92 116 l0 -44 28 44" fill="none" stroke={t.accent} strokeWidth="1.5" strokeLinejoin="round" opacity=".55" />
+    <path d="M80 116 q12 8 40 0" fill="none" stroke={t.accent} strokeWidth="1.8" strokeLinecap="round" opacity=".55" />
+  </>),
+  // 飞鸟 · 远云
+  birds: (t) => (<>
+    <path d="M16 60 q22 -16 46 -4 q20 10 44 2" fill="none" stroke={t.textSoft} strokeWidth="1.3" strokeLinecap="round" opacity=".42" />
+    {[[40, 96], [74, 82], [104, 100], [60, 120]].map(([x, y], i) => (
+      <path key={i} d={`M${x - 11} ${y} q11 -9 11 0 q0 -9 11 0`} fill="none" stroke={t.accent} strokeWidth="1.6" strokeLinecap="round" opacity=".55" />
+    ))}
+    <path d="M0 206 q40 -10 80 0 t70 0" fill="none" stroke={t.accent} strokeWidth="1.5" strokeLinecap="round" opacity=".4" />
+  </>),
+  // 幽兰 · 草
+  orchid: (t) => (<>
+    {[[30, 30], [46, -10], [62, 22], [80, -14], [96, 14]].map(([x, sway], i) => (
+      <path key={i} d={`M${x} 216 C${x + sway} 168 ${x - sway} 120 ${x + sway / 2} ${72 + i * 4}`} fill="none" stroke={t.accent} strokeWidth="1.6" strokeLinecap="round" opacity={0.55 - i * 0.05} />
+    ))}
+    <circle cx="58" cy="78" r="3.2" fill={t.seal} opacity=".5" />
+    <circle cx="84" cy="92" r="2.6" fill={t.seal} opacity=".4" />
+  </>),
+  // 孤舟 · 月下
+  boat: (t) => (<>
+    <circle cx="110" cy="48" r="15" fill={t.seal} opacity=".12" />
+    <circle cx="110" cy="48" r="15" fill="none" stroke={t.seal} strokeWidth="1" opacity=".34" />
+    {[150, 170, 190].map((y, i) => (
+      <path key={i} d={`M8 ${y} q34 -8 68 0 t66 0`} fill="none" stroke={t.accent} strokeWidth="1.1" strokeLinecap="round" opacity={0.4 - i * 0.08} />
+    ))}
+    <path d="M44 150 q22 16 50 0" fill="none" stroke={t.accent} strokeWidth="2" strokeLinecap="round" opacity=".6" />
+    <path d="M68 150 l0 -22M68 128 l14 8" fill="none" stroke={t.accent} strokeWidth="1.4" strokeLinecap="round" opacity=".5" />
+  </>),
+  // 秋叶 · 枯枝
+  autumn: (t) => (<>
+    <path d="M150 30 C112 44 92 60 78 86 C70 100 60 112 44 120" fill="none" stroke={t.accent} strokeWidth="2.2" strokeLinecap="round" opacity=".55" />
+    <path d="M104 56 C100 44 100 34 106 24M86 78 C80 70 78 58 82 48" fill="none" stroke={t.accent} strokeWidth="1.3" strokeLinecap="round" opacity=".45" />
+    {[[54, 150, 18], [40, 180, -22], [78, 168, 8]].map(([x, y, r], i) => (
+      <g key={i} transform={`translate(${x} ${y}) rotate(${r})`}>
+        <path d="M0 0 q7 -8 0 -16 q-7 8 0 16" fill={t.seal} opacity=".22" />
+        <path d="M0 0 q7 -8 0 -16 q-7 8 0 16M0 0 l0 -16" fill="none" stroke={t.seal} strokeWidth=".9" opacity=".5" />
+      </g>
+    ))}
+  </>),
+};
+const BOOK_SCENE_IDS = Object.keys(BOOK_SCENES);
+
+function pickBookScene(entry) {
+  const text = [entry?.poem?.title, entry?.sign?.motif, entry?.sign?.title,
+    (entry?.poem?.lines || []).join(''), entry?.title, (entry?.body || '').slice(0, 80)].join(' ');
+  const rules = [
+    [/月|夜|宵|银河|星|moon|night|star/i, 'moon'],
+    [/舟|船|帆|渡|航|boat|sail|ship/i, 'boat'],
+    [/山|岭|峰|岚|崖|mountain|hill|peak/i, 'mountains'],
+    [/梅|花|蕊|香|绽|开|blossom|flower|bloom|petal/i, 'plum'],
+    [/雨|水|江|河|川|流|溪|潮|海|波|rain|river|water|sea|tide|wave/i, 'river'],
+    [/鸟|雁|飞|燕|鹤|翼|bird|wing|fly|swallow|crane/i, 'birds'],
+    [/兰|草|风|蕨|苔|grass|wind|orchid|moss/i, 'orchid'],
+    [/秋|叶|落|枯|寒|霜|autumn|leaf|fall|wither|frost/i, 'autumn'],
+  ];
+  for (const [re, id] of rules) if (re.test(text)) return id;
+  const month = Number((entry?.date || '').slice(5, 7)) || 0;
+  if (month >= 3 && month <= 5) return 'plum';
+  if (month >= 6 && month <= 8) return 'river';
+  if (month >= 9 && month <= 11) return 'autumn';
+  if (month === 12 || (month >= 1 && month <= 2)) return 'moon';
+  let hash = 0; const s = String(entry?.id || '');
+  for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+  return BOOK_SCENE_IDS[hash % BOOK_SCENE_IDS.length];
+}
+
+function BookIllustration({ theme, scene }) {
+  const render = BOOK_SCENES[scene] || BOOK_SCENES.mountains;
+  return (
+    <svg viewBox="0 0 150 220" style={{ position: 'relative', zIndex: 1, width: '100%', height: 224, marginTop: 16 }}>
+      {render(theme)}
+    </svg>
+  );
+}
+
 function PoemBook({ theme, entries, onOpen }) {
   const [page, setPage] = React.useState(0);
   const [dir, setDir] = React.useState('next');
+  const touchX = React.useRef(null);
+
   React.useEffect(() => {
     if (page > Math.max(0, entries.length - 1)) setPage(Math.max(0, entries.length - 1));
   }, [entries.length, page]);
+
+  const turn = React.useCallback((delta) => {
+    setPage(current => {
+      const next = Math.max(0, Math.min(entries.length - 1, current + delta));
+      if (next !== current) setDir(delta > 0 ? 'next' : 'prev');
+      return next;
+    });
+  }, [entries.length]);
+
+  React.useEffect(() => {
+    const onKey = e => {
+      const tag = (e.target?.tagName || '').toUpperCase();
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (e.key === 'ArrowLeft') turn(-1);
+      if (e.key === 'ArrowRight') turn(1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [turn]);
 
   if (!entries.length) {
     return (
@@ -140,114 +278,125 @@ function PoemBook({ theme, entries, onOpen }) {
 
   const entry = entries[page];
   const [c1, c2] = sealChars(entry.poem?.title || '诗签');
-  const motif = entry.sign?.motif || entry.poem?.title || '今日';
+  const enPoem = entry.poem?.style === 'en-sonnet' || entry.sign?.style === 'en-sonnet' || (entry.poem?.lines || []).length > 4;
+  const motif = entry.sign?.motif || entry.poem?.title || (enPoem ? 'today' : '今日');
+  const scene = pickBookScene(entry);
   const canPrev = page > 0;
   const canNext = page < entries.length - 1;
-  const turn = delta => {
-    setDir(delta > 0 ? 'next' : 'prev');
-    setPage(current => Math.max(0, Math.min(entries.length - 1, current + delta)));
+
+  const onTouchStart = e => { touchX.current = e.changedTouches?.[0]?.clientX ?? null; };
+  const onTouchEnd = e => {
+    if (touchX.current == null) return;
+    const dx = (e.changedTouches?.[0]?.clientX ?? touchX.current) - touchX.current;
+    if (Math.abs(dx) > 46) turn(dx < 0 ? 1 : -1);
+    touchX.current = null;
   };
+
+  const navButton = (delta, enabled, dirIcon, label) => (
+    <button type="button" aria-label={label} disabled={!enabled} onClick={() => turn(delta)} style={{
+      width: 34, height: 34, borderRadius: 17, border: `0.5px solid ${theme.line}`,
+      background: enabled ? theme.paper : theme.surface, opacity: enabled ? 1 : .45,
+      display: 'grid', placeItems: 'center', cursor: enabled ? 'pointer' : 'default',
+    }}><IconChevron color={theme.textSoft} dir={dirIcon} size={12}/></button>
+  );
+
+  const titleButton = (
+    <button type="button" onClick={() => onOpen?.(entry.id)} className="serif" title="查看那天的日记" style={{
+      border: 'none', background: 'transparent', color: theme.text, fontFamily: 'inherit',
+      fontSize: enPoem ? 19 : 25, letterSpacing: enPoem ? 1 : 7, lineHeight: 1.2,
+      fontStyle: enPoem ? 'italic' : 'normal', padding: enPoem ? 0 : '0 0 0 .45em',
+      cursor: 'pointer', textAlign: 'center',
+    }}>{entry.poem.title}</button>
+  );
+
+  const illustration = (
+    <div style={{
+      position: 'relative',
+      padding: enPoem ? '18px 16px 14px' : '26px 16px 20px',
+      background: `linear-gradient(150deg, ${theme.surface}, ${theme.paper})`,
+      borderRight: enPoem ? 'none' : `0.5px solid ${theme.line}`,
+      borderBottom: enPoem ? `0.5px solid ${theme.line}` : 'none',
+      overflow: 'hidden',
+    }}>
+      <div style={{ position: 'absolute', inset: enPoem ? 12 : 22, border: `1px solid ${theme.line}`, opacity: .4 }} />
+      <BookIllustration theme={theme} scene={scene} />
+      {enPoem
+        ? <div className="serif" style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginTop: 8, color: theme.textSoft, fontSize: 12.5, fontStyle: 'italic', letterSpacing: .4, lineHeight: 1.5 }}>{motif}</div>
+        : <div className="serif" style={{ position: 'relative', zIndex: 1, writingMode: 'vertical-rl', textOrientation: 'upright', margin: '8px auto 0', height: 112, color: theme.textSoft, fontSize: 17, letterSpacing: 8 }}>{motif}</div>}
+      <div style={{ position: 'absolute', left: 14, bottom: 12, fontSize: 9.5, color: theme.textMute, letterSpacing: 1.5 }}>
+        {enPoem ? 'illustration · by motif' : '插画 · 据意象绘'}
+      </div>
+    </div>
+  );
+
+  const poemPane = (
+    <div style={{ position: 'relative', zIndex: 1, padding: enPoem ? '20px 22px 18px' : '26px 20px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div style={{ fontSize: 10, color: theme.textMute, letterSpacing: 3, fontWeight: 600 }}>{enPoem ? 'LOT' : '诗 册'}</div>
+        <Seal char1={c1} char2={c2} theme={theme} size={30} rotate={-4}/>
+      </div>
+      <div style={{ marginTop: enPoem ? 12 : 24 }}>{titleButton}</div>
+      <div style={{ fontSize: 9, color: theme.textMute, marginTop: 5, letterSpacing: 1 }}>
+        {enPoem ? 'tap title · open that day' : '点标题 · 看那天日记'}
+      </div>
+      <div style={{ width: 26, height: 1, background: theme.accent, margin: enPoem ? '12px auto 14px' : '16px auto 20px' }} />
+      <PoemBody lines={entry.poem.lines || []} size={enPoem ? 14 : 17} theme={theme}/>
+      <div style={{ marginTop: 'auto', width: '100%', color: theme.textMute, fontSize: 10.5, lineHeight: 1.7, letterSpacing: 1, paddingTop: 14 }}>
+        {entry.date?.replace(/-/g, '.')} · {entry.place || (enPoem ? '—' : '未记录地点')}
+      </div>
+    </div>
+  );
 
   return (
     <div style={{ padding: '20px 16px 120px' }}>
       <style>{`
-        @keyframes poem-book-turn {
-          0% { transform: rotateY(-8deg) translateX(8px); opacity: .72; }
-          100% { transform: rotateY(0) translateX(0); opacity: 1; }
+        @keyframes book-flip-next {
+          0% { transform: perspective(1500px) rotateY(-46deg); opacity: .3; }
+          55% { opacity: 1; }
+          100% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
         }
-        @keyframes poem-book-turn-back {
-          0% { transform: rotateY(8deg) translateX(-8px); opacity: .72; }
-          100% { transform: rotateY(0) translateX(0); opacity: 1; }
+        @keyframes book-flip-prev {
+          0% { transform: perspective(1500px) rotateY(46deg); opacity: .3; }
+          55% { opacity: 1; }
+          100% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
         }
+        @keyframes book-sheen-next { 0% { opacity: .55; transform: translateX(-40%); } 100% { opacity: 0; transform: translateX(130%); } }
+        @keyframes book-sheen-prev { 0% { opacity: .55; transform: translateX(130%); } 100% { opacity: 0; transform: translateX(-40%); } }
       `}</style>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 8px 12px' }}>
-        <div style={{ fontSize: 11, color: theme.textMute, letterSpacing: 2 }}>
-          第 {page + 1} 页 · 共 {entries.length} 首
-        </div>
+        <div style={{ fontSize: 11, color: theme.textMute, letterSpacing: 2 }}>第 {page + 1} 页 · 共 {entries.length} 首</div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" aria-label="上一页" disabled={!canPrev} onClick={() => turn(-1)} style={{
-            width: 34, height: 34, borderRadius: 17, border: `0.5px solid ${theme.line}`,
-            background: canPrev ? theme.paper : theme.surface, opacity: canPrev ? 1 : .45,
-            display: 'grid', placeItems: 'center', cursor: canPrev ? 'pointer' : 'default',
-          }}><IconChevron color={theme.textSoft} dir="left" size={12}/></button>
-          <button type="button" aria-label="下一页" disabled={!canNext} onClick={() => turn(1)} style={{
-            width: 34, height: 34, borderRadius: 17, border: `0.5px solid ${theme.line}`,
-            background: canNext ? theme.paper : theme.surface, opacity: canNext ? 1 : .45,
-            display: 'grid', placeItems: 'center', cursor: canNext ? 'pointer' : 'default',
-          }}><IconChevron color={theme.textSoft} dir="right" size={12}/></button>
+          {navButton(-1, canPrev, 'left', '上一页')}
+          {navButton(1, canNext, 'right', '下一页')}
         </div>
       </div>
 
-      <div style={{ perspective: 1100 }}>
-        <div key={`${entry.id}-${dir}`} style={{
-          minHeight: 430,
+      <div style={{ perspective: 1500 }} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+        <div key={`${entry.id}-${page}-${dir}`} style={{
+          position: 'relative',
+          minHeight: enPoem ? 0 : 430,
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, .92fr) minmax(0, 1.08fr)',
+          gridTemplateColumns: enPoem ? '1fr' : 'minmax(0, .92fr) minmax(0, 1.08fr)',
           borderRadius: '8px 18px 18px 8px',
           overflow: 'hidden',
           background: theme.paper,
           border: `0.5px solid ${theme.line}`,
-          boxShadow: `0 18px 44px ${theme.text}22`,
+          boxShadow: `0 20px 48px ${theme.text}26`,
           transformOrigin: dir === 'next' ? 'left center' : 'right center',
-          animation: `${dir === 'next' ? 'poem-book-turn' : 'poem-book-turn-back'} .42s cubic-bezier(.2,.8,.2,1)`,
+          animation: `${dir === 'next' ? 'book-flip-next' : 'book-flip-prev'} .5s cubic-bezier(.2,.7,.2,1)`,
         }}>
-          <div style={{
-            position: 'relative',
-            minHeight: 430,
-            padding: '26px 16px 20px',
-            background: `linear-gradient(150deg, ${theme.surface}, ${theme.paper})`,
-            borderRight: `0.5px solid ${theme.line}`,
-            overflow: 'hidden',
-          }}>
-            <ThemeCardArt theme={theme} kind="quote" />
-            <div style={{
-              position: 'absolute', inset: 22,
-              border: `1px solid ${theme.line}`,
-              opacity: .46,
-            }} />
-            <svg viewBox="0 0 150 210" style={{ position: 'relative', zIndex: 1, width: '100%', height: 220, marginTop: 24 }}>
-              <path d="M14 162c34-22 57 13 92-4 21-10 34-4 51 3" fill="none" stroke={theme.accent} strokeWidth="2" strokeLinecap="round" opacity=".52"/>
-              <path d="M42 72c21 11 34 28 44 54M73 105l-31-5M84 124l27-22M62 90l-4-32" fill="none" stroke={theme.accent} strokeWidth="1.5" strokeLinecap="round" opacity=".48"/>
-              <circle cx="106" cy="54" r="20" fill={theme.accent} opacity=".10"/>
-              <circle cx="106" cy="54" r="12" fill="none" stroke={theme.accent} opacity=".36"/>
-            </svg>
-            <div className="serif" style={{
-              position: 'relative', zIndex: 1,
-              writingMode: 'vertical-rl', textOrientation: 'upright',
-              margin: '8px auto 0', height: 118,
-              color: theme.textSoft, fontSize: 18, letterSpacing: 8,
-            }}>{motif}</div>
-            <div style={{ position: 'absolute', left: 16, bottom: 18, fontSize: 10, color: theme.textMute, letterSpacing: 2 }}>
-              插画为本地意象绘制
-            </div>
-          </div>
-
-          <div style={{ minHeight: 430, padding: '26px 20px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div style={{ fontSize: 10, color: theme.textMute, letterSpacing: 3, fontWeight: 600 }}>
-                诗 册
-              </div>
-              <Seal char1={c1} char2={c2} theme={theme} size={32} rotate={-4}/>
-            </div>
-            <button type="button" onClick={() => onOpen?.(entry.id)} className="serif" style={{
-              marginTop: 24,
-              border: 'none',
-              background: 'transparent',
-              color: theme.text,
-              fontFamily: 'inherit',
-              fontSize: 25,
-              letterSpacing: 7,
-              lineHeight: 1.2,
-              padding: '0 0 0 .45em',
-              cursor: 'pointer',
-            }}>{entry.poem.title}</button>
-            <div style={{ width: 28, height: 1, background: theme.accent, margin: '18px auto 22px' }} />
-            <PoemBody lines={entry.poem.lines || []} size={17} theme={theme}/>
-            <div style={{ marginTop: 'auto', width: '100%', color: theme.textMute, fontSize: 10.5, lineHeight: 1.7, letterSpacing: 1 }}>
-              {entry.date?.replace(/-/g, '.')} · {entry.place || '未记录地点'}
-            </div>
-          </div>
+          {/* spine shadow (Chinese two-page look) */}
+          {!enPoem && <div style={{ position: 'absolute', left: '46%', top: 0, bottom: 0, width: '8%', background: `linear-gradient(90deg, transparent, ${theme.text}14, transparent)`, pointerEvents: 'none', zIndex: 2 }} />}
+          {/* page-turn sheen */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3, background: `linear-gradient(105deg, transparent 32%, ${theme.paper}b3 50%, transparent 68%)`, animation: `${dir === 'next' ? 'book-sheen-next' : 'book-sheen-prev'} .5s ease-out` }} />
+          {illustration}
+          {poemPane}
         </div>
+      </div>
+
+      <div style={{ textAlign: 'center', marginTop: 12, fontSize: 11, color: theme.textMute, letterSpacing: 1.5 }}>
+        左右滑动 · 箭头键 · 点标题看那天日记
       </div>
     </div>
   );
@@ -476,6 +625,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
   const [autoLoc, setAutoLoc_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoLoc') ?? 'true'));
   const [autoPoem, setAutoPoem_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoPoem') ?? 'true'));
   const [saveRej, setSaveRej_] = React.useState(() => JSON.parse(localStorage.getItem('d-saveRej') ?? 'false'));
+  const [writeFx, setWriteFx_] = React.useState(() => JSON.parse(localStorage.getItem('d-writingParticles') ?? 'true'));
   const [poemStyle, setPoemStyle_] = React.useState(() => localStorage.getItem('d-poemStyle') === 'en-sonnet' ? 'en-sonnet' : 'zh-classical');
   const fileRef = React.useRef(null);
   const tog = (key, val, setter) => { localStorage.setItem(key, JSON.stringify(val)); setter(val); };
@@ -718,6 +868,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         <SettingsRow theme={theme} label="诗体风格"
           detail={poemStyle === 'en-sonnet' ? '英文 · 莎士比亚十四行诗' : '中文 · 古体诗'}
           onClick={togglePoemStyle} />
+        <SettingsRow theme={theme} label="写字时的元素粒子" toggle on={writeFx} onToggle={() => tog('d-writingParticles', !writeFx, setWriteFx_)} detail="花·雨·雪·风·火·月" />
         <SettingsRow theme={theme} label="保存被否决的诗" toggle on={saveRej} onToggle={() => tog('d-saveRej', !saveRej, setSaveRej_)} isLast />
       </SettingsSection>
 

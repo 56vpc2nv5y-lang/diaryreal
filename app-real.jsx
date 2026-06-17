@@ -580,6 +580,199 @@ function SignLanding({ theme, entries = [], onCompose, onShake, onOpen, onTab })
   );
 }
 
+// ─── 写字时的元素粒子 ──────────────────────────────────────────────
+// 写日记时，提到的自然/情绪意象（花/雨/雪/风/火/月…）会从那个词轻轻升起对应的
+// 水墨粒子。覆盖在 textarea 之上的 canvas（pointer-events:none，不影响打字），
+// 用镜像 div 定位关键词。配色取自当前主题，气质克制，可在设置里关闭。
+const WRITING_FX = [
+  { fx: 'petal', re: /花|樱|瓣|梅|桃|杏|蕊|落英|flower|petal|blossom|bloom/gi },
+  { fx: 'rain',  re: /雨|淋|潮|霖|drizzle|rain/gi },
+  { fx: 'snow',  re: /雪|霜|寒|冰|snow|frost/gi },
+  { fx: 'wind',  re: /风|吹|飘|拂|wind|breeze|gust/gi },
+  { fx: 'ember', re: /火|焰|烛|灯|炉|暖|fire|flame|ember|lamp|candle/gi },
+  { fx: 'glow',  re: /月|星|光|萤|烁|莹|moon|star|light|glow|shine/gi },
+];
+
+function hexToRgba(hex, a) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(String(hex || '').trim());
+  if (!m) return `rgba(150,150,150,${a})`;
+  return `rgba(${parseInt(m[1], 16)},${parseInt(m[2], 16)},${parseInt(m[3], 16)},${a})`;
+}
+
+function markWritingRanges(text) {
+  const marks = new Array(text.length).fill(null);
+  for (const { fx, re } of WRITING_FX) {
+    re.lastIndex = 0;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index === re.lastIndex) re.lastIndex++;
+      let blocked = false;
+      for (let i = m.index; i < m.index + m[0].length; i++) if (marks[i]) { blocked = true; break; }
+      if (!blocked) for (let i = m.index; i < m.index + m[0].length; i++) marks[i] = { fx, start: i === m.index, end: i === m.index + m[0].length - 1 };
+    }
+  }
+  return marks;
+}
+
+class WritingParticle {
+  constructor(x, y, fx, theme) {
+    const r = Math.random;
+    this.x = x; this.y = y; this.fx = fx; this.life = 1; this.dead = false; this.rot = r() * Math.PI * 2;
+    if (fx === 'petal') { this.vx = (r() - .5) * .5; this.vy = r() * .5 + .25; this.rad = r() * 3 + 2.5; this.decay = .006 + r() * .004; this.spin = (r() - .5) * .08; this.color = theme.seal; }
+    else if (fx === 'rain') { this.vx = -.3 + r() * .2; this.vy = r() * 2.4 + 2.2; this.rad = r() * 1 + .6; this.len = r() * 8 + 6; this.decay = .02 + r() * .015; this.color = theme.accent; }
+    else if (fx === 'snow') { this.vx = (r() - .5) * .35; this.vy = r() * .45 + .2; this.rad = r() * 1.8 + 1; this.decay = .005 + r() * .004; this.sway = r() * Math.PI * 2; this.color = '#ffffff'; }
+    else if (fx === 'wind') { this.vx = r() * 2.2 + 1.1; this.vy = (r() - .5) * .5; this.rad = r() * 1 + .5; this.len = r() * 14 + 8; this.decay = .015 + r() * .012; this.color = theme.textSoft || theme.textMute; }
+    else if (fx === 'ember') { this.vx = (r() - .5) * .5; this.vy = -(r() * .8 + .4); this.rad = r() * 2 + 1; this.decay = .012 + r() * .01; this.color = theme.accent; this.warm = true; }
+    else { this.vx = (r() - .5) * .35; this.vy = -(r() * .35 + .12); this.rad = r() * 2 + 1.4; this.decay = .009 + r() * .006; this.color = theme.seal; this.tw = r() * Math.PI * 2; }
+  }
+  update() {
+    this.x += this.vx; this.y += this.vy; this.life -= this.decay;
+    if (this.life <= 0) { this.dead = true; return; }
+    if (this.fx === 'petal') { this.rot += this.spin; this.vx += Math.sin(this.y * .05) * .02; }
+    else if (this.fx === 'snow') { this.sway += .05; this.x += Math.sin(this.sway) * .3; }
+    else if (this.fx === 'ember') { this.vx += (Math.random() - .5) * .06; this.rad *= .992; }
+    else if (this.fx === 'glow') { this.tw += .12; }
+  }
+  draw(ctx) {
+    if (this.dead) return;
+    const a = Math.max(0, this.life);
+    if (this.fx === 'petal') {
+      ctx.save(); ctx.globalAlpha = a * .5; ctx.translate(this.x, this.y); ctx.rotate(this.rot);
+      ctx.fillStyle = hexToRgba(this.color, 1); ctx.beginPath();
+      ctx.ellipse(0, 0, this.rad, this.rad * .55, 0, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    } else if (this.fx === 'rain') {
+      ctx.globalAlpha = a * .32; ctx.strokeStyle = hexToRgba(this.color, 1); ctx.lineWidth = this.rad; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x - this.vx * 2, this.y - this.len); ctx.stroke();
+    } else if (this.fx === 'snow') {
+      ctx.globalAlpha = a * .6; ctx.fillStyle = hexToRgba(this.color, 1);
+      ctx.beginPath(); ctx.arc(this.x, this.y, this.rad, 0, Math.PI * 2); ctx.fill();
+    } else if (this.fx === 'wind') {
+      ctx.globalAlpha = a * .26; ctx.strokeStyle = hexToRgba(this.color, 1); ctx.lineWidth = this.rad; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(this.x - this.len, this.y - this.vy * 2); ctx.lineTo(this.x, this.y); ctx.stroke();
+    } else if (this.fx === 'ember') {
+      const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.rad * 2);
+      g.addColorStop(0, hexToRgba(this.color, a * .7)); g.addColorStop(1, hexToRgba(this.color, 0));
+      ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(this.x, this.y, this.rad * 2, 0, Math.PI * 2); ctx.fill();
+    } else {
+      const tw = .55 + Math.sin(this.tw) * .35;
+      const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.rad * 2.4);
+      g.addColorStop(0, hexToRgba(this.color, a * tw)); g.addColorStop(1, hexToRgba(this.color, 0));
+      ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(this.x, this.y, this.rad * 2.4, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+}
+
+function WritingParticles({ textareaRef, text, theme, enabled }) {
+  const canvasRef = React.useRef(null);
+  const mirrorRef = React.useRef(null);
+  const dataRef = React.useRef({ particles: [], emitters: [], raf: 0 });
+
+  // Recompute keyword emitter positions (debounced) whenever the text changes.
+  const recompute = React.useCallback(() => {
+    const ta = textareaRef.current, mirror = mirrorRef.current;
+    if (!ta || !mirror) return;
+    const cs = getComputedStyle(ta);
+    ['fontFamily', 'fontSize', 'fontWeight', 'letterSpacing', 'lineHeight', 'textIndent'].forEach(p => { mirror.style[p] = cs[p]; });
+    mirror.style.width = ta.clientWidth + 'px';
+    const marks = markWritingRanges(text);
+    let html = '', open = false;
+    const esc = c => c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '\n' ? '<br>' : c;
+    for (let i = 0; i < text.length; i++) {
+      const m = marks[i];
+      if (m) {
+        if (m.start) { if (open) html += '</span>'; html += `<span data-fx="${m.fx}">`; open = true; }
+        html += esc(text[i]);
+        if (m.end) { html += '</span>'; open = false; }
+      } else { if (open) { html += '</span>'; open = false; } html += esc(text[i]); }
+    }
+    if (open) html += '</span>';
+    mirror.innerHTML = html + '<br>';
+    const mr = mirror.getBoundingClientRect();
+    const scroll = ta.scrollTop;
+    const h = ta.clientHeight;
+    const emitters = [];
+    mirror.querySelectorAll('[data-fx]').forEach(span => {
+      const sr = span.getBoundingClientRect();
+      const y = sr.top - mr.top - scroll;
+      if (y > -20 && y < h + 20) emitters.push({ x: sr.left - mr.left, y, w: sr.width, h: sr.height, fx: span.dataset.fx });
+    });
+    dataRef.current.emitters = emitters;
+  }, [text, textareaRef]);
+
+  React.useEffect(() => {
+    if (!enabled) return;
+    const t = setTimeout(recompute, 180);
+    return () => clearTimeout(t);
+  }, [recompute, enabled]);
+
+  React.useEffect(() => {
+    if (!enabled) return;
+    const ta = textareaRef.current, canvas = canvasRef.current;
+    if (!ta || !canvas) return;
+    const ctx = canvas.getContext('2d');
+    let w = 0, hgt = 0;
+    const fit = () => {
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      w = ta.clientWidth; hgt = ta.clientHeight;
+      // Overlay the textarea's box exactly (it sits inside .compose-body padding).
+      canvas.style.left = ta.offsetLeft + 'px';
+      canvas.style.top = ta.offsetTop + 'px';
+      canvas.style.width = w + 'px'; canvas.style.height = hgt + 'px';
+      canvas.width = w * dpr; canvas.height = hgt * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (mirrorRef.current) { mirrorRef.current.style.left = ta.offsetLeft + 'px'; mirrorRef.current.style.top = ta.offsetTop + 'px'; }
+    };
+    fit();
+    const onScroll = () => recompute();
+    ta.addEventListener('scroll', onScroll);
+    window.addEventListener('resize', fit);
+    const d = dataRef.current;
+    const loop = () => {
+      d.raf = requestAnimationFrame(loop);
+      ctx.clearRect(0, 0, w, hgt);
+      for (const em of d.emitters) {
+        let n = 0; const R = Math.random();
+        if (em.fx === 'petal') n = R < .045 ? 1 : 0;
+        else if (em.fx === 'rain') n = R < .16 ? 1 : 0;
+        else if (em.fx === 'snow') n = R < .07 ? 1 : 0;
+        else if (em.fx === 'wind') n = R < .1 ? 1 : 0;
+        else if (em.fx === 'ember') n = R < .08 ? 1 : 0;
+        else n = R < .05 ? 1 : 0;
+        for (let i = 0; i < n; i++) {
+          const px = em.x + Math.random() * em.w;
+          const py = em.y + (em.fx === 'rain' || em.fx === 'snow' || em.fx === 'petal' ? Math.random() * em.h * .4 : em.h * (.4 + Math.random() * .5));
+          d.particles.push(new WritingParticle(px, py, em.fx, theme));
+        }
+      }
+      if (d.particles.length > 150) d.particles.splice(0, d.particles.length - 150);
+      for (let i = d.particles.length - 1; i >= 0; i--) {
+        const p = d.particles[i]; p.update(); p.draw(ctx);
+        if (p.dead || p.y > hgt + 30 || p.x > w + 30 || p.x < -30) d.particles.splice(i, 1);
+      }
+    };
+    loop();
+    return () => {
+      cancelAnimationFrame(d.raf);
+      ta.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', fit);
+      d.particles = [];
+    };
+  }, [enabled, theme, recompute, textareaRef]);
+
+  if (!enabled) return null;
+  return (
+    <>
+      <canvas ref={canvasRef} style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none', zIndex: 4 }} aria-hidden="true" />
+      <div ref={mirrorRef} aria-hidden="true" style={{
+        position: 'absolute', top: 0, left: 0, visibility: 'hidden', pointerEvents: 'none',
+        whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', wordBreak: 'break-word',
+        margin: 0, padding: 0, border: 0, boxSizing: 'border-box',
+      }} />
+    </>
+  );
+}
+
 // ─── Compose Screen (real) ────────────────────────────────────────
 const MOODS_REAL = ['☕','🌙','🌸','🌊','✨','🌿','💐','😴','🥲','🎯','📖','🏃','🌳','💌','🍂'];
 
@@ -600,6 +793,12 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
   const [draftSavedAt, setDraftSavedAt] = React.useState('');
   const draftReady = React.useRef(false);
   const draftKey = `diary-draft:${entry?.id || 'new'}`;
+  const bodyRef = React.useRef(null);
+  const particlesOn = React.useMemo(() => {
+    const pref = JSON.parse(localStorage.getItem('d-writingParticles') ?? 'true');
+    const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    return pref && !reduce;
+  }, []);
 
   React.useEffect(() => {
     if (editing) return;
@@ -809,15 +1008,17 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
             }}
           />
         </div>
-        <div className="compose-body" style={{ flex: 1, padding: `14px ${customPaper ? 52 : 28}px 0`, minHeight: 0 }}>
-          <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="今天，"
+        <div className="compose-body" style={{ position: 'relative', flex: 1, padding: `14px ${customPaper ? 52 : 28}px 0`, minHeight: 0 }}>
+          <textarea ref={bodyRef} value={body} onChange={e => setBody(e.target.value)} placeholder="今天，"
             style={{
+              position: 'relative', zIndex: 1,
               width: '100%', height: '100%', border: 'none', outline: 'none', resize: 'none',
               background: 'transparent', color: paperInk,
               fontFamily: theme.fontWriting || theme.fontSerif || "'Noto Serif SC', serif",
               fontSize: 17, lineHeight: activePaper === 'ruled' ? '34px' : (theme.writingLineHeight || 1.95), letterSpacing: theme.writingSpacing ?? 0.5,
             }}
           />
+          <WritingParticles textareaRef={bodyRef} text={body} theme={theme} enabled={particlesOn && !focusMode} />
         </div>
 
         {err && <div className="compose-error" style={{ padding: '4px 28px', color: theme.seal, fontSize: 12 }}>{err}</div>}

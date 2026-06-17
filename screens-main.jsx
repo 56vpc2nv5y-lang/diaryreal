@@ -715,9 +715,9 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
     ? { drop: 'TODAY\'S LOT', judgment: 'ORACLE', sub: 'Drawn in image · mirrored in today', reading: 'READING', poem: 'SONNET' }
     : { drop: '今 日 落 签', judgment: '判 词', sub: '以象起兴 · 照见今日', reading: '解 语', poem: '诗' };
   return (
-    <Screen theme={theme} noTab>
+    <Screen theme={theme} noTab contentStyle={{ display: 'flex', flexDirection: 'column' }}>
       {/* collapsed diary header */}
-      <div style={{ padding: '60px 28px 0' }}>
+      <div style={{ padding: '60px 28px 0', flexShrink: 0 }}>
         <div style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 600 }}>本 篇 日 记</div>
         <div style={{ fontSize: 13, color: theme.textSoft, marginTop: 8, lineHeight: 1.55,
           display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
@@ -725,10 +725,10 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
         </div>
       </div>
 
-      <div style={{ height: 30 }} />
+      <div style={{ height: 24, flexShrink: 0 }} />
 
       {state !== 'done' ?
-      <div style={{ padding: '20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: 480 }}>
+      <div style={{ padding: '20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: 0, overflowY: 'auto' }}>
           {/* stylized 签筒 */}
           <div className="anim-shake" onClick={state === 'ready' ? onShake : undefined}
             onKeyDown={event => {
@@ -797,7 +797,7 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
         </div> :
 
       // 'done' — reveal
-      <div className="no-scroll anim-rise" style={{ padding: '8px 28px 150px', textAlign: 'center', overflowY: 'auto', flex: 1 }}>
+      <div className="no-scroll anim-rise" style={{ padding: '8px 28px 28px', textAlign: 'center', overflowY: 'auto', flex: 1, minHeight: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>
               {lbl.drop}
@@ -866,11 +866,12 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
         </div>
       }
 
-      {/* bottom actions */}
+      {/* bottom actions — static footer, never overlaps the scrolling content */}
       {state === 'done' &&
       <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0,
-        padding: '14px 20px 36px', background: theme.bg,
+        flexShrink: 0,
+        padding: '14px 20px calc(20px + env(safe-area-inset-bottom))', background: theme.bg,
+        borderTop: `0.5px solid ${theme.line}`,
         display: 'flex', gap: 10
       }}>
           <button onClick={onRegen} disabled={saving} style={{
@@ -888,8 +889,8 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
       }
       {state !== 'done' &&
       <div style={{
-        position: 'absolute', left: 0, right: 0, bottom: 0,
-        padding: '14px 20px 36px', textAlign: 'center'
+        flexShrink: 0,
+        padding: '14px 20px calc(20px + env(safe-area-inset-bottom))', textAlign: 'center'
       }}>
           <button onClick={onCancel} style={{
           border: 'none', background: 'transparent', color: theme.textMute,
