@@ -113,7 +113,7 @@ function ThemeHeaderMark({ theme }) {
     mossGarden: ['苔庭', '清静自然'],
     study: ['书房', '旧纸暖光'],
     dusk: ['暮云', '微光留白'],
-    morningPaper: ['新青年', 'LA JEUNESSE'],
+    morningPaper: ['晨报', '新青年式'],
     seaSalt: ['海盐', '海风轻拂'],
   };
   const [label, detail] = marks[key];
