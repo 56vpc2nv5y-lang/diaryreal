@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.16-r56';
+const APP_BUILD = '2026.06.18-r60';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -1519,10 +1519,17 @@ function AutoPoemShake({ theme, entry, onBack, onAccepted }) {
     onAccept={accept} saving={saving} error={error}/>;
 }
 
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+const PASSWORD_RESET_SENT_MESSAGE = '重置密码邮件已发送。只会发送到已注册邮箱；如果 2 分钟内没收到，请检查垃圾箱，并确认邮箱地址无误。';
+
 function friendlyAuthError(error) {
   const messages = {
     'auth/email-already-in-use': '这个邮箱已经注册，请直接登录。',
     'auth/invalid-email': '邮箱格式不正确。',
+    'auth/missing-email': '请先填写邮箱地址。',
     'auth/invalid-credential': '邮箱或密码不正确。',
     'auth/wrong-password': '邮箱或密码不正确。',
     'auth/user-not-found': '没有找到这个邮箱账户。',
@@ -1530,6 +1537,8 @@ function friendlyAuthError(error) {
     'auth/credential-already-in-use': '这个邮箱已经绑定到其他账户。',
     'auth/provider-already-linked': '当前账户已经绑定邮箱。',
     'auth/too-many-requests': '尝试次数过多，请稍后再试。',
+    'auth/unauthorized-domain': '当前域名未加入 Firebase Authentication 的授权域名，邮件无法发送。',
+    'auth/network-request-failed': '网络连接失败，请稍后再试。',
     'auth/operation-not-allowed': '请先在 Firebase Console 开启“电子邮件/密码”登录。',
   };
   return messages[error?.code] || error?.message || '操作失败，请稍后重试。';
@@ -1543,28 +1552,30 @@ function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPas
   const [message, setMessage] = React.useState('');
   const submit = async () => {
     setMessage('');
-    if (!email.trim() || password.length < 6) {
+    const normalizedEmail = normalizeEmail(email);
+    if (!normalizedEmail || password.length < 6) {
       setMessage('请输入邮箱，并使用至少 6 位密码。');
       return;
     }
     setBusy(true);
     try {
-      if (mode === 'register') await onEmailRegister(email.trim(), password);
-      else await onEmailLogin(email.trim(), password);
+      if (mode === 'register') await onEmailRegister(normalizedEmail, password);
+      else await onEmailLogin(normalizedEmail, password);
     } catch (error) {
       setMessage(friendlyAuthError(error));
       setBusy(false);
     }
   };
   const reset = async () => {
-    if (!email.trim()) {
+    const normalizedEmail = normalizeEmail(email);
+    if (!normalizedEmail) {
       setMessage('请先填写邮箱地址。');
       return;
     }
     setBusy(true);
     try {
-      await onPasswordReset(email.trim());
-      setMessage('重置密码邮件已发送。');
+      await onPasswordReset(normalizedEmail);
+      setMessage(PASSWORD_RESET_SENT_MESSAGE);
     } catch (error) {
       setMessage(friendlyAuthError(error));
     } finally {
@@ -1648,10 +1659,11 @@ function BindEmailNudge({ theme, onBindEmail, onClose }) {
 
   const bind = async () => {
     setMessage('');
-    if (!email.trim() || password.length < 6) { setMessage('请输入邮箱，并使用至少 6 位密码。'); return; }
+    const normalizedEmail = normalizeEmail(email);
+    if (!normalizedEmail || password.length < 6) { setMessage('请输入邮箱，并使用至少 6 位密码。'); return; }
     setBusy(true);
     try {
-      await onBindEmail(email.trim(), password);
+      await onBindEmail(normalizedEmail, password);
       setDone(true);
       localStorage.setItem('d-bindNudgeDone', '1');
     } catch (error) {
@@ -1859,18 +1871,21 @@ function AppReal() {
     const user = firebase.auth().currentUser;
     if (!user) throw new Error('当前没有可绑定的账户。');
     if (!user.isAnonymous) throw new Error('当前账户已经绑定邮箱。');
-    const credential = firebase.auth.EmailAuthProvider.credential(email, password);
+    const credential = firebase.auth.EmailAuthProvider.credential(normalizeEmail(email), password);
     const result = await user.linkWithCredential(credential);
     await result.user.sendEmailVerification().catch(() => {});
     setCurrentUser(result.user);
     return result.user;
   };
-  const handlePasswordReset = email => firebase.auth().sendPasswordResetEmail(email);
+  const handlePasswordReset = email => firebase.auth().sendPasswordResetEmail(normalizeEmail(email), {
+    url: window.location.origin,
+    handleCodeInApp: false,
+  });
 
   if (authState === 'welcome') return <AuthChoiceScreen theme={theme} onGuest={handleStart}
-    onEmailLogin={(email, password) => firebase.auth().signInWithEmailAndPassword(email, password)}
+    onEmailLogin={(email, password) => firebase.auth().signInWithEmailAndPassword(normalizeEmail(email), password)}
     onEmailRegister={async (email, password) => {
-      const result = await firebase.auth().createUserWithEmailAndPassword(email, password);
+      const result = await firebase.auth().createUserWithEmailAndPassword(normalizeEmail(email), password);
       await result.user.sendEmailVerification().catch(() => {});
       return result;
     }}

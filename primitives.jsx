@@ -63,9 +63,10 @@ function ThemeDecor({ theme }) {
         <circle cx="72" cy="116" r="2"/><circle cx="111" cy="87" r="1.4"/><circle cx="245" cy="126" r="1.7"/>
       </svg>
       <svg className="theme-decor-svg decor-morningPaper" viewBox="0 0 390 844">
-        <path d="M20 52h350M20 57h350M20 182h350M20 187h350M20 681h350M20 686h350"/>
-        <path d="M48 82h128M48 91h92M48 100h108M218 82h126M218 91h102M218 100h116"/>
-        <path d="M56 713h278M56 721h278M56 729h278"/>
+        <path d="M25 26h340v792H25zM32 33h326v778"/>
+        <path d="M64 134h262M64 139h262M64 724h262M64 731h262"/>
+        <path d="M62 190h266v292H62zM195 190v292M62 248h266M62 306h266M62 364h266M62 422h266"/>
+        <circle cx="195" cy="588" r="47"/><path d="M154 588h82M195 541c-14 26-14 68 0 94M195 541c14 26 14 68 0 94"/>
       </svg>
       <svg className="theme-decor-svg decor-seaSalt" viewBox="0 0 390 844">
         <path d="M-28 670c77-43 139 28 216-4s135 20 230-8M-30 695c78-38 139 24 216-3s137 17 232-7M-31 718c78-32 143 21 220-2s137 15 231-5"/>
@@ -92,7 +93,7 @@ function ThemeMotif({ theme, variant = 'card' }) {
     mossGarden: <><path d="M58 44C43 34 29 22 13 2M48 36l2-18M39 29l-18-1M31 20l1-15M23 14 8 13"/><ellipse cx="50" cy="18" rx="9" ry="3"/><ellipse cx="21" cy="28" rx="9" ry="3"/></>,
     study: <><path d="M7 7h48v32H7zM13 13h34M13 20h27M13 27h31"/><path d="M52 7l6-5v32l-6 5"/></>,
     dusk: <><path d="M17 6a18 18 0 1 0 17 29A15 15 0 1 1 17 6z"/><path d="M34 38c10-7 20-7 30 0"/><circle cx="53" cy="10" r="1.5"/></>,
-    morningPaper: <><path d="M4 5h56v36H4zM9 12h46M9 18h21M35 18h20M9 25h46M9 32h35"/><path d="M32 7v32"/></>,
+    morningPaper: <><path d="M6 5h58v38H6zM12 13h46M12 17h46"/><path d="M17 29h36M35 20v20"/><circle cx="35" cy="30" r="8"/></>,
     seaSalt: <><path d="M2 36c12-8 22 7 34-1s21 5 32-1M4 43c12-7 22 6 34-1s21 4 30-1M28 12c6-6 12-6 18 0 6-6 12-6 18 0"/></>,
   }[key];
   return (
@@ -112,7 +113,7 @@ function ThemeHeaderMark({ theme }) {
     mossGarden: ['苔庭', '清静自然'],
     study: ['书房', '旧纸暖光'],
     dusk: ['暮云', '微光留白'],
-    morningPaper: ['晨报', '第1287期'],
+    morningPaper: ['新青年', 'LA JEUNESSE'],
     seaSalt: ['海盐', '海风轻拂'],
   };
   const [label, detail] = marks[key];
@@ -584,16 +585,18 @@ function PoemBody({ lines, size = 22, theme, color, weight = 500 }) {
       <div className="serif poem-body-lines poem-body-en" style={{
         textAlign: 'left', color: color || theme.text, fontWeight: weight,
         width: '100%', maxWidth: 520, margin: '0 auto', overflow: 'visible',
-        fontStyle: 'italic',
+        fontStyle: 'normal',
+        fontFamily: 'Georgia, "Times New Roman", "Noto Serif SC", serif',
       }}>
         {enLines.map((ln, i) => {
           const couplet = isSonnet && i >= 12;
           const quatrainGap = isSonnet && (i === 4 || i === 8 || i === 12);
           return (
-            <div key={i} style={{
-              fontSize, lineHeight: 1.7,
+            <div key={i} className="poem-body-en-line" style={{
+              fontSize, lineHeight: 1.68,
               paddingLeft: couplet ? '1.4em' : 0,
               marginTop: quatrainGap ? '0.62em' : 0,
+              animationDelay: `${Math.min(i * 0.065, 0.82)}s`,
             }}>{ln}</div>
           );
         })}

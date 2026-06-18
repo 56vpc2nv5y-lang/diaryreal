@@ -729,8 +729,18 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
 
       {state !== 'done' ?
       <div style={{ padding: '20px 0', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, minHeight: 0, overflowY: 'auto' }}>
-          {/* stylized 签筒 */}
-          <div className="anim-shake" onClick={state === 'ready' ? onShake : undefined}
+          <div
+            className={`lot-stage lot-stage-${state}`}
+            style={{
+              color: theme.accent,
+              '--lot-paper': theme.paper,
+              '--lot-surface': theme.surface,
+              '--lot-accent': theme.accent,
+              '--lot-seal': theme.seal,
+            }}
+          >
+            <div className="lot-aura" />
+            <div className="lot-tube" onClick={state === 'ready' ? onShake : undefined}
             onKeyDown={event => {
               if (state !== 'ready') return;
               if (event.key === 'Enter' || event.key === ' ') {
@@ -740,39 +750,15 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
             }}
             role={state === 'ready' ? 'button' : undefined}
             tabIndex={state === 'ready' ? 0 : undefined}
-            style={{ marginBottom: 36, cursor: state === 'ready' ? 'pointer' : 'default' }}>
-            <div style={{
-            width: 110, height: 160, borderRadius: '8px 8px 14px 14px',
-            background: theme.surface,
-            border: `1.5px solid ${theme.text}33`,
-            position: 'relative', boxShadow: `0 8px 24px ${theme.text}22`
-          }}>
-              {/* sticks */}
-              {[-30, -16, -2, 12, 26].map((rot, i) =>
-            <div key={i} style={{
-              position: 'absolute', left: '50%', top: -20,
-              width: 6, height: 80, background: theme.accent,
-              borderRadius: 3, transform: `translateX(-50%) rotate(${rot * 0.2}deg)`,
-              transformOrigin: '50% 100%',
-              boxShadow: i === 2 ? `0 -4px 8px ${theme.seal}55` : 'none',
-              borderTop: i === 2 ? `8px solid ${theme.seal}` : `8px solid ${theme.accent}`
-            }} />
-            )}
-              {/* mouth */}
-              <div style={{
-              position: 'absolute', left: 6, right: 6, top: 0, height: 8,
-              background: theme.bg, borderRadius: '50% 50% 0 0 / 100% 100% 0 0'
-            }} />
-              {state === 'shaking' && <div style={{
-                position: 'absolute', left: 55, top: 96,
-                width: 18, height: 96, borderRadius: '9px 9px 13px 13px',
-                background: `linear-gradient(180deg, ${theme.paper}, ${theme.accent}22)`,
-                border: `1px solid ${theme.accent}66`,
-                boxShadow: `0 10px 20px ${theme.text}22`,
-                transform: 'translateX(-50%) rotate(4deg)',
-                animation: 'sign-slip .72s ease-in-out infinite alternate',
-              }} />}
+            style={{ cursor: state === 'ready' ? 'pointer' : 'default' }}>
+              <div className="lot-stick" />
+              <div className="lot-stick" />
+              <div className="lot-stick" />
+              <div className="lot-stick" />
+              <div className="lot-tube-mouth" />
+              <div className="lot-tube-body" />
             </div>
+            {state === 'shaking' && <div className="lot-falling-slip" />}
           </div>
           <div className="serif" style={{ fontSize: 18, color: theme.text, letterSpacing: 4, marginBottom: 12 }}>
             {state === 'ready' ? '摇 一 摇，落 一 签' : '签意正在落下'}
@@ -785,7 +771,7 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
           }} />
           )}
           </div>
-          <style>{`@keyframes pulse{0%,100%{opacity:0.2}50%{opacity:1}}@keyframes sign-slip{from{transform:translate(-50%,-8px) rotate(-3deg)}to{transform:translate(-50%,18px) rotate(5deg)}}`}</style>
+          <style>{`@keyframes pulse{0%,100%{opacity:0.2}50%{opacity:1}}`}</style>
           <div style={{ fontSize: 11, color: theme.textMute, marginTop: 40, letterSpacing: 2 }}>
             {state === 'ready' ? '摇晃手机，或点击签筒' : '读取本篇日记 · 生成判词与原创诗'}
           </div>
@@ -1188,7 +1174,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
 
       {hasPoem ? (
       /* poem block */
-      <div className="theme-poem-hero" style={{ padding: '110px 24px 36px', background: customPaper ? 'rgba(255,253,247,.84)' : theme.paper, borderBottom: `0.5px solid ${theme.line}`, textAlign: 'center', position: 'relative', ...(!customPaper ? skin(theme, 'hero') : {}) }}>
+      <div className={`theme-poem-hero${enSign ? ' theme-poem-hero-sonnet' : ''}`} style={{ padding: '110px 24px 36px', background: customPaper ? 'rgba(255,253,247,.84)' : theme.paper, borderBottom: `0.5px solid ${theme.line}`, textAlign: 'center', position: 'relative', ...(!customPaper ? skin(theme, 'hero') : {}) }}>
           {!customPaper && <ThemeCardArt theme={theme} />}
           {!customPaper && <ThemeMotif theme={theme} variant="hero" />}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

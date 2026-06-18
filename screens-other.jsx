@@ -349,22 +349,6 @@ function PoemBook({ theme, entries, onOpen }) {
 
   return (
     <div style={{ padding: '20px 16px 120px' }}>
-      <style>{`
-        @keyframes book-flip-next {
-          0%   { transform: perspective(1600px) rotateY(-78deg) scale(.965); opacity: .15; }
-          45%  { opacity: 1; }
-          100% { transform: perspective(1600px) rotateY(0deg) scale(1); opacity: 1; }
-        }
-        @keyframes book-flip-prev {
-          0%   { transform: perspective(1600px) rotateY(78deg) scale(.965); opacity: .15; }
-          45%  { opacity: 1; }
-          100% { transform: perspective(1600px) rotateY(0deg) scale(1); opacity: 1; }
-        }
-        /* a dark "page fold" shadow that sweeps across as the leaf lays down */
-        @keyframes book-fold-next { 0% { opacity: .6; transform: translateX(-65%) skewX(-7deg); } 100% { opacity: 0; transform: translateX(155%) skewX(-7deg); } }
-        @keyframes book-fold-prev { 0% { opacity: .6; transform: translateX(155%) skewX(7deg); } 100% { opacity: 0; transform: translateX(-65%) skewX(7deg); } }
-      `}</style>
-
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 8px 12px' }}>
         <div style={{ fontSize: 11, color: theme.textMute, letterSpacing: 2 }}>第 {page + 1} 页 · 共 {entries.length} 首</div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -374,7 +358,8 @@ function PoemBook({ theme, entries, onOpen }) {
       </div>
 
       <div style={{ perspective: 1500 }} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        <div key={`${entry.id}-${page}-${dir}`} style={{
+        <div key={`${entry.id}-${page}-${dir}`} className={`book-page-shell book-page-shell-${dir}`} style={{
+          '--book-paper': theme.paper,
           position: 'relative',
           minHeight: enPoem ? 0 : 430,
           display: 'grid',
@@ -386,12 +371,11 @@ function PoemBook({ theme, entries, onOpen }) {
           boxShadow: `0 20px 48px ${theme.text}26`,
           transformOrigin: dir === 'next' ? 'left center' : 'right center',
           backfaceVisibility: 'hidden',
-          animation: `${dir === 'next' ? 'book-flip-next' : 'book-flip-prev'} .62s cubic-bezier(.22,.61,.36,1)`,
         }}>
           {/* spine shadow (Chinese two-page look) */}
           {!enPoem && <div style={{ position: 'absolute', left: '46%', top: 0, bottom: 0, width: '8%', background: `linear-gradient(90deg, transparent, ${theme.text}14, transparent)`, pointerEvents: 'none', zIndex: 2 }} />}
-          {/* sweeping page-fold shadow — reads as a turning leaf */}
-          <div style={{ position: 'absolute', inset: '0 -10%', pointerEvents: 'none', zIndex: 3, background: `linear-gradient(100deg, transparent 28%, ${theme.text}33 46%, ${theme.text}1a 54%, transparent 72%)`, animation: `${dir === 'next' ? 'book-fold-next' : 'book-fold-prev'} .62s ease-out` }} />
+          <div className="book-curl-shadow" />
+          <div className={`book-turn-leaf book-turn-leaf-${dir}`} />
           {illustration}
           {poemPane}
         </div>
@@ -515,13 +499,16 @@ function EmailAccountCard({ theme, user, entriesCount, onBindEmail, onPasswordRe
 
   const bind = async () => {
     setMessage('');
-    if (!email.trim() || password.length < 6) {
+    const normalizedEmail = typeof normalizeEmail === 'function'
+      ? normalizeEmail(email)
+      : String(email || '').trim().toLowerCase();
+    if (!normalizedEmail || password.length < 6) {
       setMessage('请输入邮箱，并使用至少 6 位密码。');
       return;
     }
     setBusy(true);
     try {
-      await onBindEmail(email.trim(), password);
+      await onBindEmail(normalizedEmail, password);
       setPassword('');
       setExpanded(false);
       setMessage('邮箱绑定成功，现有日记仍属于同一账户。');
@@ -536,8 +523,17 @@ function EmailAccountCard({ theme, user, entriesCount, onBindEmail, onPasswordRe
     setBusy(true);
     setMessage('');
     try {
-      await onPasswordReset(user?.email || email.trim());
-      setMessage('重置密码邮件已发送。');
+      const resetEmail = typeof normalizeEmail === 'function'
+        ? normalizeEmail(user?.email || email)
+        : String(user?.email || email || '').trim().toLowerCase();
+      if (!resetEmail) {
+        setMessage('请先填写邮箱地址。');
+        return;
+      }
+      await onPasswordReset(resetEmail);
+      setMessage(typeof PASSWORD_RESET_SENT_MESSAGE === 'string'
+        ? PASSWORD_RESET_SENT_MESSAGE
+        : '重置密码邮件已发送。只会发送到已注册邮箱；如果 2 分钟内没收到，请检查垃圾箱。');
     } catch (error) {
       setMessage(typeof friendlyAuthError === 'function' ? friendlyAuthError(error) : (error?.message || '发送失败，请稍后重试。'));
     } finally {
@@ -741,7 +737,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
     inkPlum: '宣纸留白 · 楷体',
     mossGarden: '苔庭信纸 · 楷体',
     study: '米白旧纸 · 楷体',
-    morningPaper: '无图案信纸 · 楷体',
+    morningPaper: '新青年刊物 · 宋体',
     dusk: '低对比浅色信纸 · 楷体',
     seaSalt: '雾蓝盐白信纸 · 楷体',
   };
