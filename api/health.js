@@ -7,7 +7,7 @@ export default function handler(req, res) {
     deepseekConfigured: Boolean(process.env.DEEPSEEK_API_KEY),
     accessRestricted: Boolean(process.env.ALLOWED_FIREBASE_UID),
     // Prefer the real deploy commit (set automatically on Vercel) for traceability.
-    build: commit ? commit.slice(0, 7) : '2026.06.16-r56',
+    build: commit ? commit.slice(0, 7) : '2026.06.18-r60',
     env: process.env.VERCEL_ENV || 'local',
     time: new Date().toISOString(),
   });
