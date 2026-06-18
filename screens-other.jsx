@@ -351,17 +351,18 @@ function PoemBook({ theme, entries, onOpen }) {
     <div style={{ padding: '20px 16px 120px' }}>
       <style>{`
         @keyframes book-flip-next {
-          0% { transform: perspective(1500px) rotateY(-46deg); opacity: .3; }
-          55% { opacity: 1; }
-          100% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
+          0%   { transform: perspective(1600px) rotateY(-78deg) scale(.965); opacity: .15; }
+          45%  { opacity: 1; }
+          100% { transform: perspective(1600px) rotateY(0deg) scale(1); opacity: 1; }
         }
         @keyframes book-flip-prev {
-          0% { transform: perspective(1500px) rotateY(46deg); opacity: .3; }
-          55% { opacity: 1; }
-          100% { transform: perspective(1500px) rotateY(0deg); opacity: 1; }
+          0%   { transform: perspective(1600px) rotateY(78deg) scale(.965); opacity: .15; }
+          45%  { opacity: 1; }
+          100% { transform: perspective(1600px) rotateY(0deg) scale(1); opacity: 1; }
         }
-        @keyframes book-sheen-next { 0% { opacity: .55; transform: translateX(-40%); } 100% { opacity: 0; transform: translateX(130%); } }
-        @keyframes book-sheen-prev { 0% { opacity: .55; transform: translateX(130%); } 100% { opacity: 0; transform: translateX(-40%); } }
+        /* a dark "page fold" shadow that sweeps across as the leaf lays down */
+        @keyframes book-fold-next { 0% { opacity: .6; transform: translateX(-65%) skewX(-7deg); } 100% { opacity: 0; transform: translateX(155%) skewX(-7deg); } }
+        @keyframes book-fold-prev { 0% { opacity: .6; transform: translateX(155%) skewX(7deg); } 100% { opacity: 0; transform: translateX(-65%) skewX(7deg); } }
       `}</style>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 8px 12px' }}>
@@ -384,12 +385,13 @@ function PoemBook({ theme, entries, onOpen }) {
           border: `0.5px solid ${theme.line}`,
           boxShadow: `0 20px 48px ${theme.text}26`,
           transformOrigin: dir === 'next' ? 'left center' : 'right center',
-          animation: `${dir === 'next' ? 'book-flip-next' : 'book-flip-prev'} .5s cubic-bezier(.2,.7,.2,1)`,
+          backfaceVisibility: 'hidden',
+          animation: `${dir === 'next' ? 'book-flip-next' : 'book-flip-prev'} .62s cubic-bezier(.22,.61,.36,1)`,
         }}>
           {/* spine shadow (Chinese two-page look) */}
           {!enPoem && <div style={{ position: 'absolute', left: '46%', top: 0, bottom: 0, width: '8%', background: `linear-gradient(90deg, transparent, ${theme.text}14, transparent)`, pointerEvents: 'none', zIndex: 2 }} />}
-          {/* page-turn sheen */}
-          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3, background: `linear-gradient(105deg, transparent 32%, ${theme.paper}b3 50%, transparent 68%)`, animation: `${dir === 'next' ? 'book-sheen-next' : 'book-sheen-prev'} .5s ease-out` }} />
+          {/* sweeping page-fold shadow — reads as a turning leaf */}
+          <div style={{ position: 'absolute', inset: '0 -10%', pointerEvents: 'none', zIndex: 3, background: `linear-gradient(100deg, transparent 28%, ${theme.text}33 46%, ${theme.text}1a 54%, transparent 72%)`, animation: `${dir === 'next' ? 'book-fold-next' : 'book-fold-prev'} .62s ease-out` }} />
           {illustration}
           {poemPane}
         </div>

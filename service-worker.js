@@ -1,6 +1,6 @@
 // Bump this on every deploy that changes app code — the fetch handler matches with
 // ignoreSearch:true, so the ?v= query does NOT bust this cache; only CACHE_NAME does.
-const CACHE_NAME = 'poem-diary-r58';
+const CACHE_NAME = 'poem-diary-r59';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -49,20 +49,31 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.pathname.startsWith('/api/')) return;
 
-  if (event.request.mode === 'navigate') {
+  const sameOrigin = url.origin === self.location.origin;
+  // Our own app code (HTML/JS/JSX/CSS/JSON) must always reflect the latest deploy.
+  // Network-first: try the network, fall back to cache only when offline. This avoids
+  // the "I shipped a change but users still see old code" trap of cache-first.
+  const isAppCode = sameOrigin && /\.(?:html|js|jsx|css|json|webmanifest)$/.test(url.pathname);
+
+  if (event.request.mode === 'navigate' || isAppCode) {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put('/index.html', copy));
+          if (response && response.ok) {
+            const copy = response.clone();
+            const key = event.request.mode === 'navigate' ? '/index.html' : event.request;
+            caches.open(CACHE_NAME).then(cache => cache.put(key, copy));
+          }
           return response;
         })
-        .catch(() => caches.match('/index.html'))
+        .catch(() => caches.match(event.request, { ignoreSearch: true })
+          .then(cached => cached || caches.match('/index.html')))
     );
     return;
   }
 
-  const cacheableHost = url.origin === self.location.origin
+  // Third-party libs, fonts, images, etc. are versioned/stable → cache-first (fast, offline-ready).
+  const cacheableHost = sameOrigin
     || url.hostname === 'www.gstatic.com'
     || url.hostname === 'unpkg.com'
     || url.hostname === 'fonts.googleapis.com'
