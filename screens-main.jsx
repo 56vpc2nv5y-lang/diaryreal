@@ -3,9 +3,10 @@
 // ──────────────────────────────────────────────────────────────────
 // Home — today's poem at top, history list below
 // ──────────────────────────────────────────────────────────────────
-function Home({ theme, entries, drafts = [], density = 'sparse', poemLayout = 'horizontal', onOpen, onCompose, onSearch, onTab }) {
-  const today = entries[0];
-  const rest = entries.slice(1);
+function Home({ theme, entries, drafts = [], density = 'sparse', poemLayout = 'horizontal', onOpen, onCompose, onOpenDraft, onSearch, onTab }) {
+  const featured = entries.find(item => item.featured && item.poem?.title);
+  const today = featured || entries[0];
+  const rest = today ? entries.filter(item => item.id !== today.id) : entries;
   const now = new Date();
   return (
     <Screen theme={theme} tab="home" onTab={onTab}>
@@ -43,13 +44,14 @@ function Home({ theme, entries, drafts = [], density = 'sparse', poemLayout = 'h
             <div style={{ fontSize: 11, color: theme.textMute }}>{drafts.length} 个未完成</div>
           </div>
           <div className="no-scroll" style={{ display: 'flex', gap: 10, padding: '4px 24px 4px', overflowX: 'auto' }}>
-            {drafts.map((d) => <DraftCard key={d.id} draft={d} theme={theme} />)}
-            <div style={{
+            {drafts.map((d) => <DraftCard key={d.id} draft={d} theme={theme} onClick={() => onOpenDraft?.(d)} />)}
+            <button type="button" onClick={onCompose} style={{
               flexShrink: 0, width: 110, height: 90, borderRadius: 14,
               border: `1px dashed ${theme.line}`, display: 'flex',
               alignItems: 'center', justifyContent: 'center',
               color: theme.textMute, fontSize: 12,
-            }}>+ 新草稿</div>
+              background: 'transparent', fontFamily: 'inherit', cursor: 'pointer',
+            }}>+ 新草稿</button>
           </div>
         </div>
       )}
@@ -238,7 +240,7 @@ function PastRow({ entry, theme, onClick, isLast, dense }) {
 // Search
 // ──────────────────────────────────────────────────────────────────
 // ── Draft card ───────────────────────────────────────────────────────────────
-function DraftCard({ draft, theme }) {
+function DraftCard({ draft, theme, onClick }) {
   const t = (draft.kind === 'photo' && draft.photos && draft.photos.length) ?
     (
       <div style={{
@@ -274,14 +276,14 @@ function DraftCard({ draft, theme }) {
       </div>
     );
   return (
-    <div style={{ flexShrink: 0, position: 'relative' }}>
+    <button type="button" onClick={onClick} style={{ flexShrink: 0, position: 'relative', border: 0, background: 'transparent', padding: 0, fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
       {t}
       <div style={{
         position: 'absolute', top: 6, right: 6,
         background: theme.seal, color: '#fff', borderRadius: 8,
         fontSize: 9, padding: '2px 5px', letterSpacing: 1, fontWeight: 600,
-      }}>{draft.kind === 'photo' ? '照片' : '标题'}</div>
-    </div>
+      }}>{draft.kind === 'photo' ? '照片' : '草稿'}</div>
+    </button>
   );
 }
 
@@ -714,6 +716,15 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
   const lbl = enSign
     ? { drop: 'TODAY\'S LOT', judgment: 'ORACLE', sub: 'Drawn in image · mirrored in today', reading: 'READING', poem: 'SONNET' }
     : { drop: '今 日 落 签', judgment: '判 词', sub: '以象起兴 · 照见今日', reading: '解 语', poem: '诗' };
+  const sticks = [
+    { r: -18, h: 104, x: -22, d: 0 },
+    { r: -11, h: 118, x: -13, d: 1 },
+    { r: -4, h: 126, x: -4, d: 2 },
+    { r: 4, h: 120, x: 7, d: 3 },
+    { r: 12, h: 108, x: 16, d: 4 },
+    { r: 19, h: 96, x: 24, d: 5 },
+  ];
+  const motes = ['今', '问', '诗', '签', '风', '月', '墨', '心', '解', '意', '念', '梦', '行', '照', '藏', '开'];
   return (
     <Screen theme={theme} noTab contentStyle={{ display: 'flex', flexDirection: 'column' }}>
       {/* collapsed diary header */}
@@ -740,6 +751,12 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
             }}
           >
             <div className="lot-aura" />
+            <div className="lot-word-field" aria-hidden="true">
+              {motes.map((word, i) => <span key={`${word}-${i}`} style={{ '--i': i }}>{word}</span>)}
+            </div>
+            <div className="lot-ink-field" aria-hidden="true">
+              {Array.from({ length: 18 }).map((_, i) => <i key={i} style={{ '--i': i }} />)}
+            </div>
             <div className="lot-tube" onClick={state === 'ready' ? onShake : undefined}
             onKeyDown={event => {
               if (state !== 'ready') return;
@@ -751,14 +768,27 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
             role={state === 'ready' ? 'button' : undefined}
             tabIndex={state === 'ready' ? 0 : undefined}
             style={{ cursor: state === 'ready' ? 'pointer' : 'default' }}>
-              <div className="lot-stick" />
-              <div className="lot-stick" />
-              <div className="lot-stick" />
-              <div className="lot-stick" />
-              <div className="lot-tube-mouth" />
+              <div className="lot-stick-bundle">
+                {sticks.map((stick, i) => (
+                  <div key={i} className="lot-bamboo-stick" style={{
+                    '--stick-rot': `${stick.r}deg`,
+                    '--stick-height': `${stick.h}px`,
+                    '--stick-x': `${stick.x}px`,
+                    '--stick-delay': `${stick.d * 55}ms`,
+                  }} />
+                ))}
+                <div className="lot-winning-stick" />
+              </div>
+              <div className="lot-tube-mouth"><span /></div>
               <div className="lot-tube-body" />
+              <div className="lot-tube-rim" />
             </div>
-            {state === 'shaking' && <div className="lot-falling-slip" />}
+            <div className="lot-floor-shadow" />
+            {state === 'shaking' && (
+              <div className="lot-falling-slip">
+                <span />
+              </div>
+            )}
           </div>
           <div className="serif" style={{ fontSize: 18, color: theme.text, letterSpacing: 4, marginBottom: 12 }}>
             {state === 'ready' ? '摇 一 摇，落 一 签' : '签意正在落下'}
@@ -929,82 +959,140 @@ async function createPoemCardBlob(entry, theme) {
   canvas.width = 1080;
   canvas.height = 1440;
   const ctx = canvas.getContext('2d');
-  const paperItem = window.PAPER_LIBRARY.find(item => item.id === entry.paper);
-  const isArt = !!paperItem?.thumb;
+  const Wc = canvas.width, Hc = canvas.height;
+  const serif = theme.fontCanvas || "'Noto Serif SC', serif";
+  const bodyFont = theme.fontBody || "'Noto Sans SC', sans-serif";
+  const isSonnet = entry.poem?.style === 'en-sonnet' || entry.poem?.form === 'sonnet' || (entry.poem?.lines || []).length > 4;
+  const roundRect = (x, y, w, h, r) => {
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x, y, w, h, r);
+    else ctx.rect(x, y, w, h);
+    ctx.fill();
+  };
+  const drawSeal = (x, y) => {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(-0.06);
+    ctx.fillStyle = theme.seal || '#a83a2e';
+    roundRect(-42, -42, 84, 84, 8);
+    ctx.fillStyle = 'rgba(255,248,232,.92)';
+    ctx.textAlign = 'center';
+    ctx.font = `600 30px ${serif}`;
+    ctx.fillText('诗', 0, -6);
+    ctx.fillText('签', 0, 31);
+    ctx.restore();
+  };
+  const drawVertical = (text, x, y, size, gap, color = theme.text) => {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.font = `500 ${size}px ${serif}`;
+    Array.from(String(text || '')).forEach((ch, i) => ctx.fillText(ch, x, y + i * gap));
+    ctx.restore();
+  };
 
-  ctx.fillStyle = theme.paper;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  if (isArt) {
-    try {
-      const image = await new Promise((resolve, reject) => {
-        const img = new Image();
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        img.src = paperItem.thumb;
-      });
-      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-    } catch (error) {
-      console.warn('分享图片信纸加载失败:', error);
-    }
-  } else if (entry.paper === 'ruled' || entry.paper === 'grid' || entry.paper === 'columns' || entry.paper === 'dots') {
-    ctx.strokeStyle = theme.line;
-    ctx.fillStyle = theme.line;
-    ctx.globalAlpha = 0.55;
-    for (let y = 100; y < canvas.height; y += 64) {
-      if (entry.paper === 'ruled' || entry.paper === 'grid') {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-      }
-    }
-    for (let x = 92; x < canvas.width; x += 64) {
-      if (entry.paper === 'grid' || entry.paper === 'columns') {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-      }
-    }
-    if (entry.paper === 'dots') {
-      for (let y = 80; y < canvas.height; y += 52) for (let x = 70; x < canvas.width; x += 52) {
-        ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill();
-      }
-    }
-    ctx.globalAlpha = 1;
+  const bg = ctx.createLinearGradient(0, 0, Wc, Hc);
+  bg.addColorStop(0, '#f8f0dc');
+  bg.addColorStop(.48, '#efe0bc');
+  bg.addColorStop(1, '#d6b77d');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, Wc, Hc);
+  ctx.globalAlpha = .22;
+  ctx.strokeStyle = '#7e5c2d';
+  for (let y = 90; y < Hc; y += 52) {
+    ctx.beginPath(); ctx.moveTo(70, y + Math.sin(y) * 5); ctx.lineTo(Wc - 70, y - Math.sin(y) * 4); ctx.stroke();
   }
+  ctx.globalAlpha = 1;
 
-  ctx.fillStyle = isArt ? 'rgba(255,253,247,.88)' : 'rgba(255,253,247,.58)';
-  ctx.beginPath();
-  if (ctx.roundRect) ctx.roundRect(120, 180, 840, 1010, 44);
-  else ctx.rect(120, 180, 840, 1010);
-  ctx.fill();
-
-  ctx.textAlign = 'center';
-  ctx.fillStyle = theme.text;
-  ctx.font = `500 74px ${theme.fontCanvas || "'Noto Serif SC', serif"}`;
-  ctx.fillText(entry.poem.title || '无题', 540, 360);
-  ctx.fillStyle = theme.accent;
-  ctx.fillRect(500, 414, 80, 3);
-
-  ctx.fillStyle = theme.text;
-  const canvasPoemLines = splitPoemLines(entry.poem.lines || []);
-  const canvasLineSize = canvasPoemLines.length > 4 ? 42 : 52;
-  const canvasLineGap = canvasPoemLines.length > 4 ? 78 : 120;
-  const canvasStartY = canvasPoemLines.length > 4 ? 510 : 550;
-  ctx.font = `500 ${canvasLineSize}px ${theme.fontCanvas || "'Noto Serif SC', serif"}`;
-  canvasPoemLines.forEach((line, index) => ctx.fillText(line, 540, canvasStartY + index * canvasLineGap, 760));
-
-  ctx.fillStyle = theme.textSoft;
-  ctx.font = `400 27px ${theme.fontBody || "'Noto Sans SC', sans-serif"}`;
-  ctx.fillText(`${entry.date || ''}${entry.place ? ` · ${entry.place}` : ''}`, 540, 1080);
-  ctx.fillStyle = theme.seal;
-  ctx.font = `600 30px ${theme.fontCanvas || "'Noto Serif SC', serif"}`;
-  ctx.fillText('诗 签', 540, 1270);
+  if (!isSonnet) {
+    const panelX = 118, panelY = 118, panelW = 844, panelH = 1120;
+    ctx.fillStyle = 'rgba(52,34,15,.12)';
+    roundRect(panelX + 18, panelY + 26, panelW, panelH, 28);
+    ctx.fillStyle = '#e7c68a';
+    roundRect(panelX, panelY, panelW, panelH, 28);
+    const stripCount = 8;
+    const stripW = panelW / stripCount;
+    for (let i = 0; i < stripCount; i++) {
+      const x = panelX + i * stripW;
+      const strip = ctx.createLinearGradient(x, 0, x + stripW, 0);
+      strip.addColorStop(0, i % 2 ? '#d7ae6c' : '#e8ca91');
+      strip.addColorStop(.52, i % 2 ? '#f0d69c' : '#f6dda6');
+      strip.addColorStop(1, i % 2 ? '#c99c59' : '#dbb873');
+      ctx.fillStyle = strip;
+      roundRect(x + 4, panelY + 8, stripW - 8, panelH - 16, 18);
+      ctx.strokeStyle = 'rgba(84,55,24,.18)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x + 10, panelY + 22, stripW - 20, panelH - 44);
+    }
+    ctx.strokeStyle = '#6b4527';
+    ctx.lineWidth = 15;
+    [panelY + 132, panelY + panelH - 132].forEach(y => {
+      ctx.beginPath();
+      ctx.moveTo(panelX + 28, y);
+      ctx.bezierCurveTo(panelX + 260, y - 18, panelX + 580, y + 18, panelX + panelW - 28, y);
+      ctx.stroke();
+    });
+    ctx.strokeStyle = 'rgba(255,238,194,.45)';
+    ctx.lineWidth = 5;
+    [panelY + 132, panelY + panelH - 132].forEach(y => {
+      ctx.beginPath(); ctx.moveTo(panelX + 42, y - 8); ctx.lineTo(panelX + panelW - 42, y - 8); ctx.stroke();
+    });
+    drawVertical(entry.poem.title || '未题', panelX + panelW - 80, panelY + 250, 58, 70, '#56351d');
+    splitPoemLines(entry.poem.lines || []).slice(0, 4).forEach((line, i) => {
+      drawVertical(line.replace(/[，。,.]/g, ''), panelX + panelW - 188 - i * 118, panelY + 256, 45, 58, '#34281d');
+    });
+    ctx.fillStyle = 'rgba(52,40,29,.72)';
+    ctx.font = `400 25px ${bodyFont}`;
+    ctx.textAlign = 'left';
+    ctx.fillText(`${entry.date || ''}${entry.place ? ` · ${entry.place}` : ''}`, panelX + 76, panelY + panelH - 62);
+    drawSeal(panelX + 92, panelY + 94);
+  } else {
+    const x = 130, y = 132, w = 820, h = 1130;
+    ctx.fillStyle = 'rgba(50,32,14,.16)';
+    roundRect(x + 18, y + 28, w, h, 38);
+    ctx.fillStyle = '#f4e4bd';
+    roundRect(x, y, w, h, 38);
+    ctx.fillStyle = 'rgba(255,249,231,.62)';
+    roundRect(x + 36, y + 42, w - 72, h - 84, 24);
+    ctx.strokeStyle = 'rgba(109,75,35,.30)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(x + 54, y + 64, w - 108, h - 128);
+    ctx.fillStyle = '#704722';
+    roundRect(x - 28, y - 16, w + 56, 36, 18);
+    roundRect(x - 28, y + h - 20, w + 56, 36, 18);
+    ctx.fillStyle = theme.text || '#33281d';
+    ctx.textAlign = 'center';
+    ctx.font = `italic 700 62px Georgia, ${serif}`;
+    ctx.fillText(entry.poem.title || 'Untitled', Wc / 2, y + 132, w - 140);
+    ctx.fillStyle = theme.seal || '#9f3b2c';
+    ctx.fillRect(Wc / 2 - 52, y + 166, 104, 3);
+    ctx.fillStyle = '#3c3228';
+    ctx.font = `italic 38px Georgia, ${serif}`;
+    const startY = y + 250;
+    (entry.poem.lines || []).slice(0, 14).forEach((line, i) => {
+      ctx.fillText(line, Wc / 2, startY + i * 56, w - 160);
+    });
+    ctx.fillStyle = 'rgba(60,50,40,.62)';
+    ctx.font = `400 25px ${bodyFont}`;
+    ctx.fillText(`${entry.date || ''}${entry.place ? ` · ${entry.place}` : ''}`, Wc / 2, y + h - 92, w - 160);
+    drawSeal(x + w - 90, y + h - 86);
+  }
 
   return new Promise((resolve, reject) => {
     canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('生成分享图片失败')), 'image/png');
   });
 }
 
-function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onToggleFeatured, onAddNote, onCollectQuote, onRejectQuote, onGenerateQuotes, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
+function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onToggleFeatured, onSelectPoemStyle, onGeneratePoemStyle, onAddNote, onCollectQuote, onRejectQuote, onGenerateQuotes, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
   const e = entry;
   const hasPoem = showPoem && !!e.poem;
+  const poemVariants = e.poemVariants || {};
+  const activePoemStyle = e.activePoemStyle || e.poem?.style || (poemVariants['zh-classical'] ? 'zh-classical' : poemVariants['en-sonnet'] ? 'en-sonnet' : '');
+  const wantsBothPoems = localStorage.getItem('d-poemStyle') === 'both';
+  const poemStyleOptions = [
+    { key: 'zh-classical', label: '中文', detail: '古体诗' },
+    { key: 'en-sonnet', label: 'English', detail: 'Sonnet' },
+  ];
   const appTheme = theme;
   const detailPaper = paperBg(e.paper || 'plain', appTheme);
   const customPaper = (e.paper || '').startsWith('art-');
@@ -1069,10 +1157,11 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
     finally { setBusy(false); }
   };
 
-  const generatePoem = async () => {
-    if (!onGeneratePoem) return;
+  const generatePoem = async (style) => {
+    const handler = style && onGeneratePoemStyle ? () => onGeneratePoemStyle(style) : onGeneratePoem;
+    if (!handler) return;
     setBusy(true); setActionError('');
-    try { await onGeneratePoem(); }
+    try { await handler(); }
     catch (err) { setActionError(friendlyAiError(err, '摇签生诗')); }
     finally { setBusy(false); }
   };
@@ -1183,6 +1272,31 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
             </div>
             <Seal char1={c1} char2={c2} theme={theme} size={42} rotate={-4} />
           </div>
+          {(wantsBothPoems || Object.keys(poemVariants).length > 1 || hasPoem) && (
+            <div className="poem-style-switch" style={{ marginTop: 16, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {poemStyleOptions.map(option => {
+                const exists = !!poemVariants[option.key]?.poem;
+                const active = activePoemStyle === option.key;
+                return (
+                  <button key={option.key} type="button"
+                    onClick={() => exists ? onSelectPoemStyle?.(option.key) : generatePoem(option.key)}
+                    disabled={!exists && !onGeneratePoemStyle}
+                    style={{
+                      minHeight: 38, borderRadius: 19,
+                      border: `1px solid ${active ? theme.seal : theme.line}`,
+                      background: active ? `${theme.seal}14` : exists ? theme.surface : 'transparent',
+                      color: active ? theme.seal : exists ? theme.text : theme.textMute,
+                      fontFamily: 'inherit', cursor: exists || onGeneratePoemStyle ? 'pointer' : 'default',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      opacity: exists || onGeneratePoemStyle ? 1 : .55,
+                    }}>
+                    <span style={{ fontSize: 13, letterSpacing: option.key === 'en-sonnet' ? .5 : 2 }}>{option.label}</span>
+                    <span style={{ fontSize: 10, opacity: .62 }}>{exists ? option.detail : '生成'}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
           <div className="serif poem-title-main" style={{ fontSize: enSign ? 24 : 28, fontWeight: 500, color: theme.text, letterSpacing: enSign ? 1 : 8, fontStyle: enSign ? 'italic' : 'normal', marginTop: 16, lineHeight: 1.15, paddingLeft: enSign ? 0 : '0.5em' }}>{e.poem.title}</div>
           <div style={{ width: 28, height: 1, background: theme.accent, margin: '18px auto 24px' }} />
           <PoemBody lines={e.poem.lines} size={21} theme={theme} />
@@ -1226,7 +1340,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
         }}>
             没有也没关系 —— 日记<br />本身已是这一日的诗。
           </div>
-          <button type="button" onClick={generatePoem} disabled={busy || !onGeneratePoem} style={{
+          <button type="button" onClick={() => generatePoem()} disabled={busy || !onGeneratePoem} style={{
             marginTop: 22, height: 42, padding: '0 18px', borderRadius: 21,
             border: `1px solid ${theme.seal}88`, background: 'transparent',
             color: theme.seal, display: 'inline-flex', alignItems: 'center', gap: 7,
@@ -1236,6 +1350,17 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
             <IconShake color={theme.seal} size={16} />
             {busy ? '生成中…' : '现在摇一签'}
           </button>
+          {wantsBothPoems && (
+            <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+              {poemStyleOptions.map(option => (
+                <button key={option.key} type="button" onClick={() => generatePoem(option.key)} disabled={busy || !onGeneratePoemStyle} style={{
+                  height: 38, borderRadius: 19, border: `1px solid ${theme.line}`, background: theme.surface,
+                  color: theme.textSoft, fontFamily: 'inherit', cursor: !busy && onGeneratePoemStyle ? 'pointer' : 'default',
+                  fontSize: 12.5, letterSpacing: option.key === 'en-sonnet' ? .5 : 1.5,
+                }}>{option.label} · 生成</button>
+              ))}
+            </div>
+          )}
         </div>)
       }
 
@@ -1246,7 +1371,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
         </div>
       )}
 
-      {e.sign && (
+      {e.sign && !hasPoem && (
         <div style={{ padding: '24px 32px 0' }}>
           <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginBottom: 12 }}>今 日 判 语</div>
           <div className="theme-sign-card" style={{ padding: '18px 18px', borderRadius: 16, background: theme.surface, border: `0.5px solid ${theme.line}`, position: 'relative', overflow: 'hidden', ...skin(theme, 'panel') }}>

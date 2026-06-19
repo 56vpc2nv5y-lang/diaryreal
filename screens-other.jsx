@@ -624,14 +624,22 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
   const [autoPoem, setAutoPoem_] = React.useState(() => JSON.parse(localStorage.getItem('d-autoPoem') ?? 'true'));
   const [saveRej, setSaveRej_] = React.useState(() => JSON.parse(localStorage.getItem('d-saveRej') ?? 'false'));
   const [writeFx, setWriteFx_] = React.useState(() => JSON.parse(localStorage.getItem('d-writingParticles') ?? 'true'));
-  const [poemStyle, setPoemStyle_] = React.useState(() => localStorage.getItem('d-poemStyle') === 'en-sonnet' ? 'en-sonnet' : 'zh-classical');
+  const [poemStyle, setPoemStyle_] = React.useState(() => {
+    const saved = localStorage.getItem('d-poemStyle');
+    return saved === 'en-sonnet' || saved === 'both' ? saved : 'zh-classical';
+  });
   const fileRef = React.useRef(null);
   const tog = (key, val, setter) => { localStorage.setItem(key, JSON.stringify(val)); setter(val); };
   const togglePoemStyle = () => {
-    const next = poemStyle === 'en-sonnet' ? 'zh-classical' : 'en-sonnet';
+    const next = poemStyle === 'zh-classical' ? 'en-sonnet' : poemStyle === 'en-sonnet' ? 'both' : 'zh-classical';
     localStorage.setItem('d-poemStyle', next);
     setPoemStyle_(next);
   };
+  const poemStyleDetail = poemStyle === 'both'
+    ? '中文 + 英文，每篇可分别生成'
+    : poemStyle === 'en-sonnet'
+      ? '英文 · 莎士比亚十四行诗'
+      : '中文 · 古体诗';
 
   const backupText = () => JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), entries, hexagrams }, null, 2);
 
@@ -641,7 +649,13 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
       const head = `## ${esc(e.title) || '无题'}\n\n*${esc(e.date)} ${esc(e.weekday)} ${esc(e.time)}${e.place ? ' · ' + esc(e.place) : ''}${e.mood ? ' · ' + esc(e.mood) : ''}*`;
       const body = esc(e.body);
       const sign = e.sign ? `\n\n> **${esc(e.sign.title)}**\n>\n${(e.sign.judgmentLines || []).map(l => '> ' + esc(l)).join('\n')}${e.sign.interpretation ? '\n>\n> ' + esc(e.sign.interpretation) : ''}` : '';
-      const poem = e.poem && Array.isArray(e.poem.lines) ? `\n\n**〈${esc(e.poem.title)}〉** ${esc(e.poem.form)}\n\n${e.poem.lines.map(esc).join('\n')}` : '';
+      const variantBlocks = ['zh-classical', 'en-sonnet']
+        .map(key => e.poemVariants?.[key]?.poem)
+        .filter(poem => poem && Array.isArray(poem.lines))
+        .map(poem => `\n\n**〈${esc(poem.title)}〉** ${esc(poem.form)}\n\n${poem.lines.map(esc).join('\n')}`);
+      const poem = variantBlocks.length
+        ? variantBlocks.join('')
+        : e.poem && Array.isArray(e.poem.lines) ? `\n\n**〈${esc(e.poem.title)}〉** ${esc(e.poem.form)}\n\n${e.poem.lines.map(esc).join('\n')}` : '';
       const tags = (e.tags || []).length ? `\n\n${e.tags.map(t => '#' + esc(t)).join(' ')}` : '';
       return `${head}\n\n${body}${sign}${poem}${tags}`;
     });
@@ -863,9 +877,12 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         <SettingsRow theme={theme} label="每日提醒" detail="22:00" onClick={() => alert('提醒功能将在 App 版本支持')} />
         <SettingsRow theme={theme} label="自动记录位置" toggle on={autoLoc} onToggle={() => tog('d-autoLoc', !autoLoc, setAutoLoc_)} />
         <SettingsRow theme={theme} label="日记生诗" toggle on={autoPoem} onToggle={() => tog('d-autoPoem', !autoPoem, setAutoPoem_)} detail="保存后摇签" />
-        <SettingsRow theme={theme} label="诗体风格"
-          detail={poemStyle === 'en-sonnet' ? '英文 · 莎士比亚十四行诗' : '中文 · 古体诗'}
+        <SettingsRow theme={theme} label="每篇日记的诗体"
+          detail={poemStyleDetail}
           onClick={togglePoemStyle} />
+        <SettingsRow theme={theme} label="中英文诗在哪里"
+          detail="日记详情页顶部切换"
+          onClick={() => alert('打开任意一篇日记，在诗标题上方会看到「中文 / English」两个按钮。已有版本可直接切换；灰色或显示“生成”的版本，点击后会跳到摇签生成。设置为“两者都要”后，新日记会默认显示两个入口。')} />
         <SettingsRow theme={theme} label="写字时的元素粒子" toggle on={writeFx} onToggle={() => tog('d-writingParticles', !writeFx, setWriteFx_)} detail="花·雨·雪·风·火·月" />
         <SettingsRow theme={theme} label="保存被否决的诗" toggle on={saveRej} onToggle={() => tog('d-saveRej', !saveRej, setSaveRej_)} isLast />
       </SettingsSection>
@@ -951,9 +968,9 @@ function FeedbackBox({ theme, buildLabel = '', currentUser }) {
           border: `0.5px solid ${theme.line}`, background: theme.paper, color: theme.text,
           outline: 'none', padding: 13, fontFamily: 'inherit', fontSize: 14.5, lineHeight: 1.7,
         }}/>
-      <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 120px', gap: 12, marginTop: 12, alignItems: 'center' }}>
         <button type="button" onClick={sendMail} disabled={!canSend} style={{
-          flex: 1, height: 42, borderRadius: 21, border: 'none',
+          width: '100%', height: 44, borderRadius: 22, border: 'none',
           background: canSend ? theme.text : theme.surfaceSoft,
           color: canSend ? theme.bg : theme.textMute,
           fontFamily: 'inherit', cursor: canSend ? 'pointer' : 'default', letterSpacing: 1.5,
@@ -961,7 +978,7 @@ function FeedbackBox({ theme, buildLabel = '', currentUser }) {
           opacity: canSend ? 1 : .55,
         }}>发送邮件</button>
         <button type="button" onClick={copyFeedback} disabled={!canSend} style={{
-          width: 96, height: 42, borderRadius: 21, border: `0.5px solid ${theme.line}`,
+          width: '100%', height: 44, borderRadius: 22, border: `0.5px solid ${theme.line}`,
           background: theme.surface, color: theme.textSoft,
           fontFamily: 'inherit', cursor: canSend ? 'pointer' : 'default',
           opacity: canSend ? 1 : .55,
@@ -992,8 +1009,11 @@ function SettingsRow({ theme, label, detail, toggle, on, onToggle, isLast, onCli
       borderBottom: isLast ? 'none' : `0.5px solid ${theme.line}`,
       minHeight: 50, cursor: (toggle || onClick) ? 'pointer' : 'default',
     }}>
-      <div style={{ flex: 1, fontSize: 14.5, color: theme.text }}>{label}</div>
-      {detail && !toggle && <div style={{ fontSize: 13, color: theme.textMute }}>{detail}</div>}
+      <div style={{ flex: 1, minWidth: 0, fontSize: 14.5, color: theme.text }}>{label}</div>
+      {detail && !toggle && <div style={{
+        minWidth: 116, maxWidth: '48%', fontSize: 13, color: theme.textMute,
+        textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+      }}>{detail}</div>}
       {toggle ? (
         <div style={{
           width: 38, height: 22, borderRadius: 11,
@@ -1067,28 +1087,78 @@ function ExportHub({ theme, entry, onTab }) {
 }
 
 function MiniShareCardContent({ theme, entry }) {
-  const [c1, c2] = sealChars(entry.poem.title);
-  return (
-    <React.Fragment>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ fontSize: 9, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>
-          诗 签 <span style={{ opacity: 0.7, marginLeft: 5 }}>{entry.poem.form || '五绝'}</span>
+  const poem = entry.poem || {};
+  const isSonnet = poem.style === 'en-sonnet' || poem.form === 'sonnet' || (poem.lines || []).length > 4;
+  const [c1, c2] = sealChars(poem.title || '诗签');
+  const title = poem.title || (isSonnet ? 'Untitled' : '未题');
+  const lines = Array.isArray(poem.lines) ? poem.lines : [];
+  if (isSonnet) {
+    return (
+      <div style={{
+        height: '100%', margin: -18, padding: '24px 24px 22px',
+        borderRadius: 18,
+        background:
+          'radial-gradient(circle at 16% 12%, rgba(145,104,54,.16), transparent 27%), radial-gradient(circle at 82% 88%, rgba(125,84,38,.14), transparent 30%), repeating-linear-gradient(0deg, rgba(99,72,38,.035) 0 1px, transparent 1px 6px), linear-gradient(135deg, #fff7df, #e8c990 54%, #fff0c6)',
+        boxShadow: 'inset 0 0 32px rgba(104,72,34,.14)',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        <div style={{ height: 12, borderRadius: 999, background: 'linear-gradient(90deg, #704722, #a4783c, #704722)', margin: '0 -10px 14px' }} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ fontSize: 8, letterSpacing: 3, color: '#7d6039', fontWeight: 600 }}>SONNET · POEM LOT</div>
+          <Seal char1={c1} char2={c2} theme={theme} size={26} rotate={-4} />
         </div>
+        <div className="serif" style={{ marginTop: 16, textAlign: 'center', color: '#3e2b1b', fontSize: 22, lineHeight: 1.1, fontStyle: 'italic', letterSpacing: .6 }}>{title}</div>
+        <div style={{ width: 54, height: 1, background: '#9b4a34', margin: '12px auto 14px' }} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 4 }}>
+          {lines.slice(0, 8).map((line, i) => (
+            <div key={i} style={{ color: '#3d5f64', fontSize: 10.5, lineHeight: 1.35, fontStyle: 'italic', letterSpacing: .35 }}>{line}</div>
+          ))}
+        </div>
+        <div style={{ height: 12, borderRadius: 999, background: 'linear-gradient(90deg, #704722, #a4783c, #704722)', margin: '14px -10px 0' }} />
+      </div>
+    );
+  }
+  return (
+    <div style={{
+      height: '100%', margin: -18, padding: '22px 18px 18px',
+      borderRadius: 18,
+      background:
+        'linear-gradient(90deg, rgba(74,46,19,.18), transparent 8%, transparent 92%, rgba(74,46,19,.16)), linear-gradient(180deg, #f1d59b, #ddb56f)',
+      boxShadow: 'inset 0 0 30px rgba(75,47,20,.18)',
+      position: 'relative', overflow: 'hidden',
+      display: 'flex', flexDirection: 'column',
+    }}>
+      <div style={{ position: 'absolute', inset: '14px 16px', display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 3, opacity: .75 }}>
+        {Array.from({ length: 7 }).map((_, i) => (
+          <span key={i} style={{
+            borderRadius: 11,
+            background: i % 2 ? 'linear-gradient(90deg, #d1a05c, #f3d59a, #c6924f)' : 'linear-gradient(90deg, #dfba78, #f8dda2, #cfa05b)',
+            border: '1px solid rgba(89,57,25,.16)',
+          }} />
+        ))}
+      </div>
+      {[48, 'calc(100% - 48px)'].map((top, i) => (
+        <div key={i} style={{ position: 'absolute', left: 22, right: 22, top, height: 5, borderRadius: 999, background: 'rgba(91,52,24,.58)', boxShadow: '0 1px 0 rgba(255,239,198,.35)' }} />
+      ))}
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <Seal char1={c1} char2={c2} theme={theme} size={28} rotate={-4} />
+        <div style={{ fontSize: 8, letterSpacing: 3, color: '#68431f', fontWeight: 700 }}>竹 简 · {poem.form || '古体'}</div>
       </div>
-      <div className="serif" style={{
-        fontSize: 22, fontWeight: 500, color: theme.text, letterSpacing: 8,
-        textAlign: 'center', marginTop: 18, paddingLeft: '0.5em',
-      }}>{entry.poem.title}</div>
-      <div style={{ width: 24, height: 1, background: theme.accent, margin: '12px auto 16px' }}/>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <PoemBody lines={entry.poem.lines} size={16} theme={theme} />
+      <div style={{ position: 'relative', zIndex: 1, flex: 1, display: 'flex', flexDirection: 'row-reverse', justifyContent: 'center', alignItems: 'center', gap: 18, padding: '30px 4px 20px' }}>
+        <div className="serif" style={{ writingMode: 'vertical-rl', textOrientation: 'upright', color: '#56351d', fontSize: 21, fontWeight: 700, letterSpacing: 5 }}>
+          {Array.from(title).slice(0, 8).join('')}
+        </div>
+        {lines.slice(0, 4).map((line, i) => (
+          <div key={i} className="serif" style={{ writingMode: 'vertical-rl', textOrientation: 'upright', color: '#34281d', fontSize: 15.5, letterSpacing: 4, lineHeight: 1.3 }}>
+            {String(line).replace(/[，。,.]/g, '')}
+          </div>
+        ))}
       </div>
-      <div style={{ marginTop: 18, display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', fontSize: 9.5, color: theme.textMute, letterSpacing: 1 }}>
-        <span>{entry.date.replace(/-/g, '.')} · {entry.place.split(' · ')[1] || entry.place}</span>
-        <span style={{ fontWeight: 600, letterSpacing: 2 }}>诗 签</span>
+      <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', fontSize: 8.5, color: '#68431f', letterSpacing: 1 }}>
+        <span>{(entry.date || '').replace(/-/g, '.')}</span>
+        <span>诗 签</span>
       </div>
-    </React.Fragment>
+    </div>
   );
 }
 

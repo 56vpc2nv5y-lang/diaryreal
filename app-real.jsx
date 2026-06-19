@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.18-r60';
+const APP_BUILD = '2026.06.19-r64';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -54,13 +54,90 @@ function col(name) {
   return firebase.firestore().collection('users').doc(uid).collection(name);
 }
 
+function normalizePoemRecord(poem) {
+  if (!poem || typeof poem.title !== 'string' || !Array.isArray(poem.lines)) return null;
+  const isSonnet = poem.style === 'en-sonnet' || poem.form === 'sonnet' || poem.lines.length > 4;
+  const limit = isSonnet ? 14 : 4;
+  const lines = poem.lines.map(String).filter(Boolean).slice(0, limit);
+  if (lines.length !== limit) return null;
+  return {
+    title: String(poem.title || (isSonnet ? 'Untitled' : '未题')).slice(0, isSonnet ? 48 : 12),
+    form: String(poem.form || (isSonnet ? 'sonnet' : '五绝')).slice(0, 16),
+    style: isSonnet ? 'en-sonnet' : 'zh-classical',
+    lines,
+  };
+}
+
+function normalizeSignRecord(sign, style = '', poem = null) {
+  if (!sign || typeof sign !== 'object') return null;
+  const isSonnet = style === 'en-sonnet' || sign.style === 'en-sonnet';
+  const poemTexts = [poem?.title, ...(Array.isArray(poem?.lines) ? poem.lines : [])].filter(Boolean);
+  const judgmentLines = Array.isArray(sign.judgmentLines)
+    ? sign.judgmentLines
+      .map(String)
+      .filter(Boolean)
+      .filter(line => !poemTexts.some(poemText => isNearDuplicateText(line, poemText)))
+      .slice(0, 4)
+    : [];
+  const rawTitle = typeof sign.title === 'string' ? sign.title.slice(0, isSonnet ? 40 : 8) : '';
+  const title = poemTexts.some(poemText => isNearDuplicateText(rawTitle, poemText)) ? '' : rawTitle;
+  if (!title && !judgmentLines.length && !sign.interpretation && !sign.timelineLine) return null;
+  return {
+    title,
+    style: isSonnet ? 'en-sonnet' : 'zh-classical',
+    motif: typeof sign.motif === 'string' ? sign.motif.slice(0, isSonnet ? 60 : 30) : '',
+    judgmentLines,
+    interpretation: typeof sign.interpretation === 'string' ? sign.interpretation.slice(0, 600) : '',
+    timelineLine: typeof sign.timelineLine === 'string' ? sign.timelineLine.slice(0, isSonnet ? 80 : 32) : '',
+  };
+}
+
+function normalizeQuoteSuggestions(items) {
+  return Array.isArray(items)
+    ? items.filter(item => item && typeof item.quote === 'string').slice(0, 3)
+    : [];
+}
+
+function normalizePoemVariants(data) {
+  const variants = {};
+  const source = data?.poemVariants && typeof data.poemVariants === 'object' ? data.poemVariants : {};
+  for (const key of ['zh-classical', 'en-sonnet']) {
+    const raw = source[key];
+    const poem = normalizePoemRecord(raw?.poem);
+    if (!poem) continue;
+    variants[key] = {
+      poem,
+      sign: normalizeSignRecord(raw?.sign, key, poem),
+      quoteSuggestions: normalizeQuoteSuggestions(raw?.quoteSuggestions),
+      poemCollected: raw?.poemCollected !== false,
+      generatedAt: typeof raw?.generatedAt === 'string' ? raw.generatedAt : '',
+    };
+  }
+  const legacyPoem = normalizePoemRecord(data?.poem);
+  if (legacyPoem && !variants[legacyPoem.style]) {
+    variants[legacyPoem.style] = {
+      poem: legacyPoem,
+      sign: normalizeSignRecord(data?.sign, legacyPoem.style, legacyPoem),
+      quoteSuggestions: normalizeQuoteSuggestions(data?.quoteSuggestions),
+      poemCollected: data?.poemCollected !== false,
+      generatedAt: typeof data?.updatedAt === 'string' ? data.updatedAt : '',
+    };
+  }
+  return variants;
+}
+
 function normalizeEntry(data, id) {
   const now = new Date(), p = n => String(n).padStart(2, '0');
   const fallbackDate = `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
-  const poem = data?.poem && typeof data.poem.title === 'string' &&
-    Array.isArray(data.poem.lines) && data.poem.lines.length === 4
-    ? { ...data.poem, lines: data.poem.lines.map(String) }
-    : null;
+  const poemVariants = normalizePoemVariants(data);
+  const requestedStyle = data?.activePoemStyle === 'en-sonnet' ? 'en-sonnet' : data?.activePoemStyle === 'zh-classical' ? 'zh-classical' : '';
+  const activePoemStyle = poemVariants[requestedStyle]
+    ? requestedStyle
+    : poemVariants['zh-classical'] ? 'zh-classical'
+      : poemVariants['en-sonnet'] ? 'en-sonnet'
+        : '';
+  const activeVariant = activePoemStyle ? poemVariants[activePoemStyle] : null;
+  const poem = activeVariant?.poem || null;
   return {
     ...data,
     ...(id ? { id } : {}),
@@ -72,22 +149,17 @@ function normalizeEntry(data, id) {
     body: typeof data?.body === 'string' ? data.body : '',
     mood: typeof data?.mood === 'string' ? data.mood : '',
     flag: !!data?.flag,
+    featured: !!data?.featured,
     tags: Array.isArray(data?.tags) ? data.tags.map(String) : [],
     paper: typeof data?.paper === 'string' ? data.paper : 'plain',
+    activePoemStyle,
+    poemVariants,
     poem,
-    sign: data?.sign && typeof data.sign === 'object' ? {
-      title: typeof data.sign.title === 'string' ? data.sign.title : '',
-      motif: typeof data.sign.motif === 'string' ? data.sign.motif : '',
-      judgmentLines: Array.isArray(data.sign.judgmentLines) ? data.sign.judgmentLines.map(String) : [],
-      interpretation: typeof data.sign.interpretation === 'string' ? data.sign.interpretation : '',
-      timelineLine: typeof data.sign.timelineLine === 'string' ? data.sign.timelineLine : '',
-    } : null,
-    quoteSuggestions: Array.isArray(data?.quoteSuggestions)
-      ? data.quoteSuggestions.filter(item => item && typeof item.quote === 'string')
-      : [],
+    sign: activeVariant?.sign || null,
+    quoteSuggestions: activeVariant?.quoteSuggestions || normalizeQuoteSuggestions(data?.quoteSuggestions),
     collectedQuotes: Array.isArray(data?.collectedQuotes) ? data.collectedQuotes.map(String) : [],
     rejectedQuotes: Array.isArray(data?.rejectedQuotes) ? data.rejectedQuotes.map(String) : [],
-    poemCollected: data?.poemCollected !== false && !!poem,
+    poemCollected: activeVariant?.poemCollected !== false && !!poem,
     notes: Array.isArray(data?.notes) ? data.notes.filter(n => n && typeof n.text === 'string') : [],
     inlineNotes: Array.isArray(data?.inlineNotes) ? data.inlineNotes.filter(n => n && typeof n.text === 'string') : [],
     photos: Array.isArray(data?.photos) ? data.photos.filter(p => typeof p === 'string') : [],
@@ -97,7 +169,9 @@ function normalizeEntry(data, id) {
 async function dbGetEntries() {
   try {
     const snap = await col('entries').orderBy('date', 'desc').get();
-    return snap.docs.map(d => normalizeEntry(d.data(), d.id));
+    return snap.docs
+      .map(d => normalizeEntry(d.data(), d.id))
+      .sort((a, b) => `${b.date || ''} ${b.time || ''}`.localeCompare(`${a.date || ''} ${a.time || ''}`));
   } catch (e) { console.error('读取日记失败:', e); return []; }
 }
 
@@ -187,6 +261,11 @@ function poemStyle() {
   return saved === 'en-sonnet' ? 'en-sonnet' : 'zh-classical';
 }
 
+function poemPreference() {
+  const saved = localStorage.getItem('d-poemStyle');
+  return saved === 'en-sonnet' || saved === 'both' ? saved : 'zh-classical';
+}
+
 async function apiPoem(diaryText, style = poemStyle()) {
   const token = await firebase.auth().currentUser?.getIdToken();
   const r = await aiFetch('/api/poem', {
@@ -218,11 +297,33 @@ function poemFromAiResult(result) {
   };
 }
 
+function compactTextForCompare(value) {
+  return String(value || '').toLowerCase().replace(/[\s，。！？、；：,.!?;:'"“”‘’《》()\[\]{}-]/g, '');
+}
+
+function isNearDuplicateText(a, b) {
+  const x = compactTextForCompare(a);
+  const y = compactTextForCompare(b);
+  if (!x || !y) return false;
+  if (x === y || x.includes(y) || y.includes(x)) return true;
+  const grams = value => new Set(Array.from({ length: Math.max(0, value.length - 2) }, (_, i) => value.slice(i, i + 3)));
+  const gx = grams(x), gy = grams(y);
+  if (!gx.size || !gy.size) return false;
+  let hit = 0;
+  gx.forEach(item => { if (gy.has(item)) hit++; });
+  return hit / Math.min(gx.size, gy.size) > 0.62;
+}
+
 function signFromAiResult(result) {
   if (!result) return null;
   const isSonnet = result.style === 'en-sonnet' || result.form === 'sonnet';
+  const poemTexts = [result.title, ...(Array.isArray(result.lines) ? result.lines : [])].filter(Boolean);
   const judgmentLines = Array.isArray(result.judgmentLines)
-    ? result.judgmentLines.map(String).filter(Boolean).slice(0, 4)
+    ? result.judgmentLines
+      .map(String)
+      .filter(Boolean)
+      .filter(line => !poemTexts.some(poemText => isNearDuplicateText(line, poemText)))
+      .slice(0, 4)
     : [];
   const hasSignPayload = !!(result.signTitle || judgmentLines.length || result.interpretation || result.timelineLine || result.motif);
   if (!hasSignPayload) return null;
@@ -237,15 +338,45 @@ function signFromAiResult(result) {
   };
 }
 
-function patchFromAiPoemResult(result) {
+function poemVariantFromAiResult(result) {
   const poem = poemFromAiResult(result);
+  if (!poem) return null;
+  return {
+    poem,
+    sign: signFromAiResult(result),
+    quoteSuggestions: normalizeQuoteSuggestions(result?.quoteSuggestions),
+    poemCollected: true,
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+function patchFromAiPoemResult(result, entry = null) {
+  const variant = poemVariantFromAiResult(result);
+  const poem = variant?.poem || null;
+  const style = poem?.style || poemStyle();
+  const poemVariants = {
+    ...(entry?.poemVariants || {}),
+    ...(variant ? { [style]: variant } : {}),
+  };
   return {
     ...(poem ? { poem } : {}),
-    sign: signFromAiResult(result),
-    quoteSuggestions: Array.isArray(result?.quoteSuggestions)
-      ? result.quoteSuggestions.filter(item => item && typeof item.quote === 'string').slice(0, 3)
-      : [],
+    activePoemStyle: style,
+    poemVariants,
+    sign: variant?.sign || null,
+    quoteSuggestions: variant?.quoteSuggestions || [],
     poemCollected: !!poem,
+  };
+}
+
+function patchForPoemStyle(entry, style) {
+  const variant = entry?.poemVariants?.[style];
+  if (!variant?.poem) return {};
+  return {
+    activePoemStyle: style,
+    poem: variant.poem,
+    sign: variant.sign || null,
+    quoteSuggestions: normalizeQuoteSuggestions(variant.quoteSuggestions),
+    poemCollected: variant.poemCollected !== false,
   };
 }
 
@@ -289,6 +420,40 @@ function nowInfo() {
     time: `${p(d.getHours())}:${p(d.getMinutes())}`,
     label: `${d.getMonth()+1}月${d.getDate()}日 · 周${'日一二三四五六'[d.getDay()]} · ${p(d.getHours())}:${p(d.getMinutes())}`,
   };
+}
+
+function readLocalDrafts(entries = []) {
+  const entryIds = new Set((entries || []).map(entry => entry.id).filter(Boolean));
+  const drafts = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith('diary-draft:')) continue;
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const draft = JSON.parse(raw);
+      const hasText = String(draft?.title || '').trim() || String(draft?.body || '').trim();
+      if (!hasText) continue;
+      const targetId = key.slice('diary-draft:'.length);
+      const isEditDraft = targetId && targetId !== 'new' && entryIds.has(targetId);
+      const savedAt = draft.savedAt ? new Date(draft.savedAt) : null;
+      const time = savedAt && !Number.isNaN(savedAt.getTime())
+        ? savedAt.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
+        : '刚刚';
+      drafts.push({
+        id: key,
+        key,
+        targetId: isEditDraft ? targetId : '',
+        kind: 'text',
+        title: String(draft.title || draft.body || '未命名草稿').slice(0, 42),
+        time,
+        savedAt: savedAt?.getTime() || 0,
+      });
+    }
+  } catch (error) {
+    console.warn('读取本地草稿失败:', error);
+  }
+  return drafts.sort((a, b) => b.savedAt - a.savedAt).slice(0, 8);
 }
 
 // ─── Splash (brief init screen) ─────────────────────────────────
@@ -587,9 +752,13 @@ function SignLanding({ theme, entries = [], onCompose, onShake, onOpen, onTab })
 const WRITING_FX = [
   { fx: 'petal', re: /花|樱|瓣|梅|桃|杏|蕊|落英|flower|petal|blossom|bloom/gi },
   { fx: 'rain',  re: /雨|淋|潮|霖|drizzle|rain/gi },
+  { fx: 'wave',  re: /海|河|湖|浪|潮|水|shore|sea|river|wave|water/gi },
   { fx: 'snow',  re: /雪|霜|寒|冰|snow|frost/gi },
   { fx: 'wind',  re: /风|吹|飘|拂|wind|breeze|gust/gi },
+  { fx: 'leaf',  re: /叶|草|树|林|森|枝|竹|苔|园|leaf|tree|grass|garden|branch/gi },
+  { fx: 'ink',   re: /墨|字|诗|句|写|纸|书|信|ink|word|letter|poem|write|paper/gi },
   { fx: 'ember', re: /火|焰|烛|灯|炉|暖|fire|flame|ember|lamp|candle/gi },
+  { fx: 'memory', re: /梦|忆|旧|远|念|影|quiet|dream|memory|remember|shadow/gi },
   { fx: 'glow',  re: /月|星|光|萤|烁|莹|moon|star|light|glow|shine/gi },
 ];
 
@@ -618,20 +787,27 @@ class WritingParticle {
   constructor(x, y, fx, theme) {
     const r = Math.random;
     this.x = x; this.y = y; this.fx = fx; this.life = 1; this.dead = false; this.rot = r() * Math.PI * 2;
+    this.font = theme.fontSerif || '"Noto Serif SC", serif';
     if (fx === 'petal') { this.vx = (r() - .5) * .5; this.vy = r() * .5 + .25; this.rad = r() * 3 + 2.5; this.decay = .006 + r() * .004; this.spin = (r() - .5) * .08; this.color = theme.seal; }
     else if (fx === 'rain') { this.vx = -.3 + r() * .2; this.vy = r() * 2.4 + 2.2; this.rad = r() * 1 + .6; this.len = r() * 8 + 6; this.decay = .02 + r() * .015; this.color = theme.accent; }
+    else if (fx === 'wave') { this.vx = r() * .8 + .25; this.vy = (r() - .5) * .22; this.rad = r() * 5 + 6; this.decay = .012 + r() * .01; this.color = theme.accent; this.phase = r() * Math.PI * 2; }
     else if (fx === 'snow') { this.vx = (r() - .5) * .35; this.vy = r() * .45 + .2; this.rad = r() * 1.8 + 1; this.decay = .005 + r() * .004; this.sway = r() * Math.PI * 2; this.color = '#ffffff'; }
     else if (fx === 'wind') { this.vx = r() * 2.2 + 1.1; this.vy = (r() - .5) * .5; this.rad = r() * 1 + .5; this.len = r() * 14 + 8; this.decay = .015 + r() * .012; this.color = theme.textSoft || theme.textMute; }
+    else if (fx === 'leaf') { this.vx = (r() - .5) * .6; this.vy = r() * .42 + .18; this.rad = r() * 3 + 3; this.decay = .006 + r() * .005; this.spin = (r() - .5) * .06; this.sway = r() * Math.PI * 2; this.color = theme.accent; }
+    else if (fx === 'ink') { this.vx = (r() - .5) * .32; this.vy = -(r() * .42 + .12); this.rad = r() * 2.2 + 1.2; this.decay = .011 + r() * .007; this.color = theme.text; this.glyph = ['诗', '句', '字', '墨', '·'][Math.floor(r() * 5)]; }
     else if (fx === 'ember') { this.vx = (r() - .5) * .5; this.vy = -(r() * .8 + .4); this.rad = r() * 2 + 1; this.decay = .012 + r() * .01; this.color = theme.accent; this.warm = true; }
+    else if (fx === 'memory') { this.vx = (r() - .5) * .24; this.vy = -(r() * .18 + .05); this.rad = r() * 5 + 4; this.decay = .005 + r() * .004; this.color = theme.textSoft || theme.textMute; this.tw = r() * Math.PI * 2; }
     else { this.vx = (r() - .5) * .35; this.vy = -(r() * .35 + .12); this.rad = r() * 2 + 1.4; this.decay = .009 + r() * .006; this.color = theme.seal; this.tw = r() * Math.PI * 2; }
   }
   update() {
     this.x += this.vx; this.y += this.vy; this.life -= this.decay;
     if (this.life <= 0) { this.dead = true; return; }
     if (this.fx === 'petal') { this.rot += this.spin; this.vx += Math.sin(this.y * .05) * .02; }
+    else if (this.fx === 'wave') { this.phase += .12; this.x += Math.sin(this.phase) * .08; }
     else if (this.fx === 'snow') { this.sway += .05; this.x += Math.sin(this.sway) * .3; }
+    else if (this.fx === 'leaf') { this.rot += this.spin; this.sway += .055; this.x += Math.sin(this.sway) * .22; }
     else if (this.fx === 'ember') { this.vx += (Math.random() - .5) * .06; this.rad *= .992; }
-    else if (this.fx === 'glow') { this.tw += .12; }
+    else if (this.fx === 'glow' || this.fx === 'memory') { this.tw += .12; }
   }
   draw(ctx) {
     if (this.dead) return;
@@ -643,16 +819,34 @@ class WritingParticle {
     } else if (this.fx === 'rain') {
       ctx.globalAlpha = a * .32; ctx.strokeStyle = hexToRgba(this.color, 1); ctx.lineWidth = this.rad; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x - this.vx * 2, this.y - this.len); ctx.stroke();
+    } else if (this.fx === 'wave') {
+      ctx.globalAlpha = a * .30; ctx.strokeStyle = hexToRgba(this.color, 1); ctx.lineWidth = 1.1; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.arc(this.x, this.y, this.rad, Math.PI * .08, Math.PI * .78); ctx.stroke();
     } else if (this.fx === 'snow') {
       ctx.globalAlpha = a * .6; ctx.fillStyle = hexToRgba(this.color, 1);
       ctx.beginPath(); ctx.arc(this.x, this.y, this.rad, 0, Math.PI * 2); ctx.fill();
     } else if (this.fx === 'wind') {
       ctx.globalAlpha = a * .26; ctx.strokeStyle = hexToRgba(this.color, 1); ctx.lineWidth = this.rad; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(this.x - this.len, this.y - this.vy * 2); ctx.lineTo(this.x, this.y); ctx.stroke();
+    } else if (this.fx === 'leaf') {
+      ctx.save(); ctx.globalAlpha = a * .40; ctx.translate(this.x, this.y); ctx.rotate(this.rot);
+      ctx.fillStyle = hexToRgba(this.color, 1); ctx.beginPath();
+      ctx.ellipse(0, 0, this.rad * .55, this.rad, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = hexToRgba(this.color, .75); ctx.lineWidth = .7; ctx.beginPath(); ctx.moveTo(0, -this.rad * .7); ctx.lineTo(0, this.rad * .75); ctx.stroke();
+      ctx.restore();
+    } else if (this.fx === 'ink') {
+      ctx.globalAlpha = a * .34; ctx.fillStyle = hexToRgba(this.color, 1);
+      ctx.font = `${Math.max(10, this.rad * 6)}px ${this.font}`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(this.glyph, this.x, this.y);
     } else if (this.fx === 'ember') {
       const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.rad * 2);
       g.addColorStop(0, hexToRgba(this.color, a * .7)); g.addColorStop(1, hexToRgba(this.color, 0));
       ctx.globalAlpha = 1; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(this.x, this.y, this.rad * 2, 0, Math.PI * 2); ctx.fill();
+    } else if (this.fx === 'memory') {
+      ctx.globalAlpha = a * (.18 + Math.sin(this.tw) * .06);
+      ctx.strokeStyle = hexToRgba(this.color, 1); ctx.lineWidth = .9;
+      ctx.beginPath(); ctx.arc(this.x, this.y, this.rad * (1.15 - a * .35), 0, Math.PI * 2); ctx.stroke();
     } else {
       const tw = .55 + Math.sin(this.tw) * .35;
       const g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.rad * 2.4);
@@ -735,17 +929,21 @@ function WritingParticles({ textareaRef, text, theme, enabled }) {
         let n = 0; const R = Math.random();
         if (em.fx === 'petal') n = R < .045 ? 1 : 0;
         else if (em.fx === 'rain') n = R < .16 ? 1 : 0;
+        else if (em.fx === 'wave') n = R < .09 ? 1 : 0;
         else if (em.fx === 'snow') n = R < .07 ? 1 : 0;
         else if (em.fx === 'wind') n = R < .1 ? 1 : 0;
+        else if (em.fx === 'leaf') n = R < .075 ? 1 : 0;
+        else if (em.fx === 'ink') n = R < .11 ? 1 : 0;
         else if (em.fx === 'ember') n = R < .08 ? 1 : 0;
-        else n = R < .05 ? 1 : 0;
+        else if (em.fx === 'memory') n = R < .055 ? 1 : 0;
+        else n = R < .055 ? 1 : 0;
         for (let i = 0; i < n; i++) {
           const px = em.x + Math.random() * em.w;
           const py = em.y + (em.fx === 'rain' || em.fx === 'snow' || em.fx === 'petal' ? Math.random() * em.h * .4 : em.h * (.4 + Math.random() * .5));
           d.particles.push(new WritingParticle(px, py, em.fx, theme));
         }
       }
-      if (d.particles.length > 150) d.particles.splice(0, d.particles.length - 150);
+      if (d.particles.length > 230) d.particles.splice(0, d.particles.length - 230);
       for (let i = d.particles.length - 1; i >= 0; i--) {
         const p = d.particles[i]; p.update(); p.draw(ctx);
         if (p.dead || p.y > hgt + 30 || p.x > w + 30 || p.x < -30) d.particles.splice(i, 1);
@@ -776,7 +974,7 @@ function WritingParticles({ textareaRef, text, theme, enabled }) {
 // ─── Compose Screen (real) ────────────────────────────────────────
 const MOODS_REAL = ['☕','🌙','🌸','🌊','✨','🌿','💐','😴','🥲','🎯','📖','🏃','🌳','💌','🍂'];
 
-function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, onSaved }) {
+function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', forceDraft = false, syncState, onChangePaper, onBack, onSaved }) {
   const editing = !!entry?.id;
   const [focusMode, setFocusMode] = React.useState(false);
   const [title, setTitle] = React.useState(entry?.title || '');
@@ -792,7 +990,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
   const [err, setErr] = React.useState('');
   const [draftSavedAt, setDraftSavedAt] = React.useState('');
   const draftReady = React.useRef(false);
-  const draftKey = `diary-draft:${entry?.id || 'new'}`;
+  const draftKey = openedDraftKey || `diary-draft:${entry?.id || 'new'}`;
   const bodyRef = React.useRef(null);
   const particlesOn = React.useMemo(() => {
     const pref = JSON.parse(localStorage.getItem('d-writingParticles') ?? 'true');
@@ -801,7 +999,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
   }, []);
 
   React.useEffect(() => {
-    if (editing) return;
+    if (editing || forceDraft) return;
     const autoLoc = JSON.parse(localStorage.getItem('d-autoLoc') ?? 'true');
     if (!autoLoc) { setPlace('未记录地点'); return; }
     if (!navigator.geolocation) { setPlace('当前位置'); return; }
@@ -810,7 +1008,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
       () => setPlace('当前位置'),
       { timeout: 6000 }
     );
-  }, [editing]);
+  }, [editing, forceDraft]);
 
   React.useEffect(() => {
     try {
@@ -818,7 +1016,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
       if (raw) {
         const draft = JSON.parse(raw);
         const differs = draft.title !== (entry?.title || '') || draft.body !== (entry?.body || '');
-        if (differs && (draft.title?.trim() || draft.body?.trim()) && window.confirm('发现一份未完成的本地草稿，要继续写吗？')) {
+        if ((forceDraft || differs) && (draft.title?.trim() || draft.body?.trim()) && (forceDraft || window.confirm('发现一份未完成的本地草稿，要继续写吗？'))) {
           setTitle(draft.title || '');
           setBody(draft.body || '');
           setMood(draft.mood || '');
@@ -832,7 +1030,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
     } finally {
       draftReady.current = true;
     }
-  }, [draftKey]);
+  }, [draftKey, forceDraft]);
 
   React.useEffect(() => {
     if (!draftReady.current) return;
@@ -879,7 +1077,7 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
     setErr('');
     try {
       const generated = poemArg || (isAiPoemResult(poem) ? poem : null);
-      const generatedPatch = generated ? patchFromAiPoemResult(generated) : {};
+      const generatedPatch = generated ? patchFromAiPoemResult(generated, entry) : {};
       const id = await dbSaveEntry({
         ...(entry || {}),
         ...(editing ? { id: entry.id } : {}),
@@ -887,6 +1085,8 @@ function ComposeReal({ theme, paper, entry, syncState, onChangePaper, onBack, on
         place, title: title.trim(), body: body.trim(), mood, flag, paper: activePaper,
         tags: entry?.tags || [],
         poem: generatedPatch.poem || poem || entry?.poem || null,
+        activePoemStyle: generated ? generatedPatch.activePoemStyle : (entry?.activePoemStyle || poem?.style || entry?.poem?.style || null),
+        poemVariants: generated ? generatedPatch.poemVariants : (entry?.poemVariants || {}),
         sign: generated ? generatedPatch.sign : (entry?.sign || null),
         quoteSuggestions: generated ? generatedPatch.quoteSuggestions : (entry?.quoteSuggestions || []),
         poemCollected: generated ? generatedPatch.poemCollected : (entry?.poemCollected !== false && !!(poem || entry?.poem)),
@@ -1446,7 +1646,7 @@ function GuardedNewHexagram({ theme, params, parentHex, onBack, onSaved }) {
     parentContext={params.parentContext || ''} onBack={onBack} onSaved={onSaved}/>;
 }
 
-function AutoPoemShake({ theme, entry, onBack, onAccepted }) {
+function AutoPoemShake({ theme, entry, style = poemStyle(), onBack, onAccepted }) {
   const [state, setState] = React.useState('ready');
   const [result, setResult] = React.useState(null);
   const [error, setError] = React.useState('');
@@ -1458,7 +1658,7 @@ function AutoPoemShake({ theme, entry, onBack, onAccepted }) {
     running.current = true;
     setState('shaking'); setError('');
     try {
-      const generated = await apiPoem(entry.body);
+      const generated = await apiPoem(entry.body, style);
       setResult(generated);
       setState('done');
     } catch (err) {
@@ -1467,7 +1667,7 @@ function AutoPoemShake({ theme, entry, onBack, onAccepted }) {
     } finally {
       running.current = false;
     }
-  }, [entry.body]);
+  }, [entry.body, style]);
 
   const requestAndGenerate = React.useCallback(async () => {
     if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
@@ -1507,7 +1707,7 @@ function AutoPoemShake({ theme, entry, onBack, onAccepted }) {
     if (!result) return;
     setSaving(true);
     try {
-      await onAccepted(patchFromAiPoemResult(result));
+      await onAccepted(patchFromAiPoemResult(result, entry));
     } catch (err) {
       setError(err?.message || '收入失败，请稍后重试。');
       setSaving(false);
@@ -1893,9 +2093,10 @@ function AppReal() {
     loading={startLoading}/>;
 
   const { screen, params } = stack[stack.length - 1];
+  const localDrafts = readLocalDrafts(entries);
 
   // Guard: no entries yet
-  if (screen === 'home' && entries.length === 0)
+  if (screen === 'home' && entries.length === 0 && localDrafts.length === 0)
     return <EmptyHomeScreen theme={theme} onCompose={() => push('compose')} onTab={tabHandler}/>;
 
   const entryById = id => entries.find(e => e.id === id);
@@ -1908,10 +2109,11 @@ function AppReal() {
   switch (screen) {
     case 'home':
       return (
-        <Home theme={theme} entries={entries} drafts={[]}
+        <Home theme={theme} entries={entries} drafts={localDrafts}
           poemLayout="horizontal" density="sparse"
           onOpen={id => push('detail', { id })}
           onCompose={() => push('compose')}
+          onOpenDraft={draft => push(draft.targetId ? 'edit' : 'compose', draft.targetId ? { id: draft.targetId, draftKey: draft.key, forceDraft: true } : { draftKey: draft.key, forceDraft: true })}
           onSearch={() => push('search')}
           onTab={tabHandler}
         />
@@ -1929,7 +2131,7 @@ function AppReal() {
 
     case 'compose':
       return (
-        <ComposeReal theme={theme} paper={paper} syncState={syncState} onChangePaper={setPaper} onBack={pop}
+        <ComposeReal theme={theme} paper={paper} draftKey={params.draftKey || ''} forceDraft={!!params.forceDraft} syncState={syncState} onChangePaper={setPaper} onBack={pop}
           onSaved={async ({ id, hasGeneratedPoem } = {}) => {
             await refresh();
             const autoPoem = JSON.parse(localStorage.getItem('d-autoPoem') ?? 'true');
@@ -1942,7 +2144,7 @@ function AppReal() {
       const entry = entryById(params.id);
       if (!entry) { pop(); return null; }
       return (
-        <ComposeReal theme={theme} paper={paper} entry={entry} syncState={syncState} onChangePaper={setPaper} onBack={pop}
+        <ComposeReal theme={theme} paper={paper} entry={entry} draftKey={params.draftKey || ''} forceDraft={!!params.forceDraft} syncState={syncState} onChangePaper={setPaper} onBack={pop}
           onSaved={async () => {
             await refresh();
             pop();
@@ -1980,11 +2182,15 @@ function AppReal() {
           }
           await updateEntry(entry.id, { featured: !wasFeatured });
         }}
+        onSelectPoemStyle={style => updateEntry(entry.id, patchForPoemStyle(entry, style))}
+        onGeneratePoemStyle={entry.body?.trim() ? async style => {
+          push('shake', { id: entry.id, style });
+        } : null}
         onAddNote={text => updateEntry(entry.id, {
           notes: [...(entry.notes || []), { date: new Date().toLocaleString('zh-CN', { hour12: false }), text }],
         })}
         onGeneratePoem={entry.body?.trim() ? async () => {
-          push('shake', { id: entry.id });
+          push('shake', { id: entry.id, style: poemStyle() });
         } : null}
         onCollectQuote={quote => updateEntry(entry.id, {
           collectedQuotes: Array.from(new Set([...(entry.collectedQuotes || []), quote])),
@@ -2009,7 +2215,7 @@ function AppReal() {
     case 'shake': {
       const entry = entryById(params.id);
       if (!entry) { pop(); return null; }
-      return <AutoPoemShake theme={theme} entry={entry} onBack={pop} onAccepted={async patch => {
+      return <AutoPoemShake theme={theme} entry={entry} style={params.style || poemStyle()} onBack={pop} onAccepted={async patch => {
         await updateEntry(entry.id, patch);
         pop();
       }}/>;
