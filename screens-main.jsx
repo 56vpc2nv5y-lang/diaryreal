@@ -52,11 +52,11 @@ function Home({ theme, entries, drafts = [], density = 'sparse', poemLayout = 'h
           <div className="no-scroll" style={{ display: 'flex', gap: 10, padding: '4px 24px 6px', overflowX: 'auto' }}>
             {drafts.map((d) => <DraftCard key={d.id} draft={d} theme={theme} onClick={() => onOpenDraft?.(d)} />)}
             <button type="button" onClick={onCompose} style={{
-              flexShrink: 0, width: 116, height: 74, borderRadius: 18,
+              flexShrink: 0, width: 106, height: 68, borderRadius: 16,
               border: `0.5px dashed ${theme.accent}88`, display: 'flex',
               alignItems: 'center', justifyContent: 'center', gap: 6,
               color: theme.textSoft, fontSize: 12,
-              background: `${theme.surface}82`, fontFamily: 'inherit', cursor: 'pointer',
+              background: `${theme.surface}78`, fontFamily: 'inherit', cursor: 'pointer',
             }}><span style={{ fontSize: 16, color: theme.seal }}>+</span> 新笺</button>
           </div>
         </div>
@@ -250,28 +250,25 @@ function DraftCard({ draft, theme, onClick }) {
   const isPhoto = draft.kind === 'photo' && draft.photos && draft.photos.length;
   return (
     <button type="button" onClick={onClick} style={{
-      flexShrink: 0, width: 178, height: 74, position: 'relative',
-      border: `0.5px solid ${theme.line}`, borderRadius: 18,
+      flexShrink: 0, width: 168, height: 68, position: 'relative',
+      border: `0.5px solid ${theme.line}`, borderRadius: 16,
       background: isPhoto
-        ? `linear-gradient(135deg, ${theme.accent}5f, ${theme.seal}48), ${theme.paper}`
-        : `linear-gradient(145deg, ${theme.paper}f2, ${theme.surface}e8)`,
-      padding: '10px 13px', fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left',
-      overflow: 'hidden', boxShadow: `0 10px 28px ${theme.text}10`,
-      ...skin(theme, 'panel'),
+        ? `linear-gradient(135deg, ${theme.accent}48, ${theme.seal}32), ${theme.paper}`
+        : `${theme.surface}d8`,
+      padding: '9px 12px', fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left',
+      overflow: 'hidden', boxShadow: `0 6px 18px ${theme.text}0c`,
     }}>
-      <div style={{ position: 'absolute', inset: 0, opacity: .18, pointerEvents: 'none', background: `linear-gradient(90deg, transparent 0 62%, ${theme.accent}33 62% 63%, transparent 63%)` }} />
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
-        <span style={{ width: 6, height: 6, borderRadius: 3, background: theme.seal, display: 'inline-block' }} />
-        <span style={{ fontSize: 10, color: theme.seal, letterSpacing: 1.5, fontWeight: 600 }}>{isPhoto ? '照片草稿' : '草稿'}</span>
+        <span style={{ width: 5, height: 5, borderRadius: 3, background: isPhoto ? '#fff' : theme.seal, display: 'inline-block', opacity: .9 }} />
+        <span style={{ fontSize: 10, color: isPhoto ? '#fff' : theme.seal, letterSpacing: 1.3, fontWeight: 600 }}>{isPhoto ? '照片草稿' : '草稿'}</span>
         <span style={{ marginLeft: 'auto', fontSize: 10, color: theme.textMute }}>{draft.time}</span>
       </div>
       <div className="serif" style={{
-        position: 'relative', fontSize: 13, color: isPhoto ? '#fff' : theme.text,
-        lineHeight: 1.45, letterSpacing: .6, textShadow: isPhoto ? '0 1px 2px rgba(0,0,0,.25)' : 'none',
+        position: 'relative', fontSize: 12.5, color: isPhoto ? '#fff' : theme.text,
+        lineHeight: 1.48, letterSpacing: .4, textShadow: isPhoto ? '0 1px 2px rgba(0,0,0,.18)' : 'none',
         overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box',
         WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
       }}>{draft.title || '未命名草稿'}</div>
-      <div style={{ position: 'absolute', right: 12, bottom: 8, color: isPhoto ? '#fff' : theme.textSoft, fontSize: 10.5, letterSpacing: 1 }}>继续</div>
     </button>
   );
 }

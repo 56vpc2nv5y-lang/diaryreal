@@ -48,8 +48,8 @@ function Timeline({ theme, entries, onOpen, onTab }) {
       {view === 'zh-poems' && <PoemBook theme={theme} entries={zhPoems} onOpen={onOpen} bookLabel="中文诗册" />}
       {view === 'en-poems' && <PoemBook theme={theme} entries={enPoems} onOpen={onOpen} bookLabel="英文诗册" />}
 
-      {view === 'quotes' && <div style={{ padding: '24px 20px 120px' }}>
-        {quotes.map(({ quote, entry }, index) => <QuoteBlindBox key={`${entry.id}-${index}`} quote={quote} entry={entry} theme={theme} onOpen={() => onOpen(entry.id)} />)}
+      {view === 'quotes' && <div className="quote-box-grid" style={{ padding: '24px 20px 120px' }}>
+        {quotes.map(({ quote, entry }, index) => <QuoteMysteryBox key={`${entry.id}-${index}`} quote={quote} entry={entry} theme={theme} onOpen={() => onOpen(entry.id)} />)}
         {!quotes.length && <div className="serif" style={{ color: theme.textMute, padding: 40, textAlign: 'center' }}>在日记详情中确认 AI 拾句建议</div>}
       </div>}
 
@@ -80,6 +80,48 @@ function Timeline({ theme, entries, onOpen, onTab }) {
         </div>
       </div>}
     </Screen>
+  );
+}
+
+function QuoteMysteryBox({ quote, entry, theme, onOpen }) {
+  const [open, setOpen] = React.useState(false);
+  const entryLabel = entry.title || entry.poem?.title || '日记';
+  const handleClick = () => {
+    if (open) onOpen?.();
+    else setOpen(true);
+  };
+  return (
+    <button
+      type="button"
+      className={`quote-mystery-box${open ? ' quote-mystery-box-open' : ''}`}
+      aria-expanded={open}
+      aria-label={open ? `查看 ${entryLabel}` : '拆开拾句盲盒'}
+      onClick={handleClick}
+      style={{
+        '--quote-line': theme.line,
+        '--quote-surface': theme.surface,
+        '--quote-paper': theme.paper,
+        '--quote-text': theme.text,
+        '--quote-soft': theme.textSoft,
+        '--quote-mute': theme.textMute,
+        '--quote-seal': theme.seal,
+        '--quote-accent': theme.accent,
+      }}
+    >
+      <div className="quote-mystery-glow" />
+      <div className="quote-mystery-lid"><span /></div>
+      <div className="quote-mystery-body">
+        <div className="quote-mystery-stamp">拾</div>
+        <div className="quote-mystery-label">拾句盲盒</div>
+        <div className="quote-mystery-meta">{entry.date}</div>
+      </div>
+      <div className="quote-mystery-flap" />
+      <div className="quote-prize-card">
+        <div className="quote-prize-kicker">已 拾 之 句</div>
+        <div className="serif quote-prize-text">“{quote}”</div>
+        <div className="quote-prize-meta">{entry.date} · {entryLabel}</div>
+      </div>
+    </button>
   );
 }
 
@@ -792,8 +834,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         ? `同步中 · ${syncState.pending} 项`
         : '已同步';
   const themeGroups = [
-    { label: '清雅', keys: ['celadon', 'inkPlum', 'mossGarden'] },
-    { label: '轻盈', keys: ['dusk', 'seaSalt'] },
+    { label: '', keys: ['celadon', 'inkPlum', 'mossGarden', 'dusk', 'seaSalt'] },
   ];
   const themeRecommendations = {
     celadon: '青釉浅色信纸 · 楷体',
@@ -864,7 +905,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         </div>
         {themeGroups.map(group => (
           <div key={group.label}>
-            <div style={{ padding: '12px 16px 0', color: theme.textMute, fontSize: 10.5, letterSpacing: 3 }}>{group.label}</div>
+            {group.label && <div style={{ padding: '12px 16px 0', color: theme.textMute, fontSize: 10.5, letterSpacing: 3 }}>{group.label}</div>}
             <div className="theme-picker-grid">
               {group.keys.filter(key => window.THEMES[key]).map(key => {
                 const tokens = window.THEMES[key];
