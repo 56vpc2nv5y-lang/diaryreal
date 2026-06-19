@@ -354,7 +354,7 @@ function signFromAiResult(result) {
     motif: String(result.motif || '').slice(0, isSonnet ? 60 : 30),
     judgmentLines,
     interpretation: String(result.interpretation || '').slice(0, 600),
-    timelineLine: String(result.timelineLine || judgmentLines[3] || judgmentLines[0] || '').slice(0, isSonnet ? 80 : 32),
+    timelineLine: String(result.timelineLine || judgmentLines[0] || '').slice(0, isSonnet ? 80 : 32),
   };
 }
 

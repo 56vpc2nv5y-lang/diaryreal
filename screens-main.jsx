@@ -737,6 +737,7 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
             }}
           >
             <div className="lot-aura" />
+            <TextParticleAura theme={theme} variant="lot" density={state === 'shaking' ? 'rich' : 'soft'} />
             <div className="lot-word-field" aria-hidden="true">
               {motes.map((word, i) => <span key={`${word}-${i}`} style={{ '--i': i }}>{word}</span>)}
             </div>

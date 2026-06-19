@@ -137,6 +137,8 @@ function TextParticleAura({ theme, variant = 'poem', density = 'soft' }) {
   if (reduce) return null;
   const glyphs = variant === 'spell'
     ? ['✦', '·', 'ᚠ', '✧', 'ink', 'wish', '✦', '·']
+    : variant === 'lot'
+      ? ['签', '落', '问', '诗', '象', '解', '风', '照']
     : variant === 'quote'
       ? ['拾', '句', '光', '藏', '·', '忆', '·', '开']
       : variant === 'judgment'
