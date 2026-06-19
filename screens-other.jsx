@@ -5,9 +5,28 @@
 // ──────────────────────────────────────────────────────────────────
 function Timeline({ theme, entries, onOpen, onTab }) {
   const flagged = entries.filter(e => e.flag);
-  const poems = entries.filter(e => e.poem && e.poemCollected !== false);
+  const poemItems = entries.flatMap(entry => {
+    const variants = entry.poemVariants || {};
+    const fromVariants = ['zh-classical', 'en-sonnet'].flatMap(style => {
+      const variant = variants[style];
+      if (!variant?.poem || variant.poemCollected === false) return [];
+      return [{
+        ...entry,
+        id: `${entry.id}:${style}`,
+        sourceEntryId: entry.id,
+        activePoemStyle: style,
+        poem: variant.poem,
+        sign: variant.sign || null,
+        poemCollected: true,
+      }];
+    });
+    if (fromVariants.length) return fromVariants;
+    return entry.poem && entry.poemCollected !== false ? [{ ...entry, sourceEntryId: entry.id }] : [];
+  });
+  const zhPoems = poemItems.filter(e => e.poem?.style !== 'en-sonnet' && (e.poem?.lines || []).length <= 4);
+  const enPoems = poemItems.filter(e => e.poem?.style === 'en-sonnet' || (e.poem?.lines || []).length > 4);
   const quotes = entries.flatMap(entry => (entry.collectedQuotes || []).map(quote => ({ quote, entry })));
-  const [view, setView] = React.useState('poems');
+  const [view, setView] = React.useState('zh-poems');
   return (
     <Screen theme={theme} tab="timeline" onTab={onTab}>
       <div style={{ padding: '64px 24px 8px' }}>
@@ -17,28 +36,20 @@ function Timeline({ theme, entries, onOpen, onTab }) {
       </div>
 
       <div style={{ display: 'flex', gap: 8, padding: '14px 20px 2px' }}>
-        {[['poems','诗册',poems.length],['quotes','拾句册',quotes.length],['milestones','里程碑',flagged.length]].map(([id,label,count]) => (
+        {[['zh-poems','中文诗册',zhPoems.length],['en-poems','英文诗册',enPoems.length],['quotes','拾句册',quotes.length],['milestones','里程碑',flagged.length]].map(([id,label,count]) => (
           <button key={id} type="button" onClick={() => setView(id)} style={{
             flex: 1, height: 38, borderRadius: 19, border: `0.5px solid ${view === id ? theme.text : theme.line}`,
             background: view === id ? theme.text : theme.surface, color: view === id ? theme.bg : theme.textSoft,
-            fontFamily: 'inherit', cursor: 'pointer', fontSize: 12,
+            fontFamily: 'inherit', cursor: 'pointer', fontSize: 11.5,
           }}>{label} · {count}</button>
         ))}
       </div>
 
-      {view === 'poems' && <PoemBook theme={theme} entries={poems} onOpen={onOpen} />}
+      {view === 'zh-poems' && <PoemBook theme={theme} entries={zhPoems} onOpen={onOpen} bookLabel="中文诗册" />}
+      {view === 'en-poems' && <PoemBook theme={theme} entries={enPoems} onOpen={onOpen} bookLabel="英文诗册" />}
 
       {view === 'quotes' && <div style={{ padding: '24px 20px 120px' }}>
-        {quotes.map(({ quote, entry }, index) => <button type="button" key={`${entry.id}-${index}`} onClick={() => onOpen(entry.id)} style={{
-          width: '100%', textAlign: 'left', marginBottom: 10, padding: '17px 18px', borderRadius: 15,
-          border: `0.5px solid ${theme.line}`, background: theme.surface, fontFamily: 'inherit', cursor: 'pointer',
-          position: 'relative', overflow: 'hidden', ...skin(theme, 'panel'),
-        }}>
-          <ThemeCardArt theme={theme} kind="quote" />
-          <ThemeMotif theme={theme} variant="panel" />
-          <div className="serif" style={{ fontSize: 16, color: theme.text, lineHeight: 1.75 }}>“{quote}”</div>
-          <div style={{ marginTop: 7, fontSize: 11, color: theme.textMute }}>{entry.date} · {entry.title || entry.poem?.title || '日记'}</div>
-        </button>)}
+        {quotes.map(({ quote, entry }, index) => <QuoteBlindBox key={`${entry.id}-${index}`} quote={quote} entry={entry} theme={theme} onOpen={() => onOpen(entry.id)} />)}
         {!quotes.length && <div className="serif" style={{ color: theme.textMute, padding: 40, textAlign: 'center' }}>在日记详情中确认 AI 拾句建议</div>}
       </div>}
 
@@ -69,6 +80,45 @@ function Timeline({ theme, entries, onOpen, onTab }) {
         </div>
       </div>}
     </Screen>
+  );
+}
+
+function QuoteBlindBox({ quote, entry, theme, onOpen }) {
+  const [open, setOpen] = React.useState(false);
+  const handleClick = () => {
+    if (open) onOpen?.();
+    else setOpen(true);
+  };
+  return (
+    <button type="button" className={`quote-blindbox${open ? ' quote-blindbox-open' : ''}`} onClick={handleClick} style={{
+      width: '100%', textAlign: 'left', marginBottom: 12, minHeight: open ? 118 : 96,
+      borderRadius: 22, border: `0.5px solid ${theme.line}`, background: theme.surface,
+      fontFamily: 'inherit', cursor: 'pointer', position: 'relative', overflow: 'hidden',
+      color: theme.text, padding: 0, ...skin(theme, 'panel'),
+    }}>
+      <div className="quote-box-lid" style={{ '--quote-seal': theme.seal, '--quote-accent': theme.accent }} />
+      <div className="quote-box-ribbon" style={{ background: theme.seal }} />
+      <div style={{ position: 'relative', zIndex: 2, padding: open ? '20px 22px 16px' : '22px 22px' }}>
+        {!open ? (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 10.5, color: theme.textMute, letterSpacing: 3, fontWeight: 600 }}>句 匣 未 拆</div>
+                <div className="serif" style={{ marginTop: 8, fontSize: 19, color: theme.text, letterSpacing: 2 }}>拆开一枚金句</div>
+              </div>
+              <div className="serif" style={{ width: 48, height: 48, borderRadius: 16, border: `1px solid ${theme.seal}55`, color: theme.seal, display: 'grid', placeItems: 'center', fontSize: 18 }}>封</div>
+            </div>
+            <div style={{ marginTop: 10, fontSize: 11, color: theme.textMute }}>{entry.date} · {entry.title || entry.poem?.title || '日记'}</div>
+          </>
+        ) : (
+          <>
+            <div style={{ fontSize: 10.5, color: theme.seal, letterSpacing: 3, fontWeight: 600 }}>已 拾 之 句</div>
+            <div className="serif" style={{ marginTop: 10, fontSize: 17, color: theme.text, lineHeight: 1.8 }}>“{quote}”</div>
+            <div style={{ marginTop: 8, fontSize: 11, color: theme.textMute }}>{entry.date} · {entry.title || entry.poem?.title || '日记'} · 再点查看原文</div>
+          </>
+        )}
+      </div>
+    </button>
   );
 }
 
@@ -240,7 +290,7 @@ function BookIllustration({ theme, scene }) {
   );
 }
 
-function PoemBook({ theme, entries, onOpen }) {
+function PoemBook({ theme, entries, onOpen, bookLabel = '诗册' }) {
   const [page, setPage] = React.useState(0);
   const [dir, setDir] = React.useState('next');
   const touchX = React.useRef(null);
@@ -271,7 +321,7 @@ function PoemBook({ theme, entries, onOpen }) {
   if (!entries.length) {
     return (
       <div className="serif" style={{ color: theme.textMute, padding: 40, textAlign: 'center' }}>
-        摇出的诗会自动收入这里
+        摇出的诗会自动收入这本{bookLabel}
       </div>
     );
   }
@@ -301,7 +351,7 @@ function PoemBook({ theme, entries, onOpen }) {
   );
 
   const titleButton = (
-    <button type="button" onClick={() => onOpen?.(entry.id)} className="serif" title="查看那天的日记" style={{
+    <button type="button" onClick={() => onOpen?.(entry.sourceEntryId || entry.id)} className="serif" title="查看那天的日记" style={{
       border: 'none', background: 'transparent', color: theme.text, fontFamily: 'inherit',
       fontSize: enPoem ? 19 : 25, letterSpacing: enPoem ? 1 : 7, lineHeight: 1.2,
       fontStyle: enPoem ? 'italic' : 'normal', padding: enPoem ? 0 : '0 0 0 .45em',
@@ -332,7 +382,7 @@ function PoemBook({ theme, entries, onOpen }) {
   const poemPane = (
     <div style={{ position: 'relative', zIndex: 1, padding: enPoem ? '20px 22px 18px' : '26px 20px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ fontSize: 10, color: theme.textMute, letterSpacing: 3, fontWeight: 600 }}>{enPoem ? 'LOT' : '诗 册'}</div>
+        <div style={{ fontSize: 10, color: theme.textMute, letterSpacing: 3, fontWeight: 600 }}>{enPoem ? 'ENGLISH BOOK' : bookLabel}</div>
         <Seal char1={c1} char2={c2} theme={theme} size={30} rotate={-4}/>
       </div>
       <div style={{ marginTop: enPoem ? 12 : 24 }}>{titleButton}</div>
@@ -743,15 +793,12 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         : '已同步';
   const themeGroups = [
     { label: '清雅', keys: ['celadon', 'inkPlum', 'mossGarden'] },
-    { label: '温暖', keys: ['study', 'morningPaper'] },
     { label: '轻盈', keys: ['dusk', 'seaSalt'] },
   ];
   const themeRecommendations = {
     celadon: '青釉浅色信纸 · 楷体',
     inkPlum: '宣纸留白 · 楷体',
     mossGarden: '苔庭信纸 · 楷体',
-    study: '米白旧纸 · 楷体',
-    morningPaper: '新青年刊物 · 宋体',
     dusk: '低对比浅色信纸 · 楷体',
     seaSalt: '雾蓝盐白信纸 · 楷体',
   };
@@ -829,7 +876,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                   }}>
                     <div className={`theme-card-preview theme-preview-${key}`} style={{
-                      width: '100%', borderRadius: key === 'morningPaper' ? 5 : key === 'seaSalt' ? 18 : 12,
+                      width: '100%', borderRadius: key === 'seaSalt' ? 18 : 12,
                       background: tokens.paper,
                       border: active ? `1.5px solid ${theme.text}` : `0.5px solid ${theme.line}`,
                       padding: 8, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 5,
@@ -839,7 +886,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 2 }}>
                         <div style={{ display: 'flex', gap: 3 }}>
-                          {swatch.map((c, i) => <div key={i} style={{ width: 6, height: 6, borderRadius: key === 'morningPaper' ? 1 : 5, background: c, border: i === 1 ? `0.5px solid ${theme.line}` : 'none' }}/>)}
+                          {swatch.map((c, i) => <div key={i} style={{ width: 6, height: 6, borderRadius: 5, background: c, border: i === 1 ? `0.5px solid ${theme.line}` : 'none' }}/>)}
                         </div>
                         <div style={{ fontFamily: tokens.fontSerif, fontSize: 6.5, color: tokens.textMute, letterSpacing: .8 }}>今日</div>
                       </div>
@@ -968,7 +1015,7 @@ function FeedbackBox({ theme, buildLabel = '', currentUser }) {
           border: `0.5px solid ${theme.line}`, background: theme.paper, color: theme.text,
           outline: 'none', padding: 13, fontFamily: 'inherit', fontSize: 14.5, lineHeight: 1.7,
         }}/>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 120px', gap: 12, marginTop: 12, alignItems: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12, marginTop: 12, alignItems: 'center' }}>
         <button type="button" onClick={sendMail} disabled={!canSend} style={{
           width: '100%', height: 44, borderRadius: 22, border: 'none',
           background: canSend ? theme.text : theme.surfaceSoft,

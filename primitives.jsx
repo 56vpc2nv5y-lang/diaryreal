@@ -561,10 +561,29 @@ function paperBg(kind, theme) {
 function splitPoemLines(lines) {
   return (lines || []).flatMap(line => {
     const text = String(line || '').trim();
-    const comma = text.indexOf('，');
-    if (comma < 0 || comma === text.length - 1) return [text];
-    return [text.slice(0, comma + 1), text.slice(comma + 1)];
+    return splitDisplayLine(text, { keepPunctuation: true });
   }).filter(Boolean);
+}
+
+function splitDisplayLine(line, options = {}) {
+  const text = String(line || '').trim();
+  if (!text) return [];
+  if (!/[一-鿿]/.test(text)) return [text];
+  const keepPunctuation = options.keepPunctuation !== false;
+  const marks = new Set(Array.from('，。！？；：、,.!?;:'));
+  const parts = [];
+  let buffer = '';
+  Array.from(text).forEach(char => {
+    if (marks.has(char)) {
+      const next = keepPunctuation ? `${buffer}${char}` : buffer;
+      if (next.trim()) parts.push(next.trim());
+      buffer = '';
+    } else {
+      buffer += char;
+    }
+  });
+  if (buffer.trim()) parts.push(buffer.trim());
+  return parts.length ? parts : [text];
 }
 
 function isLatinPoem(lines) {
@@ -642,4 +661,5 @@ Object.assign(window, {
   IconHome, IconTimeline, IconPlus, IconImport, IconHex, IconUser, IconSearch,
   IconChevron, IconClose, IconCamera, IconPin, IconShake, sealChars,
   paperBg, PAPER_LIBRARY, PoemBody, splitPoemLines, skin,
+  splitDisplayLine,
 });

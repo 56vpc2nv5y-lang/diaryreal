@@ -419,4 +419,6 @@
   delete window.THEMES.mandela;
   delete window.THEMES.obsidianDawn;
   delete window.THEMES.snowNight;
+  delete window.THEMES.study;
+  delete window.THEMES.morningPaper;
 })();

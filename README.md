@@ -1,118 +1,72 @@
 # 诗签 · Poem Lot
 
-写下今天，摇出一签。AI 会根据每篇日记生成判词、解释、原创中文古体诗，或英文十四行诗。
+写日记，也收藏诗与句子。应用会根据每篇日记生成中文古体诗或英文十四行诗，并保留用户自己的修改。
 
-## 当前状态（2026.06.19-r64）
+## 当前状态 2026.06.19-r65
 
-这版继续修复视觉和产品结构问题：青瓷换成新的釉面背景图，晨报按“新青年 / LA JEUNESSE”报纸骨架重绘，双诗体改成每篇日记独立保存中文与英文版本，并补上草稿、置顶、分享卡、判词去重、摇签动画和翻页动画。
+本版重点修复生成规则、诗签展示、藏册结构和若干视觉问题。
 
-| 问题 | 状态 | 说明 |
+| 项目 | 状态 | 说明 |
 |---|---|---|
-| 青瓷裂纹与旧背景 | 已修复 | 使用 `assets/themes/generated/celadon-bg.webp`，卡片去掉几何裂纹 |
-| 晨报遮挡诗句 | 已修复 | 整屏保留报纸背景，诗卡内部改为纯纸纹和栏线，不再重复刊头字 |
-| 一篇日记同时要中文和英文诗 | 已实现 | `poemVariants` 保存双版本，详情页可切换；缺失版本显示生成入口 |
-| 草稿功能 | 已实现 | 本地自动保存草稿，首页草稿条可继续编辑 |
-| 古诗和判词重复 | 已修复 | API 提示词、服务端校验和旧数据读取都会过滤近似重复判词 |
-| 置顶处理 | 已修复 | 列表保持时间顺序，首页顶部优先展示置顶诗签 |
-| 摇签动画粗糙 | 已增强 | 签筒、签束、落签、墨点和文字粒子分层动画 |
-| 古诗册翻页生硬 | 已增强 | 参考 page-flip 类库的时间、阴影、卷页和落定节奏 |
-| 分享设计单薄 | 已增强 | 中文分享卡为竹简竖排，英文分享卡为羊皮卷 |
-| PWA 继续读取旧文件 | 已修复 | `CACHE_NAME` 升到 `poem-diary-r64`，入口脚本版本升到 `2026.06.19-r64` |
+| 中文诗题固定三字 | 已修复 | prompt 明确要求 2-8 字自然变化，不机械生成三字题。 |
+| 判词像另一首诗 | 已修复 | 中文判词改为一句签语；旧四行数据读取时只取一句。 |
+| 英文版不需要判词 | 已修复 | 英文十四行诗 prompt 返回空 `judgmentLines`，详情页也不渲染判词区。 |
+| 中文标点断行 | 已修复 | 中文诗句和判词会按逗号、句号、问号等标点断行，避免文字硬挤换行。 |
+| 英文羊皮卷质感 | 已增强 | 英文诗体使用展开羊皮卷、上下卷轴和逐行浮现动画。 |
+| 摇签动画穿模 | 已修复 | 移除掉出的签纸层，改为签筒摇动和选中签探出。 |
+| 草稿设计 | 已调整 | 首页草稿改成“未完笺”横向卡片。 |
+| 中英文双诗 | 已实现 | 每篇日记可保存中文、英文两个版本；详情页顶部切换，缺失版本可生成。 |
+| 手动改诗 | 已新增 | 详情页更多菜单里可修改当前中文或英文诗。 |
+| AI 改句建议 | 已新增 | 改诗弹窗中每句可“问 AI”，返回改句、备选和用词建议。 |
+| 诗册中英混杂 | 已调整 | 藏册拆成中文诗册和英文诗册。 |
+| 拾句册盲盒 | 已新增雏形 | 拾句册改为“句匣”卡片，先拆封再露出金句。 |
+| 旧书房、晨报皮肤 | 已移除 | 从主题入口和 `window.THEMES` 中删除。 |
+| 设置页左右布局 | 已调整 | 桌面两列更均匀，反馈按钮同宽。 |
+| PWA 缓存 | 已更新 | `CACHE_NAME` 升到 `poem-diary-r65`，脚本 query 升到 r65。 |
 
-## 功能
+## 核心功能
 
-- 日记：标题、正文、日期、位置、心情、标签、照片、里程碑。
-- 摇签：读取日记后生成判词、解释、原创诗。
-- 双诗体：中文古体诗和英文 Shakespearean sonnet。
-- 诗册：收藏历史诗签，支持纸张翻页展示。
-- 时间线：按日期浏览日记和里程碑。
-- 六爻：投掷铜钱起卦，并支持追问。
-- AI 拾句：从日记正文中提取值得收藏的句子。
-- 主题皮肤：青瓷、苔庭、墨梅、旧书房、晨报、黄昏、海盐等。
-- 云同步：Firebase Authentication + Firestore。
-- PWA：可安装到主屏幕，并支持离线浏览缓存内容。
+- 日记：标题、正文、日期、位置、心情、里程碑、本地草稿。
+- 生诗：中文古体诗、英文 Shakespearean sonnet，可按篇分别生成。
+- 判词：中文版本保留一句签语和意象解释；英文版本不显示判词。
+- 改诗：用户可编辑诗题和诗句，并向 AI 请求用词/改句建议。
+- 藏册：中文诗册、英文诗册、拾句册、里程碑分开浏览。
+- 拾句：从日记原文收藏金句，拾句册以盲盒句匣展示。
+- 主题：青瓷、墨梅、苔庭、暮云、海盐等，旧书房和晨报已下线。
+- 数据：Firebase Authentication + Firestore，支持备份和 Markdown 导出。
+- PWA：Service Worker 缓存，离线时回退到已缓存资源。
 
-## 主题设计方向
-
-### 晨报
-
-晨报现在按“新青年”刊物感重新设计：
-
-- 背景像一整张旧报纸，有纸纹、栏线、红色刊线和淡化刊头。
-- 诗卡像报纸文章栏，内部只保留纸纹、分栏线和克制红线。
-- 刊头只出现在卡片上方，不进入诗题和诗句正文区域。
-
-### 旧书房
-
-旧书房改为“桌面上的一本册子”：
-
-- 背景包含木纹、灯光、书架和摊开的册页。
-- 诗卡保留温暖旧纸色，但减少杂乱装饰。
-- 后续可以继续加书签、批注、墨迹显影，让它更像私人书斋。
-
-### 英文诗与中文诗
-
-英文诗使用羊皮纸/魔法信件方向：展开纸卷，墨迹逐行浮现。
-
-中文诗不照搬羊皮纸，使用竹简和册页方向：
-
-- 今日诗签：像翻开一页右开册页，标题和印章在右上，诗句可做竖排分列。
-- 生成动效：不是打字机，而是墨迹显影，最后落一枚朱印。
-- 诗册浏览：保留纸张翻页，加强书脊、页角、月份页签。
-- 年度导出：可做成“年册”，包含目录、月份分卷、日记摘句和诗签页。
-
-## 多诗体数据方案
-
-旧数据结构是单槽位：
-
-```js
-entry.poem
-entry.sign
-```
-
-现在已兼容并写入多版本结构：
+## 多诗体数据结构
 
 ```js
 entry.poemVariants = {
   "zh-classical": { poem, sign, generatedAt },
-  "en-sonnet": { poem, sign, generatedAt },
-  "zh-ci": { poem, sign, generatedAt }
+  "en-sonnet": { poem, sign, generatedAt }
 };
+
 entry.activePoemStyle = "zh-classical";
 ```
 
-交互上，详情页提供“中文 / English”切换。已有版本直接切换；缺失版本显示灰态生成入口。生成新诗体时只写入对应 key，不覆盖已有诗。旧数据可兼容：没有 `poemVariants` 时，把现有 `poem` / `sign` 当作一个版本显示。
+旧数据仍兼容 `entry.poem` / `entry.sign`。读取时会归并到当前活动诗体。
 
-## 技术栈
-
-| 层 | 技术 |
-|---|---|
-| 前端 | React 18 + Babel standalone |
-| 样式 | 内联样式 + CSS 自定义属性主题系统 |
-| API | Vercel Serverless Functions |
-| AI | DeepSeek Chat API |
-| 数据库 | Firebase Firestore |
-| 认证 | Firebase Authentication |
-| PWA | Service Worker + Web App Manifest |
-
-## 目录结构
+## 主要文件
 
 ```text
-.
-├── index.html              # 入口、全局 CSS、脚本加载
-├── app-real.jsx            # 主应用、路由、状态、Firebase 读写
-├── primitives.jsx          # 共享组件、主题装饰、PoemBody
-├── screens-main.jsx        # 首页、写作、摇签、详情、搜索
-├── screens-other.jsx       # 时间线、诗册、六爻、设置
-├── themes-extra.js         # 主题皮肤与 SVG 背景
-├── service-worker.js       # PWA 缓存
-├── api/                    # poem、hexagram、question、health
-└── assets/                 # 图标和主题资源
+index.html            全局 CSS、PWA 入口、脚本版本
+app-real.jsx          应用状态、Firebase、AI API 调用、路由
+primitives.jsx        共享组件、PoemBody、中文标点断行
+screens-main.jsx      首页、写作、摇签、详情、改诗弹窗
+screens-other.jsx     藏册、设置、导入导出
+themes-extra.js       主题定义和皮肤过滤
+api/poem.js           生诗 prompt 和返回校验
+api/poem-suggest.js   改诗用词建议接口
+service-worker.js     PWA 缓存
+tests/poem-contract.test.mjs  生诗合约测试
 ```
 
 ## 本地运行
 
-项目没有构建步骤，可以直接启动静态服务：
+项目没有构建步骤，可直接启动静态服务：
 
 ```bash
 python -m http.server 4173
@@ -132,15 +86,14 @@ DEEPSEEK_API_KEY=sk-...
 
 ## 验证记录
 
-r64 已检查：
+本轮已执行：
 
 ```bash
-node --check themes-extra.js
-node --check service-worker.js
-node --check api/poem.js
-node tests/sonnet-grader.test.mjs
-PW_PATH=... THEME_KEYS=celadon,morningPaper node tests/render-theme-skins.mjs
-PW_PATH=... node tests/render-settings-desktop.mjs
+node --check api\poem.js
+node --check api\poem-suggest.js
+node tests\poem-contract.test.mjs
 ```
 
-真实页面 Playwright 检查在当前沙盒中被外网限制挡住：React/Firebase CDN 请求返回 `ERR_NETWORK_ACCESS_DENIED`，因此页面停在启动屏并出现 `firebase is not defined`。本地或线上网络正常时，r64 已提升缓存名，刷新后应自动更新。
+`tests/poem-contract.test.mjs` 包含 5000 组合成用例，检查英文十四行诗 14 行、英文无判词、中文判词一句、中文诗题不固定三字等约束。
+
+没有执行 5000 次真实线上 API 或网站测试；那会产生高额请求成本，也受当前网络沙箱限制。真实部署后仍建议抽样检查 DeepSeek 实际输出质量。

@@ -38,20 +38,26 @@ function Home({ theme, entries, drafts = [], density = 'sparse', poemLayout = 'h
 
       {/* drafts strip — quick captures not yet written up */}
       {drafts && drafts.length > 0 && (
-        <div style={{ padding: '8px 0 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', padding: '0 24px 6px', gap: 8 }}>
-            <div style={{ fontSize: 10, letterSpacing: 4, color: theme.seal, fontWeight: 600 }}>草 稿</div>
-            <div style={{ fontSize: 11, color: theme.textMute }}>{drafts.length} 个未完成</div>
+        <div style={{ padding: '8px 0 2px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px 7px', gap: 10 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <div style={{ fontSize: 10, letterSpacing: 4, color: theme.seal, fontWeight: 600 }}>未 完 笺</div>
+              <div style={{ fontSize: 11, color: theme.textMute }}>{drafts.length} 份待续</div>
+            </div>
+            <button type="button" onClick={onCompose} style={{
+              border: 'none', background: 'transparent', color: theme.textSoft,
+              fontFamily: 'inherit', fontSize: 11.5, letterSpacing: 1.5, cursor: 'pointer',
+            }}>新草稿</button>
           </div>
-          <div className="no-scroll" style={{ display: 'flex', gap: 10, padding: '4px 24px 4px', overflowX: 'auto' }}>
+          <div className="no-scroll" style={{ display: 'flex', gap: 10, padding: '4px 24px 6px', overflowX: 'auto' }}>
             {drafts.map((d) => <DraftCard key={d.id} draft={d} theme={theme} onClick={() => onOpenDraft?.(d)} />)}
             <button type="button" onClick={onCompose} style={{
-              flexShrink: 0, width: 110, height: 90, borderRadius: 14,
-              border: `1px dashed ${theme.line}`, display: 'flex',
-              alignItems: 'center', justifyContent: 'center',
-              color: theme.textMute, fontSize: 12,
-              background: 'transparent', fontFamily: 'inherit', cursor: 'pointer',
-            }}>+ 新草稿</button>
+              flexShrink: 0, width: 116, height: 74, borderRadius: 18,
+              border: `0.5px dashed ${theme.accent}88`, display: 'flex',
+              alignItems: 'center', justifyContent: 'center', gap: 6,
+              color: theme.textSoft, fontSize: 12,
+              background: `${theme.surface}82`, fontFamily: 'inherit', cursor: 'pointer',
+            }}><span style={{ fontSize: 16, color: theme.seal }}>+</span> 新笺</button>
           </div>
         </div>
       )}
@@ -241,48 +247,31 @@ function PastRow({ entry, theme, onClick, isLast, dense }) {
 // ──────────────────────────────────────────────────────────────────
 // ── Draft card ───────────────────────────────────────────────────────────────
 function DraftCard({ draft, theme, onClick }) {
-  const t = (draft.kind === 'photo' && draft.photos && draft.photos.length) ?
-    (
-      <div style={{
-        width: 110, height: 90, borderRadius: 14,
-        background: `linear-gradient(135deg, ${theme.accent}66, ${theme.seal}66)`,
-        display: 'flex', alignItems: 'flex-end', padding: 8,
-        boxShadow: `inset 0 -32px 32px -16px rgba(0,0,0,0.25)`,
-        position: 'relative', overflow: 'hidden',
-      }}>
-        <IconCamera color="#fff" size={14}/>
-        <div style={{ position: 'absolute', left: 8, bottom: 8, right: 8, color: '#fff',
-          fontSize: 11, fontWeight: 500, lineHeight: 1.3, letterSpacing: 0.5,
-          textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-          overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box',
-          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-          {draft.title}
-        </div>
-      </div>
-    ) :
-    (
-      <div style={{
-        width: 110, height: 90, borderRadius: 14, background: theme.surface,
-        border: `0.5px solid ${theme.line}`, padding: 10,
-        display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-        ...skin(theme, 'panel'),
-      }}>
-        <div style={{ fontSize: 11, color: theme.text, lineHeight: 1.3, fontWeight: 500,
-          overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box',
-          WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
-          {draft.title}
-        </div>
-        <div style={{ fontSize: 10, color: theme.textMute, letterSpacing: 0.5 }}>{draft.time}</div>
-      </div>
-    );
+  const isPhoto = draft.kind === 'photo' && draft.photos && draft.photos.length;
   return (
-    <button type="button" onClick={onClick} style={{ flexShrink: 0, position: 'relative', border: 0, background: 'transparent', padding: 0, fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left' }}>
-      {t}
-      <div style={{
-        position: 'absolute', top: 6, right: 6,
-        background: theme.seal, color: '#fff', borderRadius: 8,
-        fontSize: 9, padding: '2px 5px', letterSpacing: 1, fontWeight: 600,
-      }}>{draft.kind === 'photo' ? '照片' : '草稿'}</div>
+    <button type="button" onClick={onClick} style={{
+      flexShrink: 0, width: 178, height: 74, position: 'relative',
+      border: `0.5px solid ${theme.line}`, borderRadius: 18,
+      background: isPhoto
+        ? `linear-gradient(135deg, ${theme.accent}5f, ${theme.seal}48), ${theme.paper}`
+        : `linear-gradient(145deg, ${theme.paper}f2, ${theme.surface}e8)`,
+      padding: '10px 13px', fontFamily: 'inherit', cursor: 'pointer', textAlign: 'left',
+      overflow: 'hidden', boxShadow: `0 10px 28px ${theme.text}10`,
+      ...skin(theme, 'panel'),
+    }}>
+      <div style={{ position: 'absolute', inset: 0, opacity: .18, pointerEvents: 'none', background: `linear-gradient(90deg, transparent 0 62%, ${theme.accent}33 62% 63%, transparent 63%)` }} />
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 5 }}>
+        <span style={{ width: 6, height: 6, borderRadius: 3, background: theme.seal, display: 'inline-block' }} />
+        <span style={{ fontSize: 10, color: theme.seal, letterSpacing: 1.5, fontWeight: 600 }}>{isPhoto ? '照片草稿' : '草稿'}</span>
+        <span style={{ marginLeft: 'auto', fontSize: 10, color: theme.textMute }}>{draft.time}</span>
+      </div>
+      <div className="serif" style={{
+        position: 'relative', fontSize: 13, color: isPhoto ? '#fff' : theme.text,
+        lineHeight: 1.45, letterSpacing: .6, textShadow: isPhoto ? '0 1px 2px rgba(0,0,0,.25)' : 'none',
+        overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box',
+        WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+      }}>{draft.title || '未命名草稿'}</div>
+      <div style={{ position: 'absolute', right: 12, bottom: 8, color: isPhoto ? '#fff' : theme.textSoft, fontSize: 10.5, letterSpacing: 1 }}>继续</div>
     </button>
   );
 }
@@ -714,7 +703,7 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
   const judgmentLines = e.sign?.judgmentLines || [];
   const enSign = e.sign?.style === 'en-sonnet' || e.poem?.style === 'en-sonnet';
   const lbl = enSign
-    ? { drop: 'TODAY\'S LOT', judgment: 'ORACLE', sub: 'Drawn in image · mirrored in today', reading: 'READING', poem: 'SONNET' }
+    ? { drop: 'TODAY\'S LOT', judgment: 'SONNET', sub: 'Drawn in image · mirrored in today', reading: 'READING', poem: 'SONNET' }
     : { drop: '今 日 落 签', judgment: '判 词', sub: '以象起兴 · 照见今日', reading: '解 语', poem: '诗' };
   const sticks = [
     { r: -18, h: 104, x: -22, d: 0 },
@@ -784,14 +773,9 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
               <div className="lot-tube-rim" />
             </div>
             <div className="lot-floor-shadow" />
-            {state === 'shaking' && (
-              <div className="lot-falling-slip">
-                <span />
-              </div>
-            )}
           </div>
           <div className="serif" style={{ fontSize: 18, color: theme.text, letterSpacing: 4, marginBottom: 12 }}>
-            {state === 'ready' ? '摇 一 摇，落 一 签' : '签意正在落下'}
+            {state === 'ready' ? '摇 一 摇，落 一 签' : '签意正在浮出'}
           </div>
           <div style={{ display: 'flex', gap: 4 }}>
             {[0, 1, 2].map((i) =>
@@ -803,7 +787,7 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
           </div>
           <style>{`@keyframes pulse{0%,100%{opacity:0.2}50%{opacity:1}}`}</style>
           <div style={{ fontSize: 11, color: theme.textMute, marginTop: 40, letterSpacing: 2 }}>
-            {state === 'ready' ? '摇晃手机，或点击签筒' : '读取本篇日记 · 生成判词与原创诗'}
+            {state === 'ready' ? '摇晃手机，或点击签筒' : '读取本篇日记 · 生成签语与原创诗'}
           </div>
           {state === 'ready' && <button type="button" onClick={onShake} style={{
             marginTop: 24, height: 42, padding: '0 24px', borderRadius: 21,
@@ -839,7 +823,7 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
           }}>{e.poem.title}</div>
           <style>{`@keyframes sign-drop{from{transform:translateY(-90px) rotate(-5deg);opacity:0}to{transform:translateY(0) rotate(1deg);opacity:1}}`}</style>
 
-          {!!judgmentLines.length && <div style={{
+          {!!judgmentLines.length && !enSign && <div style={{
             margin: '0 auto 22px', padding: '20px 22px 18px', maxWidth: 310,
             background: `${theme.seal}0c`,
             border: `1px solid ${theme.seal}28`,
@@ -850,7 +834,7 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
               {lbl.judgment}{e.sign?.title ? <span style={{ marginLeft: 8 }}>· {e.sign.title}</span> : null}
             </div>
             <div style={{ fontSize: 9.5, color: theme.textMute, letterSpacing: 1.5, marginBottom: 14 }}>{lbl.sub}</div>
-            {judgmentLines.map((line, index) => <div key={index} className="serif" style={{
+            {judgmentLines.slice(0, 1).flatMap(line => splitDisplayLine(line, { keepPunctuation: true })).map((line, index) => <div key={index} className="serif" style={{
               color: theme.text, fontSize: enSign ? 14 : 16, lineHeight: enSign ? 1.7 : 2.05,
               letterSpacing: enSign ? 0.5 : 3, fontStyle: enSign ? 'italic' : 'normal',
             }}>{line}</div>)}
@@ -1083,7 +1067,7 @@ async function createPoemCardBlob(entry, theme) {
   });
 }
 
-function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onToggleFeatured, onSelectPoemStyle, onGeneratePoemStyle, onAddNote, onCollectQuote, onRejectQuote, onGenerateQuotes, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
+function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, onToggleFeatured, onSelectPoemStyle, onGeneratePoemStyle, onSavePoemVariant, onSuggestPoemLine, onAddNote, onCollectQuote, onRejectQuote, onGenerateQuotes, onDelete, onGeneratePoem, linkedHexagrams = [], onStartHexagram }) {
   const e = entry;
   const hasPoem = showPoem && !!e.poem;
   const poemVariants = e.poemVariants || {};
@@ -1120,7 +1104,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
   const [c1, c2] = sealChars(e.poem?.title || '日记');
   const enSign = e.sign?.style === 'en-sonnet' || e.poem?.style === 'en-sonnet';
   const dlbl = enSign
-    ? { lot: 'LOT', judgment: 'ORACLE', from: 'Drawn from this entry · AI' }
+    ? { lot: 'LOT', judgment: 'SONNET', from: 'Drawn from this entry · AI' }
     : { lot: '诗 签', judgment: '判 词', from: '根据本篇日记生成 · AI' };
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [noteOpen, setNoteOpen] = React.useState(false);
@@ -1131,7 +1115,76 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
   const [shareBusy, setShareBusy] = React.useState(false);
   const [quoteBusy, setQuoteBusy] = React.useState(false);
   const [actionError, setActionError] = React.useState('');
+  const [poemEditOpen, setPoemEditOpen] = React.useState(false);
+  const [poemDraft, setPoemDraft] = React.useState(null);
+  const [suggestLineIndex, setSuggestLineIndex] = React.useState(null);
+  const [suggestNote, setSuggestNote] = React.useState('');
+  const [suggestBusy, setSuggestBusy] = React.useState(false);
+  const [suggestResult, setSuggestResult] = React.useState(null);
   const noteNow = new Date().toLocaleString('zh-CN', { hour12: false });
+
+  const openPoemEditor = () => {
+    if (!e.poem) return;
+    setPoemDraft({
+      title: e.poem.title || '',
+      form: e.poem.form || (enSign ? 'sonnet' : '五绝'),
+      style: e.poem.style || activePoemStyle || (enSign ? 'en-sonnet' : 'zh-classical'),
+      lines: (e.poem.lines || []).map(String),
+    });
+    setSuggestLineIndex(null);
+    setSuggestResult(null);
+    setSuggestNote('');
+    setPoemEditOpen(true);
+    setMenuOpen(false);
+  };
+
+  const updatePoemDraftLine = (index, value) => {
+    setPoemDraft(draft => draft ? {
+      ...draft,
+      lines: draft.lines.map((line, i) => i === index ? value : line),
+    } : draft);
+  };
+
+  const savePoemDraft = async () => {
+    if (!poemDraft || !onSavePoemVariant) return;
+    const isSonnetDraft = poemDraft.style === 'en-sonnet';
+    const expected = isSonnetDraft ? 14 : 4;
+    const cleanLines = poemDraft.lines.map(line => String(line || '').trim()).filter(Boolean);
+    if (!poemDraft.title.trim()) { setActionError('请先给诗保留一个题名。'); return; }
+    if (cleanLines.length !== expected) {
+      setActionError(isSonnetDraft ? '英文十四行诗需要保留 14 行。' : '中文古体诗需要保留 4 句。');
+      return;
+    }
+    setBusy(true); setActionError('');
+    try {
+      await onSavePoemVariant(poemDraft.style, {
+        title: poemDraft.title.trim(),
+        form: poemDraft.form.trim() || (isSonnetDraft ? 'sonnet' : '五绝'),
+        style: poemDraft.style,
+        lines: cleanLines,
+      });
+      setPoemEditOpen(false);
+      setPoemDraft(null);
+    } catch (err) { setActionError('保存改诗失败：' + (err?.message || '未知错误')); }
+    finally { setBusy(false); }
+  };
+
+  const askPoemSuggestion = async () => {
+    if (suggestLineIndex == null || !poemDraft || !onSuggestPoemLine) return;
+    setSuggestBusy(true); setSuggestResult(null); setActionError('');
+    try {
+      const result = await onSuggestPoemLine({
+        style: poemDraft.style,
+        title: poemDraft.title,
+        lines: poemDraft.lines,
+        line: poemDraft.lines[suggestLineIndex],
+        note: suggestNote,
+        diaryText: e.body,
+      });
+      setSuggestResult(result);
+    } catch (err) { setActionError(friendlyAiError(err, '改诗建议')); }
+    finally { setSuggestBusy(false); }
+  };
 
   const addNote = async () => {
     if (!noteText.trim() || !onAddNote) return;
@@ -1253,6 +1306,10 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
               width: '100%', padding: '14px 16px', border: 'none', borderBottom: `0.5px solid ${theme.line}`,
               background: 'transparent', color: e.poem ? theme.text : theme.textMute, textAlign: 'left', fontFamily: 'inherit', fontSize: 14, cursor: e.poem ? 'pointer' : 'default',
             }}>分享小诗</button>
+            <button onClick={openPoemEditor} disabled={!e.poem || !onSavePoemVariant} style={{
+              width: '100%', padding: '14px 16px', border: 'none', borderBottom: `0.5px solid ${theme.line}`,
+              background: 'transparent', color: e.poem && onSavePoemVariant ? theme.text : theme.textMute, textAlign: 'left', fontFamily: 'inherit', fontSize: 14, cursor: e.poem && onSavePoemVariant ? 'pointer' : 'default',
+            }}>修改小诗</button>
             <button onClick={deleteCurrent} disabled={busy || !onDelete} style={{
               width: '100%', padding: '14px 16px', border: 'none',
               background: 'transparent', color: theme.seal, textAlign: 'left', fontFamily: 'inherit', fontSize: 14, cursor: 'pointer',
@@ -1302,17 +1359,23 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
           <PoemBody lines={e.poem.lines} size={21} theme={theme} />
 
           {/* 判词 & 解语 in detail view */}
-          {!!e.sign?.judgmentLines?.length && (
+          {!enSign && !!e.sign?.judgmentLines?.length && (
             <div style={{ marginTop: 26, padding: '14px 18px 12px', borderRadius: 10, background: `${theme.seal}0a`, border: `1px solid ${theme.seal}1e`, textAlign: 'center' }}>
               <div style={{ fontSize: 9, letterSpacing: 3.5, color: theme.seal, fontWeight: 600, marginBottom: 10 }}>
                 {dlbl.judgment}{e.sign.title ? `　·　${e.sign.title}` : ''}
               </div>
-              {e.sign.judgmentLines.slice(0, 4).map((line, i) => (
+              {e.sign.judgmentLines.slice(0, 1).flatMap(line => splitDisplayLine(line, { keepPunctuation: true })).map((line, i) => (
                 <div key={i} className="serif" style={{ color: theme.text, fontSize: 14.5, lineHeight: enSign ? 1.7 : 2.0, letterSpacing: enSign ? 0.3 : 2.5, fontStyle: enSign ? 'italic' : 'normal' }}>{line}</div>
               ))}
+              {(e.sign.motif || e.sign.interpretation) && (
+                <details title={e.sign.interpretation || `意象：${e.sign.motif}`} style={{ marginTop: 8, color: theme.textMute, fontSize: 11, lineHeight: 1.65 }}>
+                  <summary style={{ cursor: 'pointer', listStyle: 'none', color: theme.seal, letterSpacing: 2 }}>典故 / 意象</summary>
+                  <div style={{ marginTop: 5, textAlign: 'left' }}>{e.sign.interpretation || `此句取自日记中的「${e.sign.motif}」意象。`}</div>
+                </details>
+              )}
             </div>
           )}
-          {e.sign?.interpretation && (
+          {!enSign && e.sign?.interpretation && !e.sign?.judgmentLines?.length && (
             <div style={{ marginTop: 12, fontSize: 11.5, color: theme.textSoft, lineHeight: 1.85, textAlign: 'left', paddingLeft: 12, borderLeft: `1.5px solid ${theme.seal}30`, letterSpacing: .5 }}>
               {e.sign.interpretation}
             </div>
@@ -1371,14 +1434,14 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
         </div>
       )}
 
-      {e.sign && !hasPoem && (
+      {e.sign && !hasPoem && e.sign?.style !== 'en-sonnet' && (
         <div style={{ padding: '24px 32px 0' }}>
           <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginBottom: 12 }}>今 日 判 语</div>
           <div className="theme-sign-card" style={{ padding: '18px 18px', borderRadius: 16, background: theme.surface, border: `0.5px solid ${theme.line}`, position: 'relative', overflow: 'hidden', ...skin(theme, 'panel') }}>
             <ThemeCardArt theme={theme} kind="quote" />
             <ThemeMotif theme={theme} variant="panel" />
             <div className="serif" style={{ fontSize: 20, color: theme.seal, letterSpacing: 4, textAlign: 'center', marginBottom: 10 }}>{e.sign.title}</div>
-            {(e.sign.judgmentLines || []).map((line, index) => <div key={index} className="serif" style={{ fontSize: 15, color: theme.text, lineHeight: 1.9, letterSpacing: 2, textAlign: 'center' }}>{line}</div>)}
+            {(e.sign.judgmentLines || []).slice(0, 1).flatMap(line => splitDisplayLine(line, { keepPunctuation: true })).map((line, index) => <div key={index} className="serif" style={{ fontSize: 15, color: theme.text, lineHeight: 1.9, letterSpacing: 2, textAlign: 'center' }}>{line}</div>)}
             {e.sign.interpretation && <div style={{ marginTop: 14, paddingTop: 12, borderTop: `0.5px solid ${theme.line}`, color: theme.textSoft, fontSize: 12.5, lineHeight: 1.75 }}>{e.sign.interpretation}</div>}
           </div>
         </div>
@@ -1547,6 +1610,81 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
               background: noteText.trim() ? theme.text : theme.surfaceSoft, color: noteText.trim() ? theme.bg : theme.textMute,
               fontFamily: 'inherit', fontSize: 15, fontWeight: 600, letterSpacing: 2, cursor: noteText.trim() ? 'pointer' : 'default',
             }}>{busy ? '保存中…' : '保 存 点 评'}</button>
+          </div>
+        </div>
+      )}
+
+      {poemEditOpen && poemDraft && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 72, background: 'rgba(20,25,22,.38)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }} onClick={() => !busy && setPoemEditOpen(false)}>
+          <div onClick={ev => ev.stopPropagation()} style={{ width: '100%', maxWidth: W, maxHeight: '84vh', background: theme.bg, borderRadius: '24px 24px 0 0', padding: '20px 18px 34px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <div>
+                <div className="serif" style={{ fontSize: 19, color: theme.text, letterSpacing: 3 }}>修 改 小 诗</div>
+                <div style={{ marginTop: 4, fontSize: 11, color: theme.textMute }}>{poemDraft.style === 'en-sonnet' ? 'English sonnet · 14 lines' : '中文古体诗 · 4 句'}</div>
+              </div>
+              <button type="button" onClick={() => setPoemEditOpen(false)} aria-label="关闭改诗窗口" style={{ border: 'none', background: 'transparent', padding: 6, cursor: 'pointer' }}>
+                <IconClose color={theme.textSoft} size={18}/>
+              </button>
+            </div>
+            <div className="no-scroll" style={{ overflowY: 'auto', paddingRight: 2 }}>
+              <label style={{ display: 'block', fontSize: 10.5, color: theme.textMute, letterSpacing: 3, marginBottom: 6 }}>题 名</label>
+              <input value={poemDraft.title} onChange={ev => setPoemDraft({ ...poemDraft, title: ev.target.value })} style={{
+                width: '100%', height: 42, borderRadius: 14, border: `0.5px solid ${theme.line}`,
+                background: theme.paper, color: theme.text, padding: '0 12px', outline: 'none',
+                fontFamily: theme.fontSerif || 'inherit', fontSize: 15,
+              }}/>
+              <label style={{ display: 'block', fontSize: 10.5, color: theme.textMute, letterSpacing: 3, margin: '14px 0 7px' }}>诗 句</label>
+              <div style={{ display: 'grid', gap: 8 }}>
+                {poemDraft.lines.map((line, index) => (
+                  <div key={index} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 72px', gap: 8, alignItems: 'center' }}>
+                    <textarea value={line} onChange={ev => updatePoemDraftLine(index, ev.target.value)} rows={poemDraft.style === 'en-sonnet' ? 1 : 1} style={{
+                      width: '100%', minHeight: 38, resize: 'vertical', borderRadius: 12,
+                      border: `0.5px solid ${theme.line}`, background: theme.paper, color: theme.text,
+                      padding: '8px 10px', outline: 'none', fontFamily: poemDraft.style === 'en-sonnet' ? 'Georgia, serif' : theme.fontSerif || 'inherit',
+                      fontSize: poemDraft.style === 'en-sonnet' ? 13.5 : 14.5, lineHeight: 1.55,
+                    }}/>
+                    <button type="button" onClick={() => { setSuggestLineIndex(index); setSuggestResult(null); setSuggestNote(''); }} style={{
+                      height: 38, borderRadius: 19, border: `0.5px solid ${theme.line}`,
+                      background: theme.surface, color: theme.seal, fontFamily: 'inherit', cursor: 'pointer', fontSize: 12,
+                    }}>问 AI</button>
+                  </div>
+                ))}
+              </div>
+
+              {suggestLineIndex != null && (
+                <div style={{ marginTop: 14, padding: 13, borderRadius: 16, background: theme.surface, border: `0.5px solid ${theme.line}` }}>
+                  <div style={{ fontSize: 10.5, color: theme.seal, letterSpacing: 2.5, fontWeight: 600, marginBottom: 8 }}>AI 用 词 建 议 · 第 {suggestLineIndex + 1} 行</div>
+                  <textarea value={suggestNote} onChange={ev => setSuggestNote(ev.target.value)} placeholder="想换一个词？想更含蓄、更有力，或保留某个意象？" rows={3} style={{
+                    width: '100%', resize: 'vertical', borderRadius: 12, border: `0.5px solid ${theme.line}`,
+                    background: theme.paper, color: theme.text, outline: 'none', padding: 10,
+                    fontFamily: 'inherit', fontSize: 13, lineHeight: 1.6,
+                  }}/>
+                  <button type="button" onClick={askPoemSuggestion} disabled={suggestBusy || !onSuggestPoemLine} style={{
+                    width: '100%', height: 38, marginTop: 8, borderRadius: 19, border: 'none',
+                    background: theme.text, color: theme.bg, fontFamily: 'inherit', cursor: suggestBusy ? 'default' : 'pointer',
+                    opacity: suggestBusy ? .62 : 1,
+                  }}>{suggestBusy ? '正在想词…' : '给这一句提建议'}</button>
+                  {suggestResult && (
+                    <div style={{ marginTop: 10, display: 'grid', gap: 7 }}>
+                      {[suggestResult.revisedLine, ...(suggestResult.alternatives || [])].filter(Boolean).map((candidate, i) => (
+                        <button key={`${candidate}-${i}`} type="button" onClick={() => updatePoemDraftLine(suggestLineIndex, candidate)} style={{
+                          border: `0.5px solid ${theme.line}`, borderRadius: 12, background: theme.paper,
+                          color: theme.text, textAlign: 'left', padding: '9px 10px', fontFamily: 'inherit', cursor: 'pointer',
+                        }}>{candidate}</button>
+                      ))}
+                      {!!suggestResult.wordChoices?.length && <div style={{ fontSize: 11.5, color: theme.textMute, lineHeight: 1.7 }}>可用词：{suggestResult.wordChoices.join(' · ')}</div>}
+                      {suggestResult.note && <div style={{ fontSize: 11.5, color: theme.textSoft, lineHeight: 1.7 }}>{suggestResult.note}</div>}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <button type="button" onClick={savePoemDraft} disabled={busy} style={{
+              flexShrink: 0, height: 46, marginTop: 12, borderRadius: 23, border: 'none',
+              background: theme.text, color: theme.bg, fontFamily: 'inherit',
+              fontSize: 14.5, letterSpacing: 2, fontWeight: 600, cursor: busy ? 'default' : 'pointer',
+              opacity: busy ? .62 : 1,
+            }}>{busy ? '保存中…' : '保 存 改 诗'}</button>
           </div>
         </div>
       )}

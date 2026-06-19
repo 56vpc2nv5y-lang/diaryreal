@@ -73,11 +73,11 @@ function normalizeSignRecord(sign, style = '', poem = null) {
   const isSonnet = style === 'en-sonnet' || sign.style === 'en-sonnet';
   const poemTexts = [poem?.title, ...(Array.isArray(poem?.lines) ? poem.lines : [])].filter(Boolean);
   const judgmentLines = Array.isArray(sign.judgmentLines)
-    ? sign.judgmentLines
+    ? (isSonnet ? [] : sign.judgmentLines
       .map(String)
       .filter(Boolean)
       .filter(line => !poemTexts.some(poemText => isNearDuplicateText(line, poemText)))
-      .slice(0, 4)
+      .slice(0, 1))
     : [];
   const rawTitle = typeof sign.title === 'string' ? sign.title.slice(0, isSonnet ? 40 : 8) : '';
   const title = poemTexts.some(poemText => isNearDuplicateText(rawTitle, poemText)) ? '' : rawTitle;
@@ -286,6 +286,26 @@ async function apiPoem(diaryText, style = poemStyle()) {
   return json;
 }
 
+async function apiPoemSuggest(payload) {
+  const token = await firebase.auth().currentUser?.getIdToken();
+  const r = await aiFetch('/api/poem-suggest', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(payload || {}),
+  }, 30000);
+  const text = await r.text();
+  let json;
+  try { json = text ? JSON.parse(text) : {}; }
+  catch {
+    throw new Error(`改诗建议服务返回了非 JSON 内容（HTTP ${r.status}）。`);
+  }
+  if (!r.ok) throw new Error(json.error || '改诗建议失败');
+  return json;
+}
+
 function poemFromAiResult(result) {
   if (!result || !Array.isArray(result.lines)) return null;
   const isSonnet = result.style === 'en-sonnet' || result.form === 'sonnet' || result.lines.length > 4;
@@ -319,11 +339,11 @@ function signFromAiResult(result) {
   const isSonnet = result.style === 'en-sonnet' || result.form === 'sonnet';
   const poemTexts = [result.title, ...(Array.isArray(result.lines) ? result.lines : [])].filter(Boolean);
   const judgmentLines = Array.isArray(result.judgmentLines)
-    ? result.judgmentLines
+    ? (isSonnet ? [] : result.judgmentLines
       .map(String)
       .filter(Boolean)
       .filter(line => !poemTexts.some(poemText => isNearDuplicateText(line, poemText)))
-      .slice(0, 4)
+      .slice(0, 1))
     : [];
   const hasSignPayload = !!(result.signTitle || judgmentLines.length || result.interpretation || result.timelineLine || result.motif);
   if (!hasSignPayload) return null;
@@ -2186,6 +2206,29 @@ function AppReal() {
         onGeneratePoemStyle={entry.body?.trim() ? async style => {
           push('shake', { id: entry.id, style });
         } : null}
+        onSavePoemVariant={async (style, poemPatch) => {
+          const poem = normalizePoemRecord({ ...poemPatch, style });
+          if (!poem) throw new Error(style === 'en-sonnet' ? '英文诗需要 14 行。' : '中文诗需要 4 句。');
+          const variants = {
+            ...(entry.poemVariants || {}),
+            [style]: {
+              ...(entry.poemVariants?.[style] || {}),
+              poem,
+              poemCollected: true,
+              editedAt: new Date().toISOString(),
+            },
+          };
+          const activeSign = style === entry.activePoemStyle ? entry.sign : (entry.poemVariants?.[style]?.sign || null);
+          await updateEntry(entry.id, {
+            poem,
+            activePoemStyle: style,
+            poemVariants: variants,
+            sign: activeSign,
+            quoteSuggestions: normalizeQuoteSuggestions(entry.poemVariants?.[style]?.quoteSuggestions || entry.quoteSuggestions),
+            poemCollected: true,
+          });
+        }}
+        onSuggestPoemLine={payload => apiPoemSuggest(payload)}
         onAddNote={text => updateEntry(entry.id, {
           notes: [...(entry.notes || []), { date: new Date().toLocaleString('zh-CN', { hour12: false }), text }],
         })}

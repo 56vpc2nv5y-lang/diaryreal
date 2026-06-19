@@ -131,8 +131,9 @@ export default async function handler(req, res) {
       content:
         '你是一位克制、敏锐的日记文学编辑，也精通古典诗歌。' +
         '必须从日记真实存在的事件、情绪、意象与矛盾出发，不得杜撰事实，不得预测命运。' +
-        '判词不是古诗的摘句，也不是总结评语；它应独立成篇，含义和格式参考传统册判语：以具体物象起兴，暗含人物处境与心性，第三行形成转折或反照，末行留有余味。' +
-        '判词结构示例（仅供格式参考，不得抄写）：第一行写具体物象，如"灯下残茶映窗影"；第二行写与人相关的处境，如"手中棋子未曾落"；第三行出现反转或代价，如"此局未算人已散"；第四行收束但不说尽，如"局外人亦在局中"。每行七字为宜，可用对仗，忌口号化。' +
+        '判词不是古诗的摘句，也不是总结评语；它应是签上一句断语：以具体物象起兴，暗含人物处境与心性，并留有余味。' +
+        '判词与古诗必须承担不同功能：判词像签上断语，古诗像回望之诗。判词不得复用诗题、诗句、诗中连续四字以上的片段，也不得只是把日记改成短句。' +
+        '判词只写一句，16至32个汉字，可有一个逗号或顿号，但不得分成四行，不得像一首诗。结构可为“物象 + 处境/反照”，例如"灯下残茶照未落之棋"这种格式仅供长度参考，不得抄写。' +
         '判词可以有谶语般的凝练、对偶和象征，但不得引用、改写或仿写《红楼梦》原句，不得做命运预测、道德审判或玄学断言。' +
         '拾句必须逐字引用日记原文，不得改写、拼接或创造；若没有足够独特的句子，返回空数组。对于200字以内的短篇日记或情感性日记，只要句子传递了作者真实感受且有具体细节，即可入选，无需极高文学标准。' +
         '只输出 JSON。',
@@ -142,11 +143,12 @@ export default async function handler(req, res) {
       content:
         `请根据以下日记生成一枚“今日诗签”。它是文学化回望，不是命运预测。\n` +
         `严格返回以下 JSON：\n` +
-        `{"signTitle":"2至4个汉字的判题","motif":"一个来自日记的具体意象","judgmentLines":["四行判词，每行7至11字"],` +
+        `{"signTitle":"2至4个汉字的判题","motif":"一个来自日记的具体意象","judgmentLines":["一句判词，16至32个汉字，不分行"],` +
         `"interpretation":"60至100字，说明判词如何对应日记，不解释成命运","timelineLine":"从判词提炼的一句，不超过16字，不得直接使用诗句",` +
-        `"title":"两至四字诗题，签上显示这个题名","form":"五绝或七绝","lines":["四句古诗，每句可用中文逗号连接上下半句"],` +
+        `"title":"2至8个汉字的诗题，要从日记的具体物象、动作或矛盾中生出，长短自然变化，不要固定三字格式","form":"五绝或七绝","lines":["四句古诗，每句可用中文逗号连接上下半句"],` +
         `"quoteSuggestions":[{"quote":"逐字引用原文","reason":"为何值得保留","theme":"简短主题","score":0到100}]}\n` +
-        `判词写法要求：第一、二行写象与境；第三行出现反转、照见或代价；第四行收束但不说尽。判词必须另写，不能照抄古诗任一句，也不能只把日记改成散文短句。\n` +
+        `判词写法要求：只写一句签语，不要写成诗。它必须另写，不能照抄古诗任一句，不能复用诗题或诗中连续四字以上的片段，也不能只把日记改成散文短句。\n` +
+        `诗题写法要求：不要机械生成三个字；不要反复使用“某某录”“某某吟”“某某梦”等模板；三字题只有在最贴切时才可用。诗题应像一枚小题记，例如可为2字、4字、5字或6字，需对应日记里的独特细节。\n` +
         `诗要原创、含蓄、押韵，与日记呼应但不直译。最多选3条拾句，没有合适句子时返回空数组。\n` +
         `除 JSON 外不输出任何字符。\n\n日记：\n${diaryText.slice(0, 1600)}`,
     },
@@ -156,32 +158,30 @@ export default async function handler(req, res) {
     {
       role: 'system',
       content:
-        'You are a discerning literary editor and a master of English verse in the tradition of Shakespeare. ' +
-        'You read a personal diary entry (it may be written in Chinese) and draw from it a "lot" — a fortune-sign — made of two distinct parts. ' +
+        'You are a discerning literary editor and a master of English verse in the tradition of Shakespeare, Donne and Herbert. ' +
+        'You read a personal diary entry (it may be written in Chinese) and draw from it one parchment-ready Shakespearean sonnet. ' +
         'Work only from what the diary actually contains: its real events, moods, images and tensions. ' +
         'Never invent facts, never foretell the future, never moralize, never make mystical or astrological claims.\n' +
-        '1) THE ORACLE — four short, gnomic lines in the manner of an old emblem-book motto or a sundial inscription: terse, image-first, symbolic. ' +
-        'A light Early-Modern English flavour is welcome but it must stay readable. The oracle is NOT a summary and must NOT reuse any line of the sonnet. ' +
-        'Line 1 sets a concrete image; line 2 glimpses the writer\'s situation through it; line 3 brings a turn, a cost or a reflection; line 4 closes with an aftertaste, not a verdict.\n' +
-        '2) THE SONNET — a Shakespearean sonnet of EXACTLY fourteen lines: rhyme scheme strictly ABAB CDCD EFEF GG; ' +
-        'iambic pentameter (ten syllables per line, five unstressed-stressed feet, with only rare and natural metrical substitutions and never padding); ' +
-        'a volta — a turn of thought — at line 9 or in the final couplet. The sonnet must be original and allusive, faithful to the diary yet never a literal restatement of it. ' +
+        'Do NOT write an oracle, judgment, prophecy, motto, explanation, or second poem for the English version. ' +
+        'THE SONNET — EXACTLY fourteen lines: rhyme scheme strictly ABAB CDCD EFEF GG; iambic pentameter, usually ten syllables per line, with only rare natural substitutions and never padding. ' +
+        'Use a clear volta at line 9 or in the final couplet. Keep one governing metaphor from the diary and develop it; avoid a list of unrelated images. ' +
+        'Prefer plain strong nouns and verbs over ornate filler. A light Early-Modern cadence is welcome, but it must stay readable and emotionally precise. ' +
+        'The sonnet must be original and allusive, faithful to the diary yet never a literal restatement of it. ' +
         'Quote suggestions must be copied VERBATIM from the diary in its original language; if none are truly worth keeping, return an empty array. ' +
         'Output JSON only.',
     },
     {
       role: 'user',
       content:
-        `From the diary below, cast today's "lot": a literary mirror, not a prophecy.\n` +
+        `From the diary below, write today's English sonnet as a literary mirror, not a prophecy.\n` +
         `Return strictly this JSON (and nothing else):\n` +
         `{"signTitle":"a 2-4 word English name for the lot","motif":"one concrete image taken from the diary",` +
-        `"judgmentLines":["exactly four oracle lines, 4 to 9 words each"],` +
-        `"interpretation":"40 to 80 words in English: how the oracle answers to the diary; never frame it as fate",` +
-        `"timelineLine":"one English line distilled from the oracle, under 12 words, not copied from the sonnet",` +
-        `"title":"a 1-3 word English title for the sonnet","form":"sonnet",` +
+        `"judgmentLines":[],"interpretation":"",` +
+        `"timelineLine":"one short English memory-line under 12 words, not copied from the sonnet",` +
+        `"title":"a 1-4 word English title for the sonnet, varied and specific","form":"sonnet",` +
         `"lines":["the 14 lines of a Shakespearean sonnet, one line per array item, rhyming ABAB CDCD EFEF GG in iambic pentameter"],` +
         `"quoteSuggestions":[{"quote":"verbatim from the diary, in its original language","reason":"why it is worth keeping","theme":"short theme","score":0-100}]}\n` +
-        `Hard rules: "lines" MUST contain exactly 14 items and obey the ABAB CDCD EFEF GG rhyme scheme; the oracle is written separately and must not copy any sonnet line; keep at most 3 quote suggestions. Output nothing but the JSON.\n\n` +
+        `Hard rules: "lines" MUST contain exactly 14 items and obey ABAB CDCD EFEF GG; "judgmentLines" MUST be an empty array; keep one coherent metaphor; do not stuff the poem with named companies unless the diary makes them emotionally central; keep at most 3 quote suggestions. Output nothing but the JSON.\n\n` +
         `Diary:\n${diaryText.slice(0, 1600)}`,
     },
   ];
@@ -216,13 +216,36 @@ export default async function handler(req, res) {
     content = content.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
     const poem = JSON.parse(content);
 
+    const compact = value => String(value || '').toLowerCase().replace(/[\s，。！？、；：,.!?;:'"“”‘’《》()\[\]{}-]/g, '');
+    const nearDuplicate = (a, b) => {
+      const x = compact(a), y = compact(b);
+      if (!x || !y) return false;
+      if (x === y || x.includes(y) || y.includes(x)) return true;
+      const grams = value => new Set(Array.from({ length: Math.max(0, value.length - 2) }, (_, i) => value.slice(i, i + 3)));
+      const gx = grams(x), gy = grams(y);
+      if (!gx.size || !gy.size) return false;
+      let hit = 0;
+      gx.forEach(item => { if (gy.has(item)) hit++; });
+      return hit / Math.min(gx.size, gy.size) > 0.62;
+    };
+
     const expectedLines = isSonnet ? 14 : 4;
     if (!poem.title || typeof poem.title !== 'string' || !Array.isArray(poem.lines) ||
         poem.lines.length !== expectedLines || poem.lines.some(line => typeof line !== 'string' || !line.trim()))
       throw new Error(isSonnet ? `十四行诗须为 ${expectedLines} 行` : '诗的格式不对');
-    if (!Array.isArray(poem.judgmentLines) || poem.judgmentLines.length < 4 ||
-        poem.judgmentLines.slice(0, 4).some(line => typeof line !== 'string' || !line.trim()))
-      throw new Error(isSonnet ? 'oracle 格式不对' : '判词格式不对');
+    if (!isSonnet && (!Array.isArray(poem.judgmentLines) || poem.judgmentLines.length < 1 ||
+        poem.judgmentLines.slice(0, 1).some(line => typeof line !== 'string' || !line.trim())))
+      throw new Error('判词格式不对');
+    const poemTexts = [poem.title, ...poem.lines].filter(Boolean);
+    poem.judgmentLines = isSonnet
+      ? []
+      : poem.judgmentLines
+        .map(String)
+        .filter(line => !poemTexts.some(poemText => nearDuplicate(line, poemText)))
+        .slice(0, 1);
+    if (!isSonnet && poem.judgmentLines.length < 1) {
+      throw new Error('判词与古诗内容重复，请重试');
+    }
 
     const signTitleMax = isSonnet ? 40 : 8;
     const motifMax = isSonnet ? 60 : 30;
@@ -233,7 +256,7 @@ export default async function handler(req, res) {
       lines: poem.lines.map(String).slice(0, expectedLines),
       signTitle: typeof poem.signTitle === 'string' ? poem.signTitle.slice(0, signTitleMax) : poem.title,
       motif: typeof poem.motif === 'string' ? poem.motif.slice(0, motifMax) : '',
-      judgmentLines: Array.isArray(poem.judgmentLines) ? poem.judgmentLines.map(String).slice(0, 4) : [],
+      judgmentLines: Array.isArray(poem.judgmentLines) ? poem.judgmentLines.map(String).slice(0, isSonnet ? 0 : 1) : [],
       interpretation: typeof poem.interpretation === 'string' ? poem.interpretation.slice(0, 600) : '',
       timelineLine: typeof poem.timelineLine === 'string' ? poem.timelineLine.slice(0, isSonnet ? 80 : 32) : '',
       quoteSuggestions: Array.isArray(poem.quoteSuggestions)
