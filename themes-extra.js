@@ -12,6 +12,13 @@
     body: '"Noto Sans SC", sans-serif',
   };
   const svgBg = source => `url("data:image/svg+xml,${encodeURIComponent(source)}")`;
+  const imgBg = source => `url("${source}")`;
+  const generated = {
+    celadon: imgBg('assets/themes/generated/celadon-bg.webp'),
+    inkPlum: imgBg('assets/themes/generated/ink-plum-bg.webp'),
+    mossGarden: imgBg('assets/themes/generated/moss-garden-bg.webp'),
+    seaSalt: imgBg('assets/themes/generated/sea-salt-bg.webp'),
+  };
   const art = {
     plum: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 180"><g fill="none" stroke="#50483f" stroke-linecap="round"><path stroke-width="5" d="M288 149c-65-7-89-31-137-51-41-17-79-11-129-52"/><path stroke-width="2" d="M209 121c-1-43-25-68-52-91M158 100c-25-37-58-45-93-47M117 83c-9-31-29-50-52-63M235 132c-8-24-1-46 10-68"/></g><g fill="#f8efe4" stroke="#9b5b50" stroke-width="1.2"><g transform="translate(157 31)"><circle r="6"/><circle cx="8" cy="4" r="6"/><circle cx="5" cy="12" r="6"/><circle cx="-5" cy="12" r="6"/><circle cx="-8" cy="4" r="6"/></g><g transform="translate(66 53) scale(.8)"><circle r="6"/><circle cx="8" cy="4" r="6"/><circle cx="5" cy="12" r="6"/><circle cx="-5" cy="12" r="6"/><circle cx="-8" cy="4" r="6"/></g><g transform="translate(243 64) scale(.75)"><circle r="6"/><circle cx="8" cy="4" r="6"/><circle cx="5" cy="12" r="6"/><circle cx="-5" cy="12" r="6"/><circle cx="-8" cy="4" r="6"/></g></g><g fill="#a63d32"><circle cx="151" cy="36" r="2"/><circle cx="63" cy="57" r="2"/><circle cx="239" cy="67" r="2"/></g></svg>`),
     bamboo: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 230"><g fill="none" stroke="#557c55" stroke-opacity=".62" stroke-linecap="round"><path stroke-width="3" d="M155 238c-10-73-5-145 16-231M119 238c1-65 15-132 51-199"/><path stroke-width="1.3" d="m159 73-42-30m39 56 34-35m-39 64-48-21m44 48 38-20m-48 57-43-23m38-28-34-38m61-67-29-24"/></g><g fill="#6e936d" fill-opacity=".48"><ellipse cx="117" cy="42" rx="21" ry="5" transform="rotate(27 117 42)"/><ellipse cx="180" cy="61" rx="21" ry="5" transform="rotate(-45 180 61)"/><ellipse cx="105" cy="106" rx="23" ry="5" transform="rotate(17 105 106)"/><ellipse cx="182" cy="134" rx="21" ry="5" transform="rotate(-25 182 134)"/><ellipse cx="94" cy="167" rx="22" ry="5" transform="rotate(27 94 167)"/><ellipse cx="128" cy="14" rx="18" ry="4" transform="rotate(34 128 14)"/></g></svg>`),
@@ -171,25 +178,30 @@
       preview: { borderRadius: 2, backgroundImage: `${art.newspaper}, linear-gradient(180deg, #ecdcbc, #e2cfab)`, backgroundPosition: 'center top, center', backgroundSize: 'cover, cover', backgroundRepeat: 'no-repeat', boxShadow: 'inset 0 5px 0 -2px #b43b30' },
     },
     seaSalt: {
-      screen: { backgroundImage: `${art.seaFog}, radial-gradient(circle at 82% 9%, rgba(244,231,187,.38), transparent 20%), linear-gradient(180deg, #d8e7e5 0%, #edf2ec 56%, #c8dddd 100%)`, backgroundPosition: 'center bottom, center, center', backgroundSize: '100% 210px, auto, cover', backgroundRepeat: 'no-repeat' },
+      screen: {
+        backgroundImage: `linear-gradient(180deg, rgba(247,250,246,.30), rgba(218,233,232,.28)), ${generated.seaSalt}`,
+        backgroundPosition: 'center, center bottom',
+        backgroundSize: 'cover, cover',
+        backgroundRepeat: 'no-repeat',
+      },
       poemCard: {
         borderRadius: 22, border: '1px solid rgba(83,128,135,.24)',
-        backgroundImage: `${art.seaFog}, linear-gradient(155deg, rgba(250,251,244,.92), rgba(230,239,236,.94))`,
-        backgroundPosition: 'center bottom, center', backgroundSize: '100% 126px, auto', backgroundRepeat: 'no-repeat',
+        backgroundImage: `linear-gradient(155deg, rgba(250,251,244,.88), rgba(230,239,236,.90)), ${generated.seaSalt}`,
+        backgroundPosition: 'center, center bottom', backgroundSize: 'cover, 130% auto', backgroundRepeat: 'no-repeat',
         boxShadow: '0 11px 26px rgba(58,96,104,.12)',
       },
-      hero: { backgroundImage: `${art.seaFog}, linear-gradient(155deg, rgba(250,251,244,.92), rgba(230,239,236,.94))`, backgroundPosition: 'center bottom, center', backgroundSize: '100% 126px, auto', backgroundRepeat: 'no-repeat' },
+      hero: { backgroundImage: `linear-gradient(155deg, rgba(250,251,244,.88), rgba(230,239,236,.90)), ${generated.seaSalt}`, backgroundPosition: 'center, center bottom', backgroundSize: 'cover, 130% auto', backgroundRepeat: 'no-repeat' },
       panel: {
         borderRadius: 18, border: '1px solid rgba(83,128,135,.20)',
-        backgroundImage: `${art.seaFog}, linear-gradient(155deg, #f5f6ef, #e4efed)`,
-        backgroundPosition: 'center bottom, center', backgroundSize: '100% 94px, auto', backgroundRepeat: 'no-repeat',
+        backgroundImage: `linear-gradient(155deg, rgba(245,246,239,.88), rgba(228,239,237,.92)), ${generated.seaSalt}`,
+        backgroundPosition: 'center, center bottom', backgroundSize: 'cover, 132% auto', backgroundRepeat: 'no-repeat',
         boxShadow: '0 8px 20px rgba(58,96,104,.09)',
       },
       nav: { borderTop: '1px solid rgba(83,128,135,.18)', background: 'rgba(233,242,240,.96)', boxShadow: '0 -5px 18px rgba(58,96,104,.07)' },
       tabItem: { borderRadius: 20, background: 'rgba(248,250,244,.62)', boxShadow: '0 3px 10px rgba(58,96,104,.08)' },
       tabActive: { color: '#315f69' },
       primary: { background: 'linear-gradient(145deg, #6e9aa0, #315f69)', borderRadius: 26, boxShadow: '0 7px 18px rgba(49,95,105,.20)' },
-      preview: { borderRadius: 18, backgroundImage: `${art.seaFog}, linear-gradient(180deg, #d8e7e5, #edf2ec)`, backgroundPosition: 'center bottom, center', backgroundSize: '100% 48%, auto', backgroundRepeat: 'no-repeat' },
+      preview: { borderRadius: 18, backgroundImage: `linear-gradient(180deg, rgba(247,250,246,.28), rgba(218,233,232,.20)), ${generated.seaSalt}`, backgroundPosition: 'center, center bottom', backgroundSize: 'cover, cover', backgroundRepeat: 'no-repeat' },
     },
     gardenia: {
       screen: { backgroundImage: `${art.gardenia}, linear-gradient(180deg, #ece8d4, #f5f0dc)`, backgroundPosition: 'center, center', backgroundSize: 'cover, cover', backgroundRepeat: 'no-repeat' },
@@ -569,4 +581,7 @@
   delete window.THEMES.mandela;
   delete window.THEMES.obsidianDawn;
   delete window.THEMES.snowNight;
+  delete window.THEMES.gardenia;
+  delete window.THEMES.redLacquer;
+  delete window.THEMES.rainWindow;
 })();

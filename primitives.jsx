@@ -634,7 +634,7 @@ function PoemBody({ lines, size = 22, theme, color, weight = 500 }) {
     return (
       <div className="serif poem-body-lines poem-body-en text-particle-host text-particle-host-en" style={{
         textAlign: 'left', color: color || theme.text, fontWeight: weight,
-        width: '100%', maxWidth: 520, margin: '0 auto', overflow: 'visible',
+        width: '100%', maxWidth: 680, margin: '0 auto', overflow: 'visible',
         fontStyle: 'normal',
         fontFamily: 'Georgia, "Times New Roman", "Noto Serif SC", serif',
       }}>

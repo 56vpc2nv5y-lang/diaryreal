@@ -9,7 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="诗签">
 <meta name="theme-color" content="#E2EDE5">
-<link rel="manifest" href="manifest.webmanifest?v=2026.06.19-r68">
+<link rel="manifest" href="manifest.webmanifest?v=2026.06.19-r69">
 <link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=2026.06.19-r68">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=2026.06.19-r68">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -547,12 +547,26 @@
     background: rgba(255,224,164,.48);
   }
   .lot-winning-stick {
-    height: 134px;
+    height: 154px;
+    width: 12px;
+    bottom: 2px;
     opacity: 0;
     background:
       linear-gradient(90deg, rgba(255,255,255,.34), transparent 50%, rgba(0,0,0,.12)),
       linear-gradient(180deg, #ead19a, var(--lot-accent, #3f7668) 32%, var(--lot-seal, #b84b3e));
     transform: translateX(-1px) rotate(2deg);
+    box-shadow: 0 8px 20px rgba(0,0,0,.16), 0 0 18px rgba(234,209,154,.32);
+  }
+  .lot-winning-stick::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: -9px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(255,241,185,.92) 0 18%, rgba(234,209,154,.42) 35%, transparent 70%);
   }
   .lot-tube-body {
     position: absolute;
@@ -632,17 +646,20 @@
     animation: lot-ready 2.8s ease-in-out infinite;
   }
   .lot-stage-shaking .lot-tube {
-    animation: lot-shake 1.08s cubic-bezier(.2,.72,.2,1) infinite;
+    animation: lot-shake 1.34s cubic-bezier(.18,.8,.22,1) infinite;
   }
   .lot-stage-shaking .lot-bamboo-stick {
-    animation: lot-stick-rattle .38s cubic-bezier(.33,0,.67,1) infinite;
+    animation: lot-stick-rattle .48s cubic-bezier(.33,0,.67,1) infinite;
     animation-delay: var(--stick-delay, 0ms);
   }
   .lot-stage-shaking .lot-stick-bundle {
-    animation: lot-bundle-bounce .72s ease-in-out infinite;
+    animation: lot-bundle-bounce 1.05s ease-in-out infinite;
   }
   .lot-stage-shaking .lot-winning-stick {
-    animation: lot-winning-peek 1.12s cubic-bezier(.16,1,.3,1) infinite;
+    animation: lot-winning-rise 1.72s cubic-bezier(.16,1,.3,1) infinite;
+  }
+  .lot-stage-shaking .lot-tube-mouth {
+    animation: lot-mouth-glow 1.72s ease-in-out infinite;
   }
   @keyframes lot-breathe {
     0%,100% { transform: scale(.96); opacity: .12; }
@@ -654,27 +671,36 @@
     70% { transform: rotate(-9deg) translateY(2px); }
   }
   @keyframes lot-shake {
-    0% { transform: rotate(-10deg) translate(-5px, 2px); }
-    14% { transform: rotate(9deg) translate(6px, -4px); }
-    28% { transform: rotate(-8deg) translate(-5px, 3px); }
-    43% { transform: rotate(7deg) translate(4px, -2px); }
-    58% { transform: rotate(-6deg) translate(-3px, 2px); }
-    74% { transform: rotate(4deg) translate(2px, -1px); }
-    100% { transform: rotate(-10deg) translate(-5px, 2px); }
+    0% { transform: rotate(-7deg) translate(-3px, 3px); }
+    12% { transform: rotate(5deg) translate(5px, -4px); }
+    25% { transform: rotate(-11deg) translate(-6px, 2px); }
+    39% { transform: rotate(8deg) translate(4px, -6px); }
+    55% { transform: rotate(-4deg) translate(-2px, 0); }
+    72% { transform: rotate(2deg) translate(1px, -2px); }
+    100% { transform: rotate(-7deg) translate(-3px, 3px); }
   }
   @keyframes lot-stick-rattle {
     0%,100% { transform: translateX(var(--stick-x, 0)) rotate(var(--stick-rot, 0deg)); }
-    50% { transform: translateX(calc(var(--stick-x, 0px) + 3px)) rotate(calc(var(--stick-rot, 0deg) + 4deg)); }
+    32% { transform: translateX(calc(var(--stick-x, 0px) - 2px)) rotate(calc(var(--stick-rot, 0deg) - 3deg)); }
+    68% { transform: translateX(calc(var(--stick-x, 0px) + 4px)) rotate(calc(var(--stick-rot, 0deg) + 5deg)); }
   }
   @keyframes lot-bundle-bounce {
     0%,100% { transform: translateX(-50%) translateY(0); }
-    45% { transform: translateX(-50%) translateY(-7px); }
-    70% { transform: translateX(-50%) translateY(4px); }
+    32% { transform: translateX(-50%) translateY(-12px); }
+    54% { transform: translateX(-50%) translateY(5px); }
+    78% { transform: translateX(-50%) translateY(-4px); }
   }
-  @keyframes lot-winning-peek {
-    0%, 100% { opacity: .34; transform: translateX(-1px) translateY(12px) rotate(4deg); }
-    34% { opacity: 1; transform: translateX(4px) translateY(-13px) rotate(8deg); }
-    64% { opacity: .78; transform: translateX(2px) translateY(-4px) rotate(6deg); }
+  @keyframes lot-winning-rise {
+    0% { opacity: 0; transform: translateX(-2px) translateY(34px) rotate(2deg); }
+    18% { opacity: .72; transform: translateX(2px) translateY(-10px) rotate(6deg); }
+    42% { opacity: 1; transform: translateX(9px) translateY(-72px) rotate(11deg); }
+    62% { opacity: 1; transform: translateX(7px) translateY(-61px) rotate(8deg); }
+    82% { opacity: .62; transform: translateX(3px) translateY(-18px) rotate(5deg); }
+    100% { opacity: 0; transform: translateX(-2px) translateY(34px) rotate(2deg); }
+  }
+  @keyframes lot-mouth-glow {
+    0%,100% { filter: none; transform: scaleX(1); }
+    42%,62% { filter: drop-shadow(0 0 14px rgba(255,224,164,.52)); transform: scaleX(1.05); }
   }
   @keyframes lot-word-drift {
     0%,100% { opacity: 0; transform: translate3d(0, 12px, 0) scale(.86); }
@@ -694,9 +720,29 @@
   .theme-poem-hero .theme-card-motif {
     opacity: .18;
   }
+  .theme-poem-card:not(.theme-preview-poem-card) .theme-card-art,
+  .theme-poem-card:not(.theme-preview-poem-card) .theme-card-motif {
+    opacity: .10 !important;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .theme-poem-card:not(.theme-preview-poem-card) .theme-poem-body,
+  .theme-poem-card:not(.theme-preview-poem-card) .poem-body-lines,
+  .theme-poem-card:not(.theme-preview-poem-card) .theme-poem-title,
+  .theme-poem-card:not(.theme-preview-poem-card) .theme-poem-topline {
+    position: relative;
+    z-index: 2;
+  }
   .theme-poem-hero-sonnet .theme-card-art,
   .theme-poem-hero-sonnet .theme-card-motif {
     display: none !important;
+  }
+  .theme-poem-hero-sonnet {
+    background:
+      radial-gradient(circle at 16% 14%, rgba(222,178,82,.18), transparent 24%),
+      radial-gradient(circle at 88% 24%, rgba(87,116,142,.13), transparent 30%),
+      linear-gradient(180deg, rgba(255,252,241,.72), rgba(244,235,213,.82)) !important;
+    box-shadow: 0 18px 48px rgba(73,55,32,.11) !important;
   }
   .theme-sign-card .theme-card-art,
   .theme-sign-card .theme-card-motif {
@@ -705,22 +751,24 @@
   .poem-body-en {
     box-sizing: border-box;
     position: relative;
-    padding: 34px 34px 35px;
-    border-radius: 20px 20px 18px 18px / 30px 30px 18px 18px;
-    border: 1px solid rgba(112,84,48,.24);
+    width: min(760px, 100%);
+    margin: 0 auto;
+    padding: clamp(26px, 4.6vw, 48px) clamp(24px, 5vw, 56px);
+    border-radius: 8px;
+    border: 1px solid rgba(120,88,46,.22);
     background:
-      radial-gradient(ellipse at 12% 18%, rgba(142,105,58,.16), transparent 30%),
-      radial-gradient(ellipse at 88% 84%, rgba(112,84,48,.16), transparent 32%),
-      radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.62), transparent 38%),
-      repeating-linear-gradient(0deg, rgba(112,84,48,.042) 0 1px, transparent 1px 6px),
-      linear-gradient(90deg, rgba(96,62,24,.12), transparent 7%, transparent 93%, rgba(96,62,24,.14)),
-      linear-gradient(135deg, #fff8df 0%, #e8ce91 52%, #fff0c8 100%);
+      radial-gradient(circle at 18% 12%, rgba(255,255,255,.72), transparent 26%),
+      radial-gradient(circle at 92% 82%, rgba(204,150,57,.18), transparent 28%),
+      radial-gradient(circle at 12% 92%, rgba(74,99,118,.10), transparent 28%),
+      repeating-linear-gradient(0deg, rgba(110,78,38,.035) 0 1px, transparent 1px 9px),
+      linear-gradient(90deg, rgba(96,62,24,.08), transparent 10%, transparent 90%, rgba(96,62,24,.09)),
+      linear-gradient(145deg, #fffaf0 0%, #f3e7cf 54%, #fff6e4 100%);
     box-shadow:
-      inset 0 0 32px rgba(112,84,48,.14),
-      inset 16px 0 22px rgba(110,74,34,.08),
-      inset -16px 0 22px rgba(110,74,34,.08),
-      0 24px 48px rgba(65,45,25,.16);
-    color: #365f65 !important;
+      inset 0 0 0 1px rgba(255,255,255,.46),
+      inset 18px 0 24px rgba(128,84,32,.055),
+      inset -18px 0 24px rgba(128,84,32,.06),
+      0 24px 54px rgba(65,45,25,.13);
+    color: #283f43 !important;
     transform-origin: top center;
     animation: parchment-unfurl 1.08s cubic-bezier(.16,1,.3,1) both;
     isolation: isolate;
@@ -729,32 +777,50 @@
   .poem-body-en::after {
     content: '';
     position: absolute;
-    left: 10px; right: 10px;
-    height: 24px;
-    border-radius: 50%;
-    background:
-      radial-gradient(ellipse at center, rgba(76,48,22,.24), transparent 62%),
-      linear-gradient(90deg, transparent, rgba(255,255,255,.52) 22%, rgba(98,64,28,.22) 50%, rgba(255,255,255,.42) 78%, transparent);
-    filter: blur(.15px);
     pointer-events: none;
   }
-  .poem-body-en::before { top: -12px; box-shadow: 0 5px 14px rgba(96,62,24,.12); }
-  .poem-body-en::after { bottom: -12px; box-shadow: 0 -5px 14px rgba(96,62,24,.10); }
+  .poem-body-en::before {
+    inset: 10px;
+    border-radius: 5px;
+    border: 1px solid rgba(128,91,43,.12);
+    background:
+      radial-gradient(circle at 16% 18%, rgba(217,166,65,.24) 0 1px, transparent 2px),
+      radial-gradient(circle at 74% 12%, rgba(217,166,65,.18) 0 1px, transparent 2px),
+      radial-gradient(circle at 86% 78%, rgba(217,166,65,.20) 0 1px, transparent 2px);
+    background-size: 92px 74px, 118px 86px, 104px 94px;
+    opacity: .72;
+    z-index: 0;
+  }
+  .poem-body-en::after {
+    left: 14px;
+    right: 14px;
+    bottom: -10px;
+    height: 20px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(70,45,24,.18), transparent 68%);
+    filter: blur(2px);
+  }
   .poem-body-en .text-particle-aura {
     inset: -26px -18px;
     z-index: 0;
-    mix-blend-mode: multiply;
+    mix-blend-mode: normal;
   }
   .poem-body-en .text-particle-aura i {
-    color: #b78a37;
-    text-shadow: 0 0 10px rgba(210, 164, 70, .42), 0 0 22px rgba(90, 59, 23, .22);
+    color: #c99a35;
+    text-shadow: 0 0 12px rgba(222, 174, 75, .48), 0 0 26px rgba(83, 58, 26, .18);
   }
   .poem-body-en .poem-body-en-line {
     opacity: 0;
     transform: translateY(7px);
     position: relative;
     z-index: 2;
-    text-shadow: 0 0 12px rgba(54,95,101,.10), 0 1px 0 rgba(255,255,255,.36);
+    color: #283f43 !important;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(15px, 1.8vw, 19px);
+    line-height: 1.74;
+    letter-spacing: .01em;
+    text-align: left;
+    text-shadow: 0 0 11px rgba(199,150,57,.10), 0 1px 0 rgba(255,255,255,.44);
     animation: ink-float-in .92s ease-out forwards;
   }
   .poem-body-en .poem-body-en-line::first-letter {
@@ -2731,6 +2797,159 @@
       box-shadow: 0 9px 22px rgba(50,75,157,.32) !important;
     }
 
+    .settings-columns,
+    .settings-column {
+      display: grid;
+      gap: 20px;
+      min-width: 0;
+    }
+    .settings-column {
+      align-content: start;
+    }
+    .settings-feedback-actions {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, .84fr);
+      gap: 10px;
+      margin-top: 12px;
+      align-items: center;
+    }
+    .settings-feedback-drafts {
+      margin-top: 12px;
+      display: grid;
+      gap: 8px;
+      border-top: 1px solid;
+      padding-top: 10px;
+    }
+    .settings-feedback-draft {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid;
+      border-radius: 12px;
+      padding: 9px 10px;
+    }
+    .settings-feedback-draft button {
+      border: 0;
+      background: transparent;
+      font-family: inherit;
+      cursor: pointer;
+      padding: 0;
+    }
+    .settings-feedback-draft button:first-child {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      text-align: left;
+    }
+    .settings-feedback-draft span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12.5px;
+      line-height: 1.35;
+    }
+    .settings-feedback-draft small {
+      font-size: 10px;
+      line-height: 1.2;
+    }
+    .settings-guide-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      background: rgba(24, 28, 24, .30);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 18px;
+    }
+    .settings-guide-sheet {
+      width: min(720px, 100%);
+      max-height: min(82vh, 720px);
+      border: 1px solid;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 26px 74px rgba(28, 24, 18, .22);
+      display: flex;
+      flex-direction: column;
+    }
+    .settings-guide-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      padding: 20px 22px 14px;
+      border-bottom: 1px solid rgba(120, 100, 72, .18);
+    }
+    .settings-guide-kicker {
+      font-size: 10px;
+      letter-spacing: 3px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    .settings-guide-head h2 {
+      margin: 0;
+      font-family: var(--theme-serif-font, "Noto Serif SC", serif);
+      font-size: 22px;
+      letter-spacing: 2px;
+      font-weight: 600;
+    }
+    .settings-guide-head button {
+      width: 38px;
+      height: 38px;
+      border-radius: 19px;
+      border: 0;
+      background: rgba(255,255,255,.38);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .settings-guide-body {
+      overflow: auto;
+      padding: 18px 22px 24px;
+      display: grid;
+      gap: 15px;
+    }
+    .settings-guide-section {
+      display: grid;
+      gap: 6px;
+    }
+    .settings-guide-section h3 {
+      margin: 0;
+      font-size: 14px;
+      letter-spacing: 1.5px;
+      font-weight: 700;
+    }
+    .settings-guide-section p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.75;
+    }
+    @media (max-width: 430px) {
+      .poem-edit-line-row {
+        grid-template-columns: 28px minmax(0, 1fr) !important;
+      }
+      .poem-edit-line-row > button {
+        grid-column: 2;
+        width: 92px;
+        justify-self: end;
+      }
+    }
+    @media (max-width: 560px) {
+      .settings-feedback-actions {
+        grid-template-columns: 1fr;
+      }
+      .settings-guide-backdrop {
+        padding: 10px;
+      }
+      .settings-guide-sheet {
+        max-height: 86vh;
+        border-radius: 18px 18px 0 0;
+      }
+    }
+
     @media (min-width: 900px) {
       /*
         Desktop navigation must override every theme's mobile bottom-bar rules.
@@ -2882,6 +3101,12 @@
       .settings-section {
         margin-bottom: 0 !important;
         min-width: 0;
+      }
+      .settings-columns {
+        grid-column: 1 / -1;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 28px;
+        align-items: start;
       }
       .settings-page > .settings-section:nth-of-type(4),
       .settings-page > .settings-section:nth-of-type(6),
@@ -3445,7 +3670,7 @@
       box-shadow: inset 0 0 0 7px rgba(255,255,255,.14), inset 0 0 0 8px rgba(63,118,104,.10) !important;
     }
 
-    /* r64 final: celadon uses the supplied porcelain-paper bitmap as the skin map. */
+    /* r69: celadon keeps the supplied porcelain-paper bitmap as the skin map. */
     html[data-diary-theme="celadon"] .app-screen:not(.app-screen-custom-bg) {
       background-color: #e6efe8 !important;
       background-image:
@@ -3464,7 +3689,7 @@
       display: none !important;
     }
 
-    /* r64 final: New Youth newspaper skin with no masthead/text overlap. */
+    /* r69: New Youth newspaper skin with no masthead/text overlap. */
     html[data-diary-theme="morningPaper"] {
       --theme-card-radius: 1px;
       --theme-control-radius: 1px;
@@ -3614,7 +3839,7 @@
       z-index: 1;
     }
 
-    /* r68: dedicated surface treatments for the new literary skins. */
+    /* r69: retired the weakest SVG-only literary skins from the visible picker. */
     html[data-diary-theme="gardenia"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero, .theme-quote-card, .theme-sign-card, .theme-settings-panel, .theme-saved-card, .theme-settings-account) {
       border-color: rgba(88,111,69,.22) !important;
       background-blend-mode: normal, multiply;
@@ -3673,7 +3898,7 @@
       opacity: .44;
     }
 
-    /* r64 final: smoother book page turn, inspired by page-flip libraries. */
+    /* r69: smoother book page turn, inspired by page-flip libraries. */
     .book-page-shell {
       transform-style: preserve-3d !important;
       perspective: 1800px;
@@ -3821,7 +4046,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- Firebase config (edit firebase-config.js) -->
-<script src="firebase-config.js?v=2026.06.19-r68"></script>
+<script src="firebase-config.js?v=2026.06.19-r69"></script>
 
 <!-- React + Babel -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -3829,18 +4054,18 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- Shared data (THEMES, HEXAGRAMS, TAGS) -->
-<script src="data.js?v=2026.06.19-r68"></script>
-<script src="themes-extra.js?v=2026.06.19-r68"></script>
-<script src="plan.js?v=2026.06.19-r68"></script>
+<script src="data.js?v=2026.06.19-r69"></script>
+<script src="themes-extra.js?v=2026.06.19-r69"></script>
+<script src="plan.js?v=2026.06.19-r69"></script>
 
 <!-- UI components (load order matters) -->
-<script type="text/babel" src="primitives.jsx?v=2026.06.19-r68"></script>
-<script type="text/babel" src="screens-main.jsx?v=2026.06.19-r68"></script>
-<script type="text/babel" src="screens-other.jsx?v=2026.06.19-r68"></script>
-<script type="text/babel" src="enhancements.jsx?v=2026.06.19-r68"></script>
+<script type="text/babel" src="primitives.jsx?v=2026.06.19-r69"></script>
+<script type="text/babel" src="screens-main.jsx?v=2026.06.19-r69"></script>
+<script type="text/babel" src="screens-other.jsx?v=2026.06.19-r69"></script>
+<script type="text/babel" src="enhancements.jsx?v=2026.06.19-r69"></script>
 
 <!-- Real app -->
-<script type="text/babel" src="app-real.jsx?v=2026.06.19-r68"></script>
+<script type="text/babel" src="app-real.jsx?v=2026.06.19-r69"></script>
 
 <script>
   // Reveal the "slow load" hint if React still hasn't replaced the splash after 9s

@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.19-r64';
+const APP_BUILD = '2026.06.19-r69';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -1672,13 +1672,17 @@ function AutoPoemShake({ theme, entry, style = poemStyle(), onBack, onAccepted }
   const [state, setState] = React.useState('ready');
   const [result, setResult] = React.useState(null);
   const [error, setError] = React.useState('');
+  const [notice, setNotice] = React.useState('');
   const [saving, setSaving] = React.useState(false);
   const running = React.useRef(false);
 
   const generate = React.useCallback(async () => {
     if (running.current) return;
     running.current = true;
-    setState('shaking'); setError('');
+    setState('shaking'); setError(''); setNotice('');
+    const slowTimer = setTimeout(() => {
+      setNotice('生成时间有点久。签还在路上，如果稍后失败，可以直接轻触重试。');
+    }, 12000);
     try {
       const generated = await apiPoem(entry.body, style);
       setResult(generated);
@@ -1687,6 +1691,7 @@ function AutoPoemShake({ theme, entry, style = poemStyle(), onBack, onAccepted }
       setError(friendlyAiError(err, '摇签生诗'));
       setState('ready');
     } finally {
+      clearTimeout(slowTimer);
       running.current = false;
     }
   }, [entry.body, style]);
@@ -1737,8 +1742,8 @@ function AutoPoemShake({ theme, entry, style = poemStyle(), onBack, onAccepted }
   };
 
   return <Shake theme={theme} state={state} entry={displayEntry} onCancel={onBack}
-    onShake={requestAndGenerate} onRegen={() => { setResult(null); setState('ready'); }}
-    onAccept={accept} saving={saving} error={error}/>;
+    onShake={requestAndGenerate} onRegen={() => { setResult(null); setNotice(''); setState('ready'); }}
+    onAccept={accept} saving={saving} error={error} notice={notice}/>;
 }
 
 function normalizeEmail(value) {

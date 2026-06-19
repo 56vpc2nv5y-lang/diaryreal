@@ -750,6 +750,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
     const saved = localStorage.getItem('d-poemStyle');
     return saved === 'en-sonnet' || saved === 'both' ? saved : 'zh-classical';
   });
+  const [guideOpen, setGuideOpen] = React.useState(false);
   const fileRef = React.useRef(null);
   const tog = (key, val, setter) => { localStorage.setItem(key, JSON.stringify(val)); setter(val); };
   const togglePoemStyle = () => {
@@ -864,41 +865,19 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         ? `同步中 · ${syncState.pending} 项`
         : '已同步';
   const themeGroups = [
-    { label: '', keys: ['celadon', 'inkPlum', 'mossGarden', 'dusk', 'seaSalt', 'gardenia', 'rainWindow', 'redLacquer', 'study', 'morningPaper'] },
+    { label: '', keys: ['celadon', 'inkPlum', 'mossGarden', 'seaSalt', 'study', 'morningPaper', 'dusk'] },
   ];
   const themeRecommendations = {
     celadon: '青釉浅色信纸 · 楷体',
     inkPlum: '宣纸留白 · 楷体',
     mossGarden: '苔庭信纸 · 楷体',
     dusk: '低对比浅色信纸 · 楷体',
-    seaSalt: '雾蓝盐白信纸 · 楷体',
-    gardenia: '栀子淡金花影 · 楷体',
-    rainWindow: '灰绿窗雨信纸 · 楷体',
-    redLacquer: '旧纸朱栏 · 宋体/楷体',
+    seaSalt: '生成图海盐纸 · 楷体',
     study: '旧书房案头微光 · 楷体',
     morningPaper: '新青年式报纸版 · 宋体',
   };
   const accountStateLabel = currentUser?.isAnonymous ? 'Firebase 匿名账户' : '邮箱账户已绑定';
-  const showDataNotice = () => alert([
-    '数据保存说明',
-    '',
-    '1. 日记、诗签、拾句和卦象保存在你的 Firebase 用户数据下。',
-    '2. 浏览器本地只保存主题、草稿、开关等偏好。',
-    '3. 匿名账户更换设备或清除浏览器数据后可能找不回；邮箱账户可以重新登录找回。',
-    '4. “数据备份”会导出 JSON 文件，建议重要日记定期备份。',
-  ].join('\n'));
-  const showPrivacyNotice = () => alert([
-    '隐私说明',
-    '',
-    '这是一款日记应用，默认不做公开展示。AI 生诗、拾句、理问时，会把对应正文发送到后端 AI 接口处理。',
-    '如果某篇内容极其私密，可以先保存正文，稍后再决定是否使用 AI 功能。',
-  ].join('\n'));
-  const showDeleteNotice = () => alert([
-    '删除与备份',
-    '',
-    '“清除所有数据”会删除当前账户下的日记和卦象，无法撤销。',
-    '执行前建议先点“数据备份”导出 JSON；之后也可以用“导入过去日记”恢复。'
-  ].join('\n'));
+  const openGuide = () => setGuideOpen(true);
   return (
     <Screen theme={theme} tab="settings" onTab={onTab}>
       <div className="settings-page">
@@ -911,9 +890,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
       <div className="settings-account-wrap" style={{ padding: '0 20px 24px' }}>
         <EmailAccountCard theme={theme} user={currentUser} entriesCount={entriesCount}
           onBindEmail={onBindEmail} onPasswordReset={onPasswordReset} onSignOut={onSignOut}/>
-        <button type="button" onClick={() => alert(currentUser?.isAnonymous
-          ? '当前为 Firebase 匿名账户。请定期使用“数据备份”；清除浏览器数据或更换设备后，匿名账户可能无法找回。'
-          : `当前为邮箱账户：${currentUser?.email || '已绑定'}。日记会跟随此账户同步，建议仍定期导出 JSON 备份。`)} style={{
+        <button type="button" onClick={openGuide} style={{
           width: '100%', border: 'none', textAlign: 'left', fontFamily: 'inherit', cursor: 'pointer',
           background: theme.paper, borderRadius: 18, padding: 18,
           border: `0.5px solid ${theme.line}`,
@@ -927,7 +904,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
           }}>林</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 16, color: theme.text, fontWeight: 500 }}>我的日记</div>
-            <div style={{ fontSize: 11.5, color: theme.textMute, marginTop: 3, letterSpacing: 0.5 }}>已写 {entriesCount} 篇 · {accountStateLabel}</div>
+            <div style={{ fontSize: 11.5, color: theme.textMute, marginTop: 3, letterSpacing: 0.5 }}>已写 {entriesCount} 篇 · {accountStateLabel} · 查看说明</div>
           </div>
           <IconChevron color={theme.textMute} dir="right" size={14}/>
         </button>
@@ -996,62 +973,176 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         ))}
       </SettingsSection>
 
-      <SettingsSection theme={theme} title="写 作 与 生 诗">
-        <SettingsRow theme={theme} label="每日提醒" detail="22:00" onClick={() => alert('提醒功能将在 App 版本支持')} />
-        <SettingsRow theme={theme} label="自动记录位置" toggle on={autoLoc} onToggle={() => tog('d-autoLoc', !autoLoc, setAutoLoc_)} />
-        <SettingsRow theme={theme} label="日记生诗" toggle on={autoPoem} onToggle={() => tog('d-autoPoem', !autoPoem, setAutoPoem_)} detail="保存后摇签" />
-        <SettingsRow theme={theme} label="每篇日记的诗体"
-          detail={poemStyleDetail}
-          onClick={togglePoemStyle} />
-        <SettingsRow theme={theme} label="中英文诗在哪里"
-          detail="日记详情页顶部切换"
-          onClick={() => alert('打开任意一篇日记，在诗标题上方会看到「中文 / English」两个按钮。已有版本可直接切换；灰色或显示“生成”的版本，点击后会跳到摇签生成。设置为“两者都要”后，新日记会默认显示两个入口。')} />
-        <SettingsRow theme={theme} label="写字时的元素粒子" toggle on={writeFx} onToggle={() => tog('d-writingParticles', !writeFx, setWriteFx_)} detail="花·雨·雪·风·火·月" />
-        <SettingsRow theme={theme} label="保存被否决的诗" toggle on={saveRej} onToggle={() => tog('d-saveRej', !saveRej, setSaveRej_)} isLast />
-      </SettingsSection>
+      <div className="settings-columns">
+        <div className="settings-column">
+          <SettingsSection theme={theme} title="写 作 与 生 诗">
+            <SettingsRow theme={theme} label="每日提醒" detail="22:00 · App 版" />
+            <SettingsRow theme={theme} label="自动记录位置" toggle on={autoLoc} onToggle={() => tog('d-autoLoc', !autoLoc, setAutoLoc_)} />
+            <SettingsRow theme={theme} label="日记生诗" toggle on={autoPoem} onToggle={() => tog('d-autoPoem', !autoPoem, setAutoPoem_)} detail="保存后摇签" />
+            <SettingsRow theme={theme} label="每篇日记的诗体"
+              detail={poemStyleDetail}
+              onClick={togglePoemStyle} />
+            <SettingsRow theme={theme} label="中英文诗在哪里"
+              detail="查看说明"
+              onClick={openGuide} />
+            <SettingsRow theme={theme} label="写字时的元素粒子" toggle on={writeFx} onToggle={() => tog('d-writingParticles', !writeFx, setWriteFx_)} detail="花·雨·雪·风·火·月" />
+            <SettingsRow theme={theme} label="保存被否决的诗" toggle on={saveRej} onToggle={() => tog('d-saveRej', !saveRej, setSaveRej_)} isLast />
+          </SettingsSection>
 
-      <SettingsSection theme={theme} title="导 入 与 导 出">
-        <input ref={fileRef} type="file" accept=".json,.txt,.md" onChange={importFile} style={{ display: 'none' }}/>
-        <SettingsRow theme={theme} label="导入过去日记" detail=".json · .txt · .md" onClick={() => fileRef.current?.click()} />
-        <SettingsRow theme={theme} label="导出与分享" detail="系统分享 · JSON" onClick={shareBackup} />
-        <SettingsRow theme={theme} label="数据备份" detail={`JSON · ${entriesCount} 篇`} onClick={downloadBackup} />
-        <SettingsRow theme={theme} label="导出 Markdown" detail={`可读文本 · ${entriesCount} 篇`} onClick={downloadMarkdown} isLast />
-      </SettingsSection>
+          <SettingsSection theme={theme} title="安 全 与 隐 私">
+            <SettingsRow theme={theme} label="使用与数据说明" detail="诗体 · 数据 · 隐私 · 同步" onClick={openGuide} isLast />
+          </SettingsSection>
 
-      <SettingsSection theme={theme} title="安 全 与 隐 私">
-        <SettingsRow theme={theme} label="数据保存在哪里" detail={accountStateLabel} onClick={showDataNotice} />
-        <SettingsRow theme={theme} label="AI 会读取什么" detail="仅在生成时发送" onClick={showPrivacyNotice} />
-        <SettingsRow theme={theme} label="删除与恢复说明" detail="先备份再清除" onClick={showDeleteNotice} isLast />
-      </SettingsSection>
+          <SettingsSection theme={theme} title="数 据">
+            <SettingsRow theme={theme} label="清除所有数据" detail="不可撤销" onClick={clearAll} />
+            <SettingsRow theme={theme} label="退出" onClick={onSignOut} isLast />
+          </SettingsSection>
+        </div>
 
-      <SettingsSection theme={theme} title="用 户 反 馈">
-        <FeedbackBox theme={theme} buildLabel={buildLabel} currentUser={currentUser} />
-      </SettingsSection>
+        <div className="settings-column">
+          <SettingsSection theme={theme} title="导 入 与 导 出">
+            <input ref={fileRef} type="file" accept=".json,.txt,.md" onChange={importFile} style={{ display: 'none' }}/>
+            <SettingsRow theme={theme} label="导入过去日记" detail=".json · .txt · .md" onClick={() => fileRef.current?.click()} />
+            <SettingsRow theme={theme} label="导出与分享" detail="系统分享 · JSON" onClick={shareBackup} />
+            <SettingsRow theme={theme} label="数据备份" detail={`JSON · ${entriesCount} 篇`} onClick={downloadBackup} />
+            <SettingsRow theme={theme} label="导出 Markdown" detail={`可读文本 · ${entriesCount} 篇`} onClick={downloadMarkdown} isLast />
+          </SettingsSection>
 
-      <SettingsSection theme={theme} title="云 同 步">
-        <SettingsRow theme={theme} label="Firestore" detail={syncDetail} onClick={() => alert(syncState.error ? `最近一次同步失败：${syncState.error}` : syncDetail)} />
-        <SettingsRow theme={theme} label="跨设备同步"
-          detail={currentUser?.isAnonymous ? '绑定邮箱后可用' : '邮箱账户已启用'}
-          onClick={() => alert(currentUser?.isAnonymous ? '请在页面顶部绑定邮箱，绑定后即可跨设备登录。' : `当前已绑定 ${currentUser?.email || '邮箱账户'}，可在其他设备登录。`)} isLast />
-      </SettingsSection>
+          <SettingsSection theme={theme} title="用 户 反 馈">
+            <FeedbackBox theme={theme} buildLabel={buildLabel} currentUser={currentUser} />
+          </SettingsSection>
 
-      <SettingsSection theme={theme} title="数 据">
-        <SettingsRow theme={theme} label="清除所有数据" detail="不可撤销" onClick={clearAll} />
-        <SettingsRow theme={theme} label="退出" onClick={onSignOut} isLast />
-      </SettingsSection>
+          <SettingsSection theme={theme} title="云 同 步">
+            <SettingsRow theme={theme} label="Firestore" detail={syncDetail} onClick={openGuide} />
+            <SettingsRow theme={theme} label="跨设备同步"
+              detail={currentUser?.isAnonymous ? '绑定邮箱后可用' : '邮箱账户已启用'}
+              onClick={openGuide} isLast />
+          </SettingsSection>
+        </div>
+      </div>
 
       <div className="settings-version" style={{ textAlign: 'center', fontSize: 10.5, color: theme.textMute, letterSpacing: 1, padding: '2px 0 18px' }}>
         版本 {buildLabel || 'prototype'}
       </div>
       <div className="settings-bottom-spacer" style={{ height: 100 }} />
+      {guideOpen && <SettingsGuideSheet theme={theme} buildLabel={buildLabel} accountStateLabel={accountStateLabel} syncDetail={syncDetail} currentUser={currentUser} onClose={() => setGuideOpen(false)} />}
       </div>
     </Screen>
+  );
+}
+
+function SettingsGuideSheet({ theme, buildLabel = '', accountStateLabel = '', syncDetail = '', currentUser, onClose }) {
+  const closeRef = React.useRef(null);
+  React.useEffect(() => {
+    const previousFocus = document.activeElement;
+    const onKey = event => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    setTimeout(() => closeRef.current?.focus(), 0);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      previousFocus?.focus?.();
+    };
+  }, [onClose]);
+  const trapFocus = event => {
+    if (event.key !== 'Tab') return;
+    const focusables = Array.from(event.currentTarget.querySelectorAll('button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])'))
+      .filter(node => !node.disabled && node.offsetParent !== null);
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+  const sections = [
+    {
+      title: '中英文诗与摇签',
+      body: [
+        '打开任意一篇日记，诗标题上方会显示「中文 / English」入口。已有版本可直接切换；未生成的版本会进入摇签生成。',
+        '设置为「中文 + 英文」后，新日记会保留两个入口；英文内容使用独立的十四行诗结构，不和中文判词混在一起。',
+      ],
+    },
+    {
+      title: '数据保存与备份',
+      body: [
+        `当前账户状态：${accountStateLabel || '未知'}。日记、诗签、拾句和卦象保存在你的 Firebase 用户数据下。`,
+        '浏览器本地只保存主题、草稿、开关等偏好；重要日记建议定期用「数据备份」导出 JSON。',
+      ],
+    },
+    {
+      title: 'AI 会读取什么',
+      body: [
+        'AI 生诗、拾句和理问只会在你触发生成时，把对应正文发送到后端接口处理。',
+        '特别私密的内容可以先只保存日记，等需要时再生成诗或问题。',
+      ],
+    },
+    {
+      title: '删除、恢复与同步',
+      body: [
+        '「清除所有数据」会删除当前账户下的日记和卦象，无法撤销；执行前请先备份。',
+        currentUser?.isAnonymous
+          ? '匿名账户更换设备或清除浏览器数据后可能找不回；绑定邮箱后可以跨设备登录。'
+          : `邮箱账户已启用跨设备同步。当前同步状态：${syncDetail || '未知'}。`,
+      ],
+    },
+    {
+      title: '反馈草稿',
+      body: [
+        '反馈区的「保存草稿」只保存在本机浏览器，方便你稍后查看、复制或再发邮件。',
+        `当前版本：${buildLabel || 'unknown'}。`,
+      ],
+    },
+  ];
+  return (
+    <div className="settings-guide-backdrop" role="presentation" onClick={onClose}>
+      <section className="settings-guide-sheet" role="dialog" aria-modal="true" aria-label="使用与数据说明" onClick={event => event.stopPropagation()} onKeyDown={trapFocus} style={{
+        background: theme.paper,
+        color: theme.text,
+        borderColor: theme.line,
+        ...skin(theme, 'panel'),
+      }}>
+        <div className="settings-guide-head">
+          <div>
+            <div className="settings-guide-kicker" style={{ color: theme.textMute }}>GUIDE</div>
+            <h2 style={{ color: theme.text }}>使用与数据说明</h2>
+          </div>
+          <button ref={closeRef} type="button" onClick={onClose} aria-label="关闭说明" style={{ color: theme.textSoft }}>
+            <IconClose color="currentColor" size={18}/>
+          </button>
+        </div>
+        <div className="settings-guide-body">
+          {sections.map(section => (
+            <article key={section.title} className="settings-guide-section">
+              <h3 style={{ color: theme.seal || theme.accent }}>{section.title}</h3>
+              {section.body.map(text => (
+                <p key={text} style={{ color: theme.textSoft }}>{text}</p>
+              ))}
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
   );
 }
 
 function FeedbackBox({ theme, buildLabel = '', currentUser }) {
   const [text, setText] = React.useState('');
   const [copied, setCopied] = React.useState(false);
+  const [showDrafts, setShowDrafts] = React.useState(false);
+  const [drafts, setDrafts] = React.useState(() => {
+    try {
+      const parsed = JSON.parse(localStorage.getItem('d-feedback-drafts') || '[]');
+      return Array.isArray(parsed) ? parsed.slice(0, 5) : [];
+    } catch {
+      return [];
+    }
+  });
   const targetEmail = '18926135948@163.com';
   const canSend = text.trim().length >= 3;
   const buildBody = () => [
@@ -1079,6 +1170,24 @@ function FeedbackBox({ theme, buildLabel = '', currentUser }) {
     const body = encodeURIComponent(buildBody());
     window.location.href = `mailto:${targetEmail}?subject=${subject}&body=${body}`;
   };
+  const saveDraft = () => {
+    if (!canSend) return;
+    const item = {
+      id: `${Date.now()}`,
+      text: text.trim(),
+      createdAt: new Date().toISOString(),
+      buildLabel: buildLabel || 'unknown',
+    };
+    const next = [item, ...drafts.filter(draft => draft.text !== item.text)].slice(0, 5);
+    localStorage.setItem('d-feedback-drafts', JSON.stringify(next));
+    setDrafts(next);
+    setShowDrafts(true);
+  };
+  const removeDraft = id => {
+    const next = drafts.filter(draft => draft.id !== id);
+    localStorage.setItem('d-feedback-drafts', JSON.stringify(next));
+    setDrafts(next);
+  };
   return (
     <div style={{ padding: 16 }}>
       <div style={{ fontSize: 13, color: theme.textSoft, lineHeight: 1.7, marginBottom: 10 }}>
@@ -1091,7 +1200,7 @@ function FeedbackBox({ theme, buildLabel = '', currentUser }) {
           border: `0.5px solid ${theme.line}`, background: theme.paper, color: theme.text,
           outline: 'none', padding: 13, fontFamily: 'inherit', fontSize: 14.5, lineHeight: 1.7,
         }}/>
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: 12, marginTop: 12, alignItems: 'center' }}>
+      <div className="settings-feedback-actions">
         <button type="button" onClick={sendMail} disabled={!canSend} style={{
           width: '100%', height: 44, borderRadius: 22, border: 'none',
           background: canSend ? theme.text : theme.surfaceSoft,
@@ -1100,6 +1209,12 @@ function FeedbackBox({ theme, buildLabel = '', currentUser }) {
           ...skin(theme, 'primary'),
           opacity: canSend ? 1 : .55,
         }}>发送邮件</button>
+        <button type="button" onClick={saveDraft} disabled={!canSend} style={{
+          width: '100%', height: 44, borderRadius: 22, border: `0.5px solid ${theme.line}`,
+          background: theme.surface, color: theme.textSoft,
+          fontFamily: 'inherit', cursor: canSend ? 'pointer' : 'default',
+          opacity: canSend ? 1 : .55,
+        }}>保存草稿</button>
         <button type="button" onClick={copyFeedback} disabled={!canSend} style={{
           width: '100%', height: 44, borderRadius: 22, border: `0.5px solid ${theme.line}`,
           background: theme.surface, color: theme.textSoft,
@@ -1107,9 +1222,27 @@ function FeedbackBox({ theme, buildLabel = '', currentUser }) {
           opacity: canSend ? 1 : .55,
         }}>{copied ? '已复制' : '复制'}</button>
       </div>
-      <div style={{ fontSize: 11, color: theme.textMute, marginTop: 9 }}>
-        收件邮箱：{targetEmail}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, fontSize: 11, color: theme.textMute, marginTop: 9 }}>
+        <span>收件邮箱：{targetEmail}</span>
+        {!!drafts.length && (
+          <button type="button" onClick={() => setShowDrafts(v => !v)} style={{ border: 'none', background: 'transparent', color: theme.accent, fontFamily: 'inherit', cursor: 'pointer', padding: 0 }}>
+            {showDrafts ? '收起已存' : `查看已存 ${drafts.length}`}
+          </button>
+        )}
       </div>
+      {showDrafts && !!drafts.length && (
+        <div className="settings-feedback-drafts" style={{ borderColor: theme.line }}>
+          {drafts.map(draft => (
+            <div key={draft.id} className="settings-feedback-draft" style={{ borderColor: theme.line, background: theme.surface }}>
+              <button type="button" onClick={() => setText(draft.text)} style={{ color: theme.text }}>
+                <span>{draft.text}</span>
+                <small style={{ color: theme.textMute }}>{new Date(draft.createdAt).toLocaleString('zh-CN')}</small>
+              </button>
+              <button type="button" onClick={() => removeDraft(draft.id)} aria-label="删除这条反馈草稿" style={{ color: theme.textMute }}>删</button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1148,9 +1281,9 @@ function SettingsRow({ theme, label, detail, toggle, on, onToggle, isLast, onCli
             background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.2)', transition: 'left .2s',
           }}/>
         </div>
-      ) : (
+      ) : onClick ? (
         <IconChevron color={theme.textMute} dir="right" size={13}/>
-      )}
+      ) : null}
     </button>
   );
 }

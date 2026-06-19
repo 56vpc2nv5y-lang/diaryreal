@@ -693,7 +693,7 @@ function QuickCapture({ theme, kind = 'photo' }) {
   );
 }
 
-function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, entry, saving = false, error = '' }) {
+function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, entry, saving = false, error = '', notice = '' }) {
   // state: 'ready' | 'shaking' | 'done'
   const e = entry;
   const [c1, c2] = sealChars(e.poem.title);
@@ -787,6 +787,10 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
           <div style={{ fontSize: 11, color: theme.textMute, marginTop: 40, letterSpacing: 2 }}>
             {state === 'ready' ? '摇晃手机，或点击签筒' : '读取本篇日记 · 生成签语与原创诗'}
           </div>
+          {(error || notice) && <div role={error ? 'alert' : 'status'} style={{
+            maxWidth: 310, marginTop: 14, color: error ? theme.seal : theme.textSoft,
+            fontSize: 12, lineHeight: 1.65, textAlign: 'center', padding: '0 16px',
+          }}>{error || notice}</div>}
           {state === 'ready' && <button type="button" onClick={onShake} style={{
             marginTop: 24, height: 42, padding: '0 24px', borderRadius: 21,
             border: `0.5px solid ${theme.line}`, background: theme.surface,
@@ -1636,12 +1640,14 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
               <label style={{ display: 'block', fontSize: 10.5, color: theme.textMute, letterSpacing: 3, margin: '14px 0 7px' }}>诗 句</label>
               <div style={{ display: 'grid', gap: 8 }}>
                 {poemDraft.lines.map((line, index) => (
-                  <div key={index} style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 72px', gap: 8, alignItems: 'center' }}>
-                    <textarea value={line} onChange={ev => updatePoemDraftLine(index, ev.target.value)} rows={poemDraft.style === 'en-sonnet' ? 1 : 1} style={{
-                      width: '100%', minHeight: 38, resize: 'vertical', borderRadius: 12,
+                  <div key={index} className="poem-edit-line-row" style={{ display: 'grid', gridTemplateColumns: '34px minmax(0, 1fr) 72px', gap: 8, alignItems: 'center' }}>
+                    <div style={{ color: theme.textMute, fontSize: 11, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{index + 1}</div>
+                    <textarea value={line} onChange={ev => updatePoemDraftLine(index, ev.target.value)} rows={1} style={{
+                      boxSizing: 'border-box', width: '100%', minHeight: 38, resize: 'vertical', borderRadius: 12,
                       border: `0.5px solid ${theme.line}`, background: theme.paper, color: theme.text,
                       padding: '8px 10px', outline: 'none', fontFamily: poemDraft.style === 'en-sonnet' ? 'Georgia, serif' : theme.fontSerif || 'inherit',
                       fontSize: poemDraft.style === 'en-sonnet' ? 13.5 : 14.5, lineHeight: 1.55,
+                      textAlign: poemDraft.style === 'en-sonnet' ? 'left' : 'center',
                     }}/>
                     <button type="button" onClick={() => { setSuggestLineIndex(index); setSuggestResult(null); setSuggestNote(''); }} style={{
                       height: 38, borderRadius: 19, border: `0.5px solid ${theme.line}`,
