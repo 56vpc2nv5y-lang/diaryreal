@@ -820,13 +820,14 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
           }}>{e.poem.title}</div>
           <style>{`@keyframes sign-drop{from{transform:translateY(-90px) rotate(-5deg);opacity:0}to{transform:translateY(0) rotate(1deg);opacity:1}}`}</style>
 
-          {!!judgmentLines.length && !enSign && <div style={{
+          {!!judgmentLines.length && !enSign && <div className="text-particle-host" style={{
             margin: '0 auto 22px', padding: '20px 22px 18px', maxWidth: 310,
             background: `${theme.seal}0c`,
             border: `1px solid ${theme.seal}28`,
             borderRadius: 12,
             textAlign: 'center',
           }}>
+            <TextParticleAura theme={theme} variant="judgment" density="soft" />
             <div style={{ fontSize: 10, letterSpacing: 4, color: theme.seal, fontWeight: 600, marginBottom: 3 }}>
               {lbl.judgment}{e.sign?.title ? <span style={{ marginLeft: 8 }}>· {e.sign.title}</span> : null}
             </div>
@@ -1357,7 +1358,8 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
 
           {/* 判词 & 解语 in detail view */}
           {!enSign && !!e.sign?.judgmentLines?.length && (
-            <div style={{ marginTop: 26, padding: '14px 18px 12px', borderRadius: 10, background: `${theme.seal}0a`, border: `1px solid ${theme.seal}1e`, textAlign: 'center' }}>
+            <div className="text-particle-host" style={{ marginTop: 26, padding: '14px 18px 12px', borderRadius: 10, background: `${theme.seal}0a`, border: `1px solid ${theme.seal}1e`, textAlign: 'center' }}>
+              <TextParticleAura theme={theme} variant="judgment" density="soft" />
               <div style={{ fontSize: 9, letterSpacing: 3.5, color: theme.seal, fontWeight: 600, marginBottom: 10 }}>
                 {dlbl.judgment}{e.sign.title ? `　·　${e.sign.title}` : ''}
               </div>

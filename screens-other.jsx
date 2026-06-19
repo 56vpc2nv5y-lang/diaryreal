@@ -109,6 +109,9 @@ function QuoteMysteryBox({ quote, entry, theme, onOpen }) {
       }}
     >
       <div className="quote-mystery-glow" />
+      <div className="quote-mystery-sparks" aria-hidden="true">
+        {Array.from({ length: 7 }).map((_, i) => <i key={i} style={{ '--i': i }} />)}
+      </div>
       <div className="quote-mystery-lid"><span /></div>
       <div className="quote-mystery-body">
         <div className="quote-mystery-stamp">拾</div>
@@ -116,11 +119,13 @@ function QuoteMysteryBox({ quote, entry, theme, onOpen }) {
         <div className="quote-mystery-meta">{entry.date}</div>
       </div>
       <div className="quote-mystery-flap" />
-      <div className="quote-prize-card">
+      <div className="quote-prize-card text-particle-host">
+        <TextParticleAura theme={theme} variant="quote" density="soft" />
         <div className="quote-prize-kicker">已 拾 之 句</div>
         <div className="serif quote-prize-text">“{quote}”</div>
-        <div className="quote-prize-meta">{entry.date} · {entryLabel}</div>
+        <div className="quote-prize-meta">{entry.date} · {entryLabel} · 再点看原文</div>
       </div>
+      <div className="quote-mystery-hint">{open ? '再点进入原文' : '轻触拆封'}</div>
     </button>
   );
 }
@@ -335,19 +340,35 @@ function BookIllustration({ theme, scene }) {
 function PoemBook({ theme, entries, onOpen, bookLabel = '诗册' }) {
   const [page, setPage] = React.useState(0);
   const [dir, setDir] = React.useState('next');
+  const [turnLeaf, setTurnLeaf] = React.useState(null);
   const touchX = React.useRef(null);
+  const turnTimer = React.useRef(0);
 
   React.useEffect(() => {
     if (page > Math.max(0, entries.length - 1)) setPage(Math.max(0, entries.length - 1));
   }, [entries.length, page]);
 
+  React.useEffect(() => () => window.clearTimeout(turnTimer.current), []);
+
   const turn = React.useCallback((delta) => {
     setPage(current => {
       const next = Math.max(0, Math.min(entries.length - 1, current + delta));
-      if (next !== current) setDir(delta > 0 ? 'next' : 'prev');
+      if (next !== current) {
+        const nextDir = delta > 0 ? 'next' : 'prev';
+        const oldEntry = entries[current];
+        setDir(nextDir);
+        setTurnLeaf({
+          dir: nextDir,
+          title: oldEntry?.poem?.title || (nextDir === 'next' ? '上一页' : '下一页'),
+          date: oldEntry?.date || '',
+          en: oldEntry?.poem?.style === 'en-sonnet' || (oldEntry?.poem?.lines || []).length > 4,
+        });
+        window.clearTimeout(turnTimer.current);
+        turnTimer.current = window.setTimeout(() => setTurnLeaf(null), 1080);
+      }
       return next;
     });
-  }, [entries.length]);
+  }, [entries]);
 
   React.useEffect(() => {
     const onKey = e => {
@@ -452,6 +473,7 @@ function PoemBook({ theme, entries, onOpen, bookLabel = '诗册' }) {
       <div style={{ perspective: 1500 }} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
         <div key={`${entry.id}-${page}-${dir}`} className={`book-page-shell book-page-shell-${dir}`} style={{
           '--book-paper': theme.paper,
+          '--theme-text': theme.text,
           position: 'relative',
           minHeight: enPoem ? 0 : 430,
           display: 'grid',
@@ -467,7 +489,15 @@ function PoemBook({ theme, entries, onOpen, bookLabel = '诗册' }) {
           {/* spine shadow (Chinese two-page look) */}
           {!enPoem && <div style={{ position: 'absolute', left: '46%', top: 0, bottom: 0, width: '8%', background: `linear-gradient(90deg, transparent, ${theme.text}14, transparent)`, pointerEvents: 'none', zIndex: 2 }} />}
           <div className="book-curl-shadow" />
-          <div className={`book-turn-leaf book-turn-leaf-${dir}`} />
+          <div className={`book-turn-leaf book-turn-leaf-${dir}`}>
+            {turnLeaf && (
+              <div className={`book-turn-leaf-content book-turn-leaf-content-${turnLeaf.dir}`}>
+                <div className="book-turn-leaf-kicker">{turnLeaf.en ? 'SONNET PAGE' : bookLabel}</div>
+                <div className="serif book-turn-leaf-title">{turnLeaf.title}</div>
+                <div className="book-turn-leaf-date">{turnLeaf.date?.replace(/-/g, '.')}</div>
+              </div>
+            )}
+          </div>
           {illustration}
           {poemPane}
         </div>
@@ -834,7 +864,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         ? `同步中 · ${syncState.pending} 项`
         : '已同步';
   const themeGroups = [
-    { label: '', keys: ['celadon', 'inkPlum', 'mossGarden', 'dusk', 'seaSalt'] },
+    { label: '', keys: ['celadon', 'inkPlum', 'mossGarden', 'dusk', 'seaSalt', 'gardenia', 'rainWindow', 'redLacquer', 'study', 'morningPaper'] },
   ];
   const themeRecommendations = {
     celadon: '青釉浅色信纸 · 楷体',
@@ -842,6 +872,11 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
     mossGarden: '苔庭信纸 · 楷体',
     dusk: '低对比浅色信纸 · 楷体',
     seaSalt: '雾蓝盐白信纸 · 楷体',
+    gardenia: '栀子淡金花影 · 楷体',
+    rainWindow: '灰绿窗雨信纸 · 楷体',
+    redLacquer: '旧纸朱栏 · 宋体/楷体',
+    study: '旧书房案头微光 · 楷体',
+    morningPaper: '新青年式报纸版 · 宋体',
   };
   const accountStateLabel = currentUser?.isAnonymous ? 'Firebase 匿名账户' : '邮箱账户已绑定';
   const showDataNotice = () => alert([

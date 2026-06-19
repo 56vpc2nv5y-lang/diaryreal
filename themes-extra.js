@@ -26,6 +26,12 @@
     seaFog: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 220" preserveAspectRatio="none"><rect width="390" height="220" fill="#e9f1ef"/><path d="M0 151c70-18 119 11 190-5 70-15 128 10 200-4v78H0z" fill="#c8ddd9" fill-opacity=".62"/><path d="M0 174c72-13 125 8 195-3 68-11 126 6 195-5v54H0z" fill="#9fbdc0" fill-opacity=".33"/><path d="M0 151c70-18 119 11 190-5 70-15 128 10 200-4M0 174c72-13 125 8 195-3 68-11 126 6 195-5" fill="none" stroke="#547f88" stroke-opacity=".25" stroke-width="1"/><g fill="none" stroke="#6e8f91" stroke-opacity=".28" stroke-linecap="round"><path d="M304 48c8-7 16-7 24 0 8-7 16-7 24 0M322 67c5-5 10-5 15 0 5-5 10-5 15 0"/></g></svg>`),
     waves: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 100" preserveAspectRatio="none"><path d="M0 58c68-25 123 21 191-3 68-24 119 17 199-4v49H0z" fill="#c9e5ef" fill-opacity=".75"/><path d="M0 73c67-21 126 18 194-4 69-22 122 15 196-1v32H0z" fill="#8cc3da" fill-opacity=".28"/><path d="M0 56c68-25 123 21 191-3 68-24 119 17 199-4" fill="none" stroke="#6eaac5" stroke-opacity=".42" stroke-width="1.2"/></svg>`),
     coastPaper: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 220" preserveAspectRatio="none"><path d="M0 192c70-14 117 8 190-4 70-12 126 8 200-5" fill="none" stroke="#6e9eac" stroke-opacity=".28" stroke-width="1.1"/><path d="M0 203c75-9 123 6 194-3 70-9 125 5 196-4" fill="none" stroke="#c2ab83" stroke-opacity=".22" stroke-width=".8"/><g fill="none" stroke="#557f8b" stroke-opacity=".28" stroke-width="1.1" stroke-linecap="round"><path d="M312 36c7-7 14-7 21 0 7-7 14-7 21 0M329 55c5-5 10-5 15 0 5-5 10-5 15 0"/></g></svg>`),
+    gardenia: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 844"><defs><pattern id="fiber" width="13" height="13" patternUnits="userSpaceOnUse"><path d="M0 12h13M12 0v13" stroke="#7b7256" stroke-opacity=".028" stroke-width=".7"/></pattern></defs><rect width="390" height="844" fill="#ece8d4"/><rect width="390" height="844" fill="url(#fiber)"/><g fill="none" stroke="#586f45" stroke-opacity=".18" stroke-linecap="round"><path d="M312 112c-42 22-56 53-66 101M344 126c-36 18-51 45-59 88M284 180c22-11 43-10 64 3"/></g><g fill="#f8f0cf" stroke="#b59b53" stroke-opacity=".35"><path d="M279 132c18-31 48-31 65 0-28-11-43-11-65 0z"/><path d="M292 124c3-35 36-43 58-18-30 1-44 6-58 18z"/><path d="M322 120c20-24 49-13 54 18-22-16-36-20-54-18z"/></g><path d="M-22 704c62-24 115-16 160 7s92 22 147-2 98-22 138 0" fill="none" stroke="#7b7256" stroke-opacity=".10"/></svg>`),
+    gardeniaCard: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 220"><rect width="360" height="220" fill="#f4f0dc" fill-opacity=".72"/><g fill="none" stroke="#586f45" stroke-opacity=".16"><path d="M278 44c-28 22-39 55-42 100M304 59c-28 18-41 49-47 87"/></g><g fill="#fff3c9" stroke="#b59b53" stroke-opacity=".38"><path d="M251 67c16-26 43-26 58 0-24-9-39-9-58 0z"/><path d="M269 58c8-27 37-33 52-10-24 0-37 4-52 10z"/></g><path d="M28 184h270" stroke="#8f8365" stroke-opacity=".14"/></svg>`),
+    redLacquer: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 844"><defs><pattern id="grain" width="18" height="18" patternUnits="userSpaceOnUse"><path d="M0 10c5-3 11 3 18-1M0 17c7-3 12 2 18-2" fill="none" stroke="#3c2d25" stroke-opacity=".045"/></pattern></defs><rect width="390" height="844" fill="#e8dfcf"/><rect width="390" height="844" fill="url(#grain)"/><rect x="26" y="42" width="338" height="760" fill="none" stroke="#9d3d34" stroke-opacity=".22"/><path d="M50 122h290M50 129h290M50 718h290M50 725h290" stroke="#9d3d34" stroke-opacity=".48"/><g fill="none" stroke="#252323" stroke-opacity=".17"><path d="M80 190h230M80 232h230M80 274h230M80 316h170"/></g><circle cx="305" cy="628" r="42" fill="none" stroke="#9d3d34" stroke-opacity=".22"/><path d="M280 628h50M305 603v50" stroke="#9d3d34" stroke-opacity=".22"/></svg>`),
+    redLacquerCard: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 220"><rect width="360" height="220" fill="#f3eadb"/><path d="M22 28h316M22 34h316M22 184h316" stroke="#9d3d34" stroke-opacity=".38"/><g fill="none" stroke="#252323" stroke-opacity=".12"><path d="M48 72h186M48 102h242M48 132h174"/></g><circle cx="286" cy="132" r="24" fill="none" stroke="#9d3d34" stroke-opacity=".22"/></svg>`),
+    rainWindow: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 844"><rect width="390" height="844" fill="#dfe5df"/><rect x="40" y="60" width="310" height="705" rx="2" fill="none" stroke="#4b6463" stroke-opacity=".13"/><path d="M40 182h310M40 360h310M40 538h310M195 60v705" stroke="#4b6463" stroke-opacity=".09"/><g stroke="#5f7775" stroke-opacity=".20" stroke-linecap="round"><path d="M84 116l-10 38M134 88l-14 55M272 150l-11 42M318 92l-16 64M214 258l-13 49M92 468l-12 45M304 504l-13 52"/></g><path d="M0 714c76-24 133 13 196-6 68-20 129 12 194-5v141H0z" fill="#b9c8c0" fill-opacity=".24"/></svg>`),
+    rainWindowCard: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 220"><rect width="360" height="220" fill="#e9ede7"/><rect x="24" y="20" width="312" height="176" fill="none" stroke="#4b6463" stroke-opacity=".13"/><path d="M24 108h312M180 20v176" stroke="#4b6463" stroke-opacity=".08"/><g stroke="#5f7775" stroke-opacity=".22" stroke-linecap="round"><path d="M72 45l-8 32M122 78l-10 42M260 47l-10 38M306 92l-10 42"/></g></svg>`),
     snowPaper: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 220" preserveAspectRatio="none"><rect width="390" height="220" fill="#fbfcff"/><g fill="none" stroke="#8ca0d5" stroke-opacity=".30" stroke-width=".8"><path d="M330 21v42m-18-31 36 21m-36 0 36-21M58 54v30m-13-22 26 15m-26 0 26-15"/></g><g fill="#9fb0e8" fill-opacity=".18"><circle cx="42" cy="34" r="1.1"/><circle cx="118" cy="25" r=".8"/><circle cx="268" cy="52" r="1.2"/><circle cx="354" cy="83" r=".9"/></g><path d="M0 166c70-22 121 12 194-4 67-15 125 14 196-7v65H0z" fill="#fff" fill-opacity=".88"/><path d="M0 188c70-19 122 13 194-4 68-15 125 11 196-5v41H0z" fill="#e2e9fb" fill-opacity=".74"/><path d="M0 174c70-22 121 12 194-4 67-15 125 14 196-7" fill="none" stroke="#b4c3ee" stroke-opacity=".38" stroke-width="1.1"/></svg>`),
     frostPaper: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 220" preserveAspectRatio="none"><path d="M390 0c-28 21-42 43-52 75m52-49-28 8m12-25-6 27m-14 16-24 5m11-20-4 22" fill="none" stroke="#7891d0" stroke-opacity=".28" stroke-width="1.2" stroke-linecap="round"/><g fill="none" stroke="#91a7ef" stroke-opacity=".30" stroke-width=".75"><path d="M54 37v28m-12-21 24 14m-24 0 24-14M315 104v20m-9-15 18 10m-18 0 18-10M134 88v22m-10-16 20 11m-20 0 20-11"/></g><path d="M0 202c68-13 124 8 193-3 67-11 128 7 197-4v25H0z" fill="#dce8ff" fill-opacity=".46"/></svg>`),
     snow: svgBg(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 844"><g fill="#fff" fill-opacity=".74"><circle cx="21" cy="47" r="1.2"/><circle cx="76" cy="29" r=".8"/><circle cx="132" cy="63" r="1.1"/><circle cx="203" cy="31" r=".8"/><circle cx="261" cy="78" r="1.3"/><circle cx="349" cy="47" r=".9"/><circle cx="44" cy="154" r=".8"/><circle cx="101" cy="128" r="1.1"/><circle cx="178" cy="170" r=".8"/><circle cx="301" cy="148" r="1.1"/><circle cx="365" cy="202" r=".7"/><circle cx="27" cy="338" r="1"/><circle cx="126" cy="310" r=".7"/><circle cx="237" cy="354" r="1.1"/><circle cx="341" cy="315" r=".9"/><circle cx="65" cy="512" r=".8"/><circle cx="167" cy="548" r="1.2"/><circle cx="273" cy="493" r=".8"/><circle cx="362" cy="563" r="1.1"/><circle cx="32" cy="690" r="1.1"/><circle cx="141" cy="735" r=".8"/><circle cx="252" cy="682" r="1.2"/><circle cx="338" cy="752" r=".8"/></g><g fill="none" stroke="#fff" stroke-opacity=".62" stroke-width=".8"><path d="M337 167v48m-21-36 42 24m-42 0 42-24M91 270v30m-13-22 26 15m-26 0 26-15M308 430v24m-10-18 20 12m-20 0 20-12"/></g><path d="M-20 660c78-42 144 16 213-20 70-36 122 18 217-14v218H-20z" fill="#fff" fill-opacity=".38"/><path d="M-20 714c83-25 139 15 213-10 71-25 128 13 217-9v149H-20z" fill="#eef4ff" fill-opacity=".58"/></svg>`),
@@ -184,6 +190,69 @@
       tabActive: { color: '#315f69' },
       primary: { background: 'linear-gradient(145deg, #6e9aa0, #315f69)', borderRadius: 26, boxShadow: '0 7px 18px rgba(49,95,105,.20)' },
       preview: { borderRadius: 18, backgroundImage: `${art.seaFog}, linear-gradient(180deg, #d8e7e5, #edf2ec)`, backgroundPosition: 'center bottom, center', backgroundSize: '100% 48%, auto', backgroundRepeat: 'no-repeat' },
+    },
+    gardenia: {
+      screen: { backgroundImage: `${art.gardenia}, linear-gradient(180deg, #ece8d4, #f5f0dc)`, backgroundPosition: 'center, center', backgroundSize: 'cover, cover', backgroundRepeat: 'no-repeat' },
+      poemCard: {
+        borderRadius: 10, border: '1px solid rgba(88,111,69,.18)',
+        backgroundImage: `${art.gardeniaCard}, linear-gradient(150deg, rgba(255,253,238,.92), rgba(239,235,211,.94))`,
+        backgroundPosition: 'center bottom, center', backgroundSize: '100% 126px, auto', backgroundRepeat: 'no-repeat',
+        boxShadow: '0 8px 19px rgba(90,91,62,.10)',
+      },
+      hero: { backgroundImage: `${art.gardeniaCard}, linear-gradient(150deg, rgba(255,253,238,.92), rgba(239,235,211,.94))`, backgroundPosition: 'center bottom, center', backgroundSize: '100% 130px, auto', backgroundRepeat: 'no-repeat' },
+      panel: {
+        borderRadius: 12, border: '1px solid rgba(88,111,69,.17)',
+        backgroundImage: `${art.gardeniaCard}, linear-gradient(150deg, rgba(255,253,238,.80), rgba(238,234,211,.90))`,
+        backgroundPosition: 'right bottom, center', backgroundSize: '105% 108px, auto', backgroundRepeat: 'no-repeat',
+        boxShadow: '0 6px 16px rgba(90,91,62,.08)',
+      },
+      nav: { borderTop: '1px solid rgba(88,111,69,.20)', background: 'rgba(240,236,214,.96)', boxShadow: '0 -5px 18px rgba(90,91,62,.06)' },
+      tabItem: { borderRadius: 10, background: 'rgba(255,253,238,.58)' },
+      tabActive: { color: '#586f45' },
+      primary: { background: 'linear-gradient(145deg, #9f7e35, #586f45)', borderRadius: 18, boxShadow: '0 7px 17px rgba(88,111,69,.22)' },
+      preview: { borderRadius: 10, backgroundImage: `${art.gardenia}, linear-gradient(180deg, #ece8d4, #f5f0dc)`, backgroundPosition: 'center', backgroundSize: 'cover', backgroundRepeat: 'no-repeat' },
+    },
+    redLacquer: {
+      screen: { backgroundImage: `${art.redLacquer}, linear-gradient(180deg, #e8dfcf, #f4eadb)`, backgroundPosition: 'center, center', backgroundSize: 'cover, cover', backgroundRepeat: 'no-repeat' },
+      poemCard: {
+        borderRadius: 3, border: '1px solid rgba(54,43,36,.28)',
+        backgroundImage: `${art.redLacquerCard}, linear-gradient(180deg, rgba(249,240,226,.96), rgba(236,225,209,.96))`,
+        backgroundPosition: 'center top, center', backgroundSize: '100% 132px, auto', backgroundRepeat: 'no-repeat',
+        boxShadow: 'inset 0 4px 0 -2px rgba(157,61,52,.70), 0 8px 18px rgba(54,43,36,.10)',
+      },
+      hero: { backgroundImage: `${art.redLacquerCard}, linear-gradient(180deg, rgba(249,240,226,.96), rgba(236,225,209,.96))`, backgroundPosition: 'center top, center', backgroundSize: '100% 148px, auto', backgroundRepeat: 'no-repeat' },
+      panel: {
+        borderRadius: 4, border: '1px solid rgba(54,43,36,.22)',
+        backgroundImage: `${art.redLacquerCard}, linear-gradient(180deg, rgba(249,240,226,.88), rgba(233,222,205,.94))`,
+        backgroundPosition: 'center top, center', backgroundSize: '100% 118px, auto', backgroundRepeat: 'no-repeat',
+        boxShadow: 'inset 0 4px 0 -2px rgba(157,61,52,.44)',
+      },
+      nav: { borderTop: '1.5px solid rgba(54,43,36,.56)', background: 'rgba(241,231,215,.97)' },
+      tabItem: { borderRadius: 3, border: '1px solid rgba(54,43,36,.12)', background: 'rgba(255,250,240,.35)' },
+      tabActive: { color: '#9d3d34', borderBottom: '2px solid #9d3d34' },
+      primary: { borderRadius: 3, background: '#9d3d34', boxShadow: '0 6px 13px rgba(157,61,52,.24)' },
+      preview: { borderRadius: 3, backgroundImage: `${art.redLacquer}, linear-gradient(180deg, #e8dfcf, #f4eadb)`, backgroundPosition: 'center', backgroundSize: 'cover', backgroundRepeat: 'no-repeat' },
+    },
+    rainWindow: {
+      screen: { backgroundImage: `${art.rainWindow}, linear-gradient(180deg, #dfe5df, #edf0ea)`, backgroundPosition: 'center, center', backgroundSize: 'cover, cover', backgroundRepeat: 'no-repeat' },
+      poemCard: {
+        borderRadius: 16, border: '1px solid rgba(75,100,99,.16)',
+        backgroundImage: `${art.rainWindowCard}, linear-gradient(145deg, rgba(250,252,246,.88), rgba(228,234,226,.93))`,
+        backgroundPosition: 'center bottom, center', backgroundSize: '100% 122px, auto', backgroundRepeat: 'no-repeat',
+        boxShadow: '0 9px 21px rgba(65,84,82,.10)',
+      },
+      hero: { backgroundImage: `${art.rainWindowCard}, linear-gradient(145deg, rgba(250,252,246,.88), rgba(228,234,226,.93))`, backgroundPosition: 'center bottom, center', backgroundSize: '100% 128px, auto', backgroundRepeat: 'no-repeat' },
+      panel: {
+        borderRadius: 16, border: '1px solid rgba(75,100,99,.15)',
+        backgroundImage: `${art.rainWindowCard}, linear-gradient(145deg, rgba(250,252,246,.76), rgba(226,232,225,.92))`,
+        backgroundPosition: 'center bottom, center', backgroundSize: '100% 108px, auto', backgroundRepeat: 'no-repeat',
+        boxShadow: '0 6px 16px rgba(65,84,82,.08)',
+      },
+      nav: { borderTop: '1px solid rgba(75,100,99,.18)', background: 'rgba(232,237,231,.96)', boxShadow: '0 -5px 18px rgba(65,84,82,.06)' },
+      tabItem: { borderRadius: 18, background: 'rgba(250,252,246,.52)' },
+      tabActive: { color: '#4b6463' },
+      primary: { background: 'linear-gradient(145deg, #7f8f58, #4b6463)', borderRadius: 23, boxShadow: '0 7px 17px rgba(75,100,99,.20)' },
+      preview: { borderRadius: 16, backgroundImage: `${art.rainWindow}, linear-gradient(180deg, #dfe5df, #edf0ea)`, backgroundPosition: 'center', backgroundSize: 'cover', backgroundRepeat: 'no-repeat' },
     },
   };
 
@@ -402,6 +471,87 @@
     },
   });
 
+  window.THEMES.gardenia = makeTheme(window.THEMES.celadon, {
+    key: 'gardenia',
+    name: '栀子',
+    description: '栀子纸色，淡金花影',
+    fontSerif: fonts.kai,
+    fontWriting: fonts.kai,
+    fontBody: fonts.song,
+    fontCanvas: fonts.kai,
+    writingSpacing: '0.07em',
+    writingLineHeight: 2,
+    palette: {
+      bg: '#ece8d4',
+      paper: '#f7f2df',
+      card: '#fbf7e8',
+      surface: '#fbf7e8',
+      panel: '#eee9d0',
+      ink: '#36382f',
+      muted: '#837a62',
+      accent: '#586f45',
+      accentSoft: '#d9d8bd',
+      line: '#b8b08e',
+      border: '#cec5a3',
+      nav: '#f1ecd8',
+      seal: '#a0493c',
+    },
+  });
+
+  window.THEMES.redLacquer = makeTheme(window.THEMES.study, {
+    key: 'redLacquer',
+    name: '朱漆',
+    description: '旧纸朱栏，漆色收锋',
+    fontSerif: fonts.song,
+    fontWriting: fonts.kai,
+    fontBody: fonts.song,
+    fontCanvas: fonts.song,
+    writingSpacing: '0.055em',
+    writingLineHeight: 1.95,
+    palette: {
+      bg: '#e8dfcf',
+      paper: '#f3eadb',
+      card: '#f7efe2',
+      surface: '#f7efe2',
+      panel: '#ece0cf',
+      ink: '#252323',
+      muted: '#786b5e',
+      accent: '#9d3d34',
+      accentSoft: '#e4c8be',
+      line: '#9f9386',
+      border: '#c7b9aa',
+      nav: '#f0e5d5',
+      seal: '#9d3d34',
+    },
+  });
+
+  window.THEMES.rainWindow = makeTheme(window.THEMES.dusk, {
+    key: 'rainWindow',
+    name: '雨窗',
+    description: '窗雨灰绿，灯色微明',
+    fontSerif: fonts.kai,
+    fontWriting: fonts.writing,
+    fontBody: fonts.song,
+    fontCanvas: fonts.kai,
+    writingSpacing: '0.075em',
+    writingLineHeight: 2.03,
+    palette: {
+      bg: '#dfe5df',
+      paper: '#f3f5ed',
+      card: '#f8f9f1',
+      surface: '#f8f9f1',
+      panel: '#e8ede6',
+      ink: '#2e3b3a',
+      muted: '#72807b',
+      accent: '#4b6463',
+      accentSoft: '#cfd9d2',
+      line: '#aab8b0',
+      border: '#c2cdc6',
+      nav: '#edf1eb',
+      seal: '#a06b45',
+    },
+  });
+
   // A single, calm reading voice across the app.
   Object.values(window.THEMES).forEach(theme => {
     theme.fontSerif = fonts.kai;
@@ -419,6 +569,4 @@
   delete window.THEMES.mandela;
   delete window.THEMES.obsidianDawn;
   delete window.THEMES.snowNight;
-  delete window.THEMES.study;
-  delete window.THEMES.morningPaper;
 })();

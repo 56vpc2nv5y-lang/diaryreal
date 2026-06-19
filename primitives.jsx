@@ -24,7 +24,7 @@ function friendlyAiError(error, action = 'AI 生成') {
 }
 const DECOR_THEME_KEYS = new Set([
   'celadon', 'inkPlum', 'mossGarden', 'study', 'dusk',
-  'morningPaper', 'seaSalt',
+  'morningPaper', 'seaSalt', 'gardenia', 'redLacquer', 'rainWindow',
 ]);
 
 function ThemeDecor({ theme }) {
@@ -95,6 +95,9 @@ function ThemeMotif({ theme, variant = 'card' }) {
     dusk: <><path d="M17 6a18 18 0 1 0 17 29A15 15 0 1 1 17 6z"/><path d="M34 38c10-7 20-7 30 0"/><circle cx="53" cy="10" r="1.5"/></>,
     morningPaper: <><path d="M6 5h58v38H6zM12 13h46M12 17h46"/><path d="M17 29h36M35 20v20"/><circle cx="35" cy="30" r="8"/></>,
     seaSalt: <><path d="M2 36c12-8 22 7 34-1s21 5 32-1M4 43c12-7 22 6 34-1s21 4 30-1M28 12c6-6 12-6 18 0 6-6 12-6 18 0"/></>,
+    gardenia: <><path d="M36 22c10-14 28-9 28 6 0 13-16 19-28 5-12 14-28 8-28-5 0-15 18-20 28-6z"/><circle cx="36" cy="28" r="5"/><path d="M31 39c-7 5-14 5-22 0M42 39c7 5 14 5 22 0"/></>,
+    redLacquer: <><path d="M12 8h46v33H12zM18 15h34M18 22h34M18 29h24"/><path d="M8 5h54M8 44h54M28 8v33"/><circle cx="50" cy="32" r="5"/></>,
+    rainWindow: <><path d="M9 6h52v36H9zM35 6v36M9 22h52"/><path d="M16 13c2 6 2 11 0 17M27 10c2 7 2 14 0 24M45 12c2 6 2 13 0 22M56 15c2 5 2 10 0 15"/></>,
   }[key];
   return (
     <svg className={`theme-card-motif theme-card-motif-${key}`} viewBox="0 0 70 48" style={common}
@@ -115,12 +118,38 @@ function ThemeHeaderMark({ theme }) {
     dusk: ['暮云', '微光留白'],
     morningPaper: ['晨报', '新青年式'],
     seaSalt: ['海盐', '海风轻拂'],
+    gardenia: ['栀子', '淡金花影'],
+    redLacquer: ['朱栏', '旧纸红印'],
+    rainWindow: ['窗雨', '灰绿信纸'],
   };
-  const [label, detail] = marks[key];
+  const [label, detail] = marks[key] || [theme?.name || '诗笺', '光影成页'];
   return (
     <div className={`theme-header-mark theme-header-mark-${key}`} aria-hidden="true">
       <span>{label}</span><small>{detail}</small>
     </div>
+  );
+}
+
+function TextParticleAura({ theme, variant = 'poem', density = 'soft' }) {
+  const reduce = typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return null;
+  const glyphs = variant === 'spell'
+    ? ['✦', '·', 'ᚠ', '✧', 'ink', 'wish', '✦', '·']
+    : variant === 'quote'
+      ? ['拾', '句', '光', '藏', '·', '忆', '·', '开']
+      : variant === 'judgment'
+        ? ['判', '象', '签', '解', '·', '心', '照', '·']
+        : ['诗', '墨', '字', '风', '月', '·', '句', '光'];
+  return (
+    <span
+      className={`text-particle-aura text-particle-aura-${variant} text-particle-density-${density}`}
+      aria-hidden="true"
+      style={{ '--particle-accent': theme?.accent, '--particle-seal': theme?.seal, '--particle-ink': theme?.text }}
+    >
+      {glyphs.map((glyph, i) => <i key={`${glyph}-${i}`} style={{ '--i': i }}>{glyph}</i>)}
+    </span>
   );
 }
 
@@ -601,12 +630,13 @@ function PoemBody({ lines, size = 22, theme, color, weight = 500 }) {
     const fontSize = many ? Math.max(13, Math.min(size - 4, 16)) : Math.min(size, 19);
     const isSonnet = enLines.length === 14;
     return (
-      <div className="serif poem-body-lines poem-body-en" style={{
+      <div className="serif poem-body-lines poem-body-en text-particle-host text-particle-host-en" style={{
         textAlign: 'left', color: color || theme.text, fontWeight: weight,
         width: '100%', maxWidth: 520, margin: '0 auto', overflow: 'visible',
         fontStyle: 'normal',
         fontFamily: 'Georgia, "Times New Roman", "Noto Serif SC", serif',
       }}>
+        <TextParticleAura theme={theme} variant="spell" density="rich" />
         {enLines.map((ln, i) => {
           const couplet = isSonnet && i >= 12;
           const quatrainGap = isSonnet && (i === 4 || i === 8 || i === 12);
@@ -630,10 +660,11 @@ function PoemBody({ lines, size = 22, theme, color, weight = 500 }) {
     : size;
   const spacing = longest >= 12 ? '0.16em' : longest > 8 ? '0.25em' : '0.42em';
   return (
-    <div className="serif poem-body-lines" style={{
+    <div className="serif poem-body-lines text-particle-host text-particle-host-poem" style={{
       textAlign: 'center', color: color || theme.text, fontWeight: weight,
       width: '100%', overflow: 'visible',
     }}>
+      <TextParticleAura theme={theme} variant="poem" density="soft" />
       {displayLines.map((ln, i) => (
         <div key={i} style={{
           fontSize: fittedSize, letterSpacing: spacing,
@@ -658,6 +689,7 @@ function sealChars(title) {
 Object.assign(window, {
   W, H, Screen, StatusBar, HomeIndicator, TabBar, Seal, FlagDot, ImgPlaceholder,
   ThemeDecor, ThemeMotif, ThemeHeaderMark, ThemeCardArt,
+  TextParticleAura,
   IconHome, IconTimeline, IconPlus, IconImport, IconHex, IconUser, IconSearch,
   IconChevron, IconClose, IconCamera, IconPin, IconShake, sealChars,
   paperBg, PAPER_LIBRARY, PoemBody, splitPoemLines, skin,

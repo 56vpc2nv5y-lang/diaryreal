@@ -778,8 +778,10 @@ const WRITING_FX = [
   { fx: 'leaf',  re: /叶|草|树|林|森|枝|竹|苔|园|leaf|tree|grass|garden|branch/gi },
   { fx: 'ink',   re: /墨|字|诗|句|写|纸|书|信|ink|word|letter|poem|write|paper/gi },
   { fx: 'ember', re: /火|焰|烛|灯|炉|暖|fire|flame|ember|lamp|candle/gi },
-  { fx: 'memory', re: /梦|忆|旧|远|念|影|quiet|dream|memory|remember|shadow/gi },
-  { fx: 'glow',  re: /月|星|光|萤|烁|莹|moon|star|light|glow|shine/gi },
+  { fx: 'memory', re: /梦|忆|旧|远|念|影|年|后来|从前|时间|quiet|dream|memory|remember|shadow|year|time|once|afterward/gi },
+  { fx: 'glow',  re: /月|星|光|萤|烁|莹|魔法|咒|故事|奇迹|愿望|moon|star|light|glow|shine|magic|spell|story|wish|wonder/gi },
+  { fx: 'wind',  re: /路|车|站|桥|街|城|跑|走|归|旅|road|street|city|bridge|run|walk|return|journey/gi },
+  { fx: 'ember', re: /心|痛|哭|笑|怕|勇|焦|热|heart|cry|laugh|fear|brave|anxious|warm/gi },
 ];
 
 function hexToRgba(hex, a) {
