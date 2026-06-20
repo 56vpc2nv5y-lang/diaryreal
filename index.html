@@ -9,9 +9,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="诗签">
 <meta name="theme-color" content="#E2EDE5">
-<link rel="manifest" href="manifest.webmanifest?v=2026.06.20-r73">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=2026.06.20-r73">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=2026.06.20-r73">
+<link rel="manifest" href="manifest.webmanifest?v=2026.06.20-r76">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=2026.06.20-r76">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=2026.06.20-r76">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=ZCOOL+XiaoWei&display=swap">
@@ -4382,6 +4382,162 @@
       62% { opacity: .52; transform: translateX(-8%) scaleX(.96); }
     }
 
+    /* r74 theme cleanup: remove stray ink-plum seal dots and make Sea Salt / Study read apart. */
+    html[data-diary-theme="inkPlum"] :is(.theme-settings-panel, .theme-settings-account, .settings-guide-sheet, .theme-quote-card, .theme-sign-card, .theme-saved-card) {
+      background-image:
+        linear-gradient(150deg, rgba(255,255,255,.76), rgba(250,246,236,.96)) !important;
+      background-position: center !important;
+      background-size: cover !important;
+      background-repeat: no-repeat !important;
+    }
+
+    html[data-diary-theme="seaSalt"] .app-screen:not(.app-screen-custom-bg) {
+      background-color: #d9eaeb !important;
+      background-image: var(--theme-screen-image) !important;
+      background-position: var(--theme-screen-position) !important;
+      background-size: var(--theme-screen-size) !important;
+      background-repeat: var(--theme-screen-repeat) !important;
+    }
+    html[data-diary-theme="seaSalt"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero, .theme-quote-card, .theme-sign-card, .theme-settings-panel, .theme-saved-card, .theme-settings-account, .settings-guide-sheet) {
+      border: 1px solid rgba(69,126,142,.24) !important;
+      border-radius: 24px 24px 36px 36px !important;
+      background-color: #f8ffff !important;
+      background-image: var(--theme-panel-image) !important;
+      background-position: var(--theme-panel-position) !important;
+      background-size: var(--theme-panel-size) !important;
+      background-repeat: var(--theme-panel-repeat) !important;
+      box-shadow: 0 13px 30px rgba(54,126,151,.12), inset 0 1px 0 rgba(255,255,255,.86) !important;
+    }
+    html[data-diary-theme="seaSalt"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero) {
+      background-image: var(--theme-poem-image) !important;
+      background-position: var(--theme-poem-position) !important;
+      background-size: var(--theme-poem-size) !important;
+      border-radius: 28px 28px 48px 48px !important;
+    }
+    html[data-diary-theme="seaSalt"] .theme-settings-panel > button {
+      background: rgba(255,255,255,.42) !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tabbar {
+      border: 1px solid rgba(69,126,142,.16) !important;
+      border-radius: 24px !important;
+      background: rgba(246,253,253,.90) !important;
+      box-shadow: 0 -6px 22px rgba(54,126,151,.08) !important;
+    }
+    html[data-diary-theme="seaSalt"] .app-tab-primary {
+      background: linear-gradient(145deg, #73c2d5, #2d819f) !important;
+      border-radius: 18px !important;
+    }
+
+    html[data-diary-theme="study"] .app-screen:not(.app-screen-custom-bg) {
+      background-color: #e4c486 !important;
+      background-image: var(--theme-screen-image) !important;
+      background-position: var(--theme-screen-position) !important;
+      background-size: var(--theme-screen-size) !important;
+      background-repeat: var(--theme-screen-repeat) !important;
+    }
+    html[data-diary-theme="study"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero, .theme-quote-card, .theme-sign-card, .theme-settings-panel, .theme-saved-card, .theme-settings-account, .settings-guide-sheet) {
+      border: 1px solid rgba(77,51,30,.34) !important;
+      border-radius: 7px !important;
+      background-color: #fff2d3 !important;
+      background-image:
+        linear-gradient(90deg, rgba(77,51,30,.14) 0 10px, transparent 10px),
+        var(--theme-panel-image) !important;
+      background-position: left top, var(--theme-panel-position) !important;
+      background-size: 100% 100%, var(--theme-panel-size) !important;
+      background-repeat: var(--theme-panel-repeat) !important;
+      box-shadow:
+        inset 0 0 0 1px rgba(255,250,231,.58),
+        inset 0 5px 0 -3px rgba(77,51,30,.34),
+        0 12px 26px rgba(62,39,22,.15) !important;
+    }
+    html[data-diary-theme="study"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero) {
+      background-image:
+        linear-gradient(90deg, rgba(77,51,30,.15) 0 10px, transparent 10px),
+        var(--theme-poem-image) !important;
+      background-position: left top, var(--theme-poem-position) !important;
+      background-size: 100% 100%, var(--theme-poem-size) !important;
+      border-radius: 8px !important;
+    }
+    html[data-diary-theme="study"] .theme-settings-panel > button {
+      background:
+        linear-gradient(90deg, rgba(77,51,30,.16) 0 8px, transparent 8px),
+        rgba(255,248,230,.44) !important;
+      border-color: rgba(77,51,30,.28) !important;
+    }
+    html[data-diary-theme="study"] .app-tabbar {
+      border-top: 3px double rgba(77,51,30,.42) !important;
+      background: rgba(238,220,188,.96) !important;
+      box-shadow: 0 -5px 18px rgba(62,39,22,.10) !important;
+    }
+    html[data-diary-theme="study"] .app-tab-primary {
+      background: #4d321e !important;
+      border-radius: 8px !important;
+      color: #fff7e7 !important;
+    }
+
+  /* r76: English sonnets use a restrained poetry broadside, not the Chinese lot/parchment language. */
+    html[data-diary-theme] .theme-poem-hero-sonnet {
+      background-color: #fffaf2 !important;
+      background-image:
+        linear-gradient(180deg, rgba(255,255,255,.88), rgba(250,246,237,.94)),
+        repeating-linear-gradient(180deg, rgba(48,45,39,.035) 0 1px, transparent 1px 34px) !important;
+      box-shadow: none !important;
+    }
+    html[data-diary-theme] .theme-poem-hero-sonnet .theme-seal {
+      display: none !important;
+    }
+    .poem-body-en {
+      width: min(760px, 100%) !important;
+      padding: clamp(26px, 4vw, 42px) clamp(24px, 5vw, 52px) !important;
+      border-radius: 6px !important;
+      border: 1px solid rgba(49,56,54,.18) !important;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.92), rgba(252,248,239,.96)),
+        repeating-linear-gradient(180deg, rgba(49,56,54,.045) 0 1px, transparent 1px 30px) !important;
+      box-shadow: 0 12px 28px rgba(53,47,38,.08) !important;
+      color: #273331 !important;
+      animation: none !important;
+    }
+    .poem-body-en::before {
+      inset: 14px !important;
+      border-radius: 3px !important;
+      border: 1px solid rgba(49,56,54,.10) !important;
+      background: none !important;
+      opacity: 1 !important;
+      animation: none !important;
+    }
+    .poem-body-en::after,
+    .poem-body-en .magic-english-layer,
+    .poem-body-en .text-particle-aura {
+      display: none !important;
+    }
+    .poem-body-en-text {
+      width: min(620px, 100%) !important;
+      padding: 0 !important;
+    }
+    .poem-body-en .poem-body-en-line {
+      opacity: 1 !important;
+      transform: none !important;
+      color: #273331 !important;
+      font-size: clamp(14.5px, 1.42vw, 17px) !important;
+      line-height: 1.74 !important;
+      letter-spacing: .01em !important;
+      text-shadow: none !important;
+      animation: none !important;
+    }
+    .poem-body-en .poem-body-en-line::after {
+      display: none !important;
+    }
+    .poem-body-en .poem-body-en-line::first-letter {
+      color: inherit !important;
+      text-shadow: none !important;
+    }
+    .sonnet-reading-card {
+      border-color: rgba(49,56,54,.16) !important;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.58), rgba(250,247,240,.42)) !important;
+    }
+
     /* Tablet/narrow desktop: center the phone canvas. */
     @media (min-width: 431px) and (max-width: 899px) {
       html, body { background: #e7e2d8; }
@@ -4407,7 +4563,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- Firebase config (edit firebase-config.js) -->
-<script src="firebase-config.js?v=2026.06.20-r73"></script>
+<script src="firebase-config.js?v=2026.06.20-r76"></script>
 
 <!-- React + Babel -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -4415,18 +4571,18 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- Shared data (THEMES, HEXAGRAMS, TAGS) -->
-<script src="data.js?v=2026.06.20-r73"></script>
-<script src="themes-extra.js?v=2026.06.20-r73"></script>
-<script src="plan.js?v=2026.06.20-r73"></script>
+<script src="data.js?v=2026.06.20-r76"></script>
+<script src="themes-extra.js?v=2026.06.20-r76"></script>
+<script src="plan.js?v=2026.06.20-r76"></script>
 
 <!-- UI components (load order matters) -->
-<script type="text/babel" src="primitives.jsx?v=2026.06.20-r73"></script>
-<script type="text/babel" src="screens-main.jsx?v=2026.06.20-r73"></script>
-<script type="text/babel" src="screens-other.jsx?v=2026.06.20-r73"></script>
-<script type="text/babel" src="enhancements.jsx?v=2026.06.20-r73"></script>
+<script type="text/babel" src="primitives.jsx?v=2026.06.20-r76"></script>
+<script type="text/babel" src="screens-main.jsx?v=2026.06.20-r76"></script>
+<script type="text/babel" src="screens-other.jsx?v=2026.06.20-r76"></script>
+<script type="text/babel" src="enhancements.jsx?v=2026.06.20-r76"></script>
 
 <!-- Real app -->
-<script type="text/babel" src="app-real.jsx?v=2026.06.20-r73"></script>
+<script type="text/babel" src="app-real.jsx?v=2026.06.20-r76"></script>
 
 <script>
   // Reveal a short hint if React still hasn't replaced the splash.

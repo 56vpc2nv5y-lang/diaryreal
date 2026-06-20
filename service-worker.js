@@ -1,6 +1,6 @@
 ﻿// Bump this on every deploy that changes app code — the fetch handler matches with
 // ignoreSearch:true, so the ?v= query does NOT bust this cache; only CACHE_NAME does.
-const CACHE_NAME = 'poem-diary-r73';
+const CACHE_NAME = 'poem-diary-r76';
 const APP_SHELL = [
   '/',
   '/index.html',

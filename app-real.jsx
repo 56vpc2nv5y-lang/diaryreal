@@ -1,6 +1,6 @@
-﻿// app-real.jsx 鈥?Real diary app: Firebase auth + Firestore + DeepSeek
+// app-real.jsx - Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.20-r73';
+const APP_BUILD = '2026.06.20-r76';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -35,7 +35,7 @@ function trackWrite(writePromise) {
     emitSyncState();
   }, error => {
     syncTracker.pending = Math.max(0, syncTracker.pending - 1);
-    syncTracker.error = error?.message || '鍚屾澶辫触';
+    syncTracker.error = error?.message || '同步失败';
     emitSyncState();
   });
   return syncTracker.online ? writePromise : Promise.resolve();
@@ -43,11 +43,11 @@ function trackWrite(writePromise) {
 
 firebase.firestore().enablePersistence({ synchronizeTabs: true }).catch(error => {
   if (error?.code !== 'failed-precondition' && error?.code !== 'unimplemented') {
-    console.warn('Firestore 绂荤嚎鎸佷箙鍖栨湭鍚敤:', error);
+    console.warn('Firestore 离线持久化未启用:', error);
   }
 });
 
-// 鈹€鈹€鈹€ Firebase helpers 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// Firebase helpers
 function col(name) {
   const uid = firebase.auth().currentUser?.uid;
   if (!uid) throw new Error('未登录');
@@ -68,6 +68,10 @@ function normalizePoemRecord(poem) {
   };
 }
 
+function cleanTextField(value, limit = 600) {
+  return typeof value === 'string' ? value.trim().slice(0, limit) : '';
+}
+
 function normalizeSignRecord(sign, style = '', poem = null) {
   if (!sign || typeof sign !== 'object') return null;
   const isSonnet = style === 'en-sonnet' || sign.style === 'en-sonnet';
@@ -81,13 +85,18 @@ function normalizeSignRecord(sign, style = '', poem = null) {
     : [];
   const rawTitle = typeof sign.title === 'string' ? sign.title.slice(0, isSonnet ? 40 : 8) : '';
   const title = poemTexts.some(poemText => isNearDuplicateText(rawTitle, poemText)) ? '' : rawTitle;
-  if (!title && !judgmentLines.length && !sign.interpretation && !sign.timelineLine) return null;
+  const interpretation = cleanTextField(sign.interpretation, 600);
+  const interpretationZh = cleanTextField(sign.interpretationZh || sign.explanationZh || sign.readingZh, 600);
+  const interpretationEn = cleanTextField(sign.interpretationEn || sign.explanationEn || sign.readingEn, 900);
+  if (!title && !judgmentLines.length && !interpretation && !interpretationZh && !interpretationEn && !sign.timelineLine) return null;
   return {
     title,
     style: isSonnet ? 'en-sonnet' : 'zh-classical',
     motif: typeof sign.motif === 'string' ? sign.motif.slice(0, isSonnet ? 60 : 30) : '',
     judgmentLines,
-    interpretation: typeof sign.interpretation === 'string' ? sign.interpretation.slice(0, 600) : '',
+    interpretation,
+    interpretationZh,
+    interpretationEn,
     timelineLine: typeof sign.timelineLine === 'string' ? sign.timelineLine.slice(0, isSonnet ? 80 : 32) : '',
   };
 }
@@ -172,7 +181,7 @@ async function dbGetEntries() {
     return snap.docs
       .map(d => normalizeEntry(d.data(), d.id))
       .sort((a, b) => `${b.date || ''} ${b.time || ''}`.localeCompare(`${a.date || ''} ${a.time || ''}`));
-  } catch (e) { console.error('璇诲彇鏃ヨ澶辫触:', e); return []; }
+  } catch (e) { console.error('读取日记失败:', e); return []; }
 }
 
 async function dbSaveEntry(data) {
@@ -246,7 +255,7 @@ async function dbGetHexagrams() {
 }
 
 async function aiFetch(url, options, timeoutMs = 45000) {
-  if (!navigator.onLine) throw new Error('褰撳墠绂荤嚎锛屾棤娉曡繛鎺?AI 鏈嶅姟');
+  if (!navigator.onLine) throw new Error('当前离线，无法连接 AI 服务');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -310,15 +319,15 @@ function poemFromAiResult(result) {
   if (!result || !Array.isArray(result.lines)) return null;
   const isSonnet = result.style === 'en-sonnet' || result.form === 'sonnet' || result.lines.length > 4;
   return {
-    title: String(result.title || result.signTitle || (isSonnet ? 'Untitled' : '鏈')).slice(0, isSonnet ? 48 : 12),
-    form: String(result.form || (isSonnet ? 'sonnet' : '浜旂粷')).slice(0, 12),
+    title: String(result.title || result.signTitle || (isSonnet ? 'Untitled' : '未题')).slice(0, isSonnet ? 48 : 12),
+    form: String(result.form || (isSonnet ? 'sonnet' : '五绝')).slice(0, 12),
     style: isSonnet ? 'en-sonnet' : 'zh-classical',
     lines: result.lines.map(String).slice(0, isSonnet ? 14 : 4),
   };
 }
 
 function compactTextForCompare(value) {
-  return String(value || '').toLowerCase().replace(/[\s锛屻€傦紒锛熴€侊紱锛?.!?;:'"鈥溾€濃€樷€欍€娿€?)\[\]{}-]/g, '');
+  return String(value || '').toLowerCase().replace(/[\s，。！？、；：.!?;:'"“”‘’《》()（）\[\]{}-]/g, '');
 }
 
 function isNearDuplicateText(a, b) {
@@ -345,7 +354,10 @@ function signFromAiResult(result) {
       .filter(line => !poemTexts.some(poemText => isNearDuplicateText(line, poemText)))
       .slice(0, 1))
     : [];
-  const hasSignPayload = !!(result.signTitle || judgmentLines.length || result.interpretation || result.timelineLine || result.motif);
+  const interpretation = cleanTextField(result.interpretation, 600);
+  const interpretationZh = cleanTextField(result.interpretationZh || result.explanationZh || result.readingZh, 600);
+  const interpretationEn = cleanTextField(result.interpretationEn || result.explanationEn || result.readingEn, 900);
+  const hasSignPayload = !!(result.signTitle || judgmentLines.length || interpretation || interpretationZh || interpretationEn || result.timelineLine || result.motif);
   if (!hasSignPayload) return null;
   const title = String(result.signTitle || result.title || '').slice(0, isSonnet ? 40 : 8);
   return {
@@ -353,7 +365,9 @@ function signFromAiResult(result) {
     style: isSonnet ? 'en-sonnet' : 'zh-classical',
     motif: String(result.motif || '').slice(0, isSonnet ? 60 : 30),
     judgmentLines,
-    interpretation: String(result.interpretation || '').slice(0, 600),
+    interpretation,
+    interpretationZh,
+    interpretationEn,
     timelineLine: String(result.timelineLine || judgmentLines[0] || '').slice(0, isSonnet ? 80 : 32),
   };
 }
@@ -415,7 +429,7 @@ async function apiQuestion(question) {
     body: JSON.stringify({ question }),
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || '鐞嗛棶澶辫触');
+  if (!response.ok) throw new Error(data.error || '理问失败');
   return data.analysis;
 }
 
@@ -428,8 +442,8 @@ async function geocode(lat, lng) {
     const d = await r.json();
     const a = d.address || {};
     return [a.city || a.county || a.state, a.suburb || a.neighbourhood || a.road]
-      .filter(Boolean).join(' 路 ') || '褰撳墠浣嶇疆';
-  } catch { return '褰撳墠浣嶇疆'; }
+      .filter(Boolean).join(' · ') || '当前位置';
+  } catch { return '当前位置'; }
 }
 
 function nowInfo() {
@@ -460,7 +474,7 @@ function readLocalDrafts(entries = []) {
       const savedAt = draft.savedAt ? new Date(draft.savedAt) : null;
       const time = savedAt && !Number.isNaN(savedAt.getTime())
         ? savedAt.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
-        : '鍒氬垰';
+        : '刚刚';
       drafts.push({
         id: key,
         key,
@@ -472,16 +486,16 @@ function readLocalDrafts(entries = []) {
       });
     }
   } catch (error) {
-    console.warn('璇诲彇鏈湴鑽夌澶辫触:', error);
+    console.warn('读取本地草稿失败:', error);
   }
   return drafts.sort((a, b) => b.savedAt - a.savedAt).slice(0, 8);
 }
 
-// 鈹€鈹€鈹€ Splash (brief init screen) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// Splash screen
 function SplashScreen({ theme }) {
   return (
     <div style={{ width: W, height: H, background: theme.paper, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <img src="assets/icons/app-icon-192.png" alt="璇楃" style={{
+      <img src="assets/icons/app-icon-192.png" alt="诗签" style={{
         width: 86, height: 86, borderRadius: 22,
         boxShadow: `0 12px 32px ${theme.text}22`,
       }}/>
@@ -489,7 +503,7 @@ function SplashScreen({ theme }) {
   );
 }
 
-// 鈹€鈹€鈹€ Welcome 鈥?寮€鍦洪〉锛堜寒鑹诧紝涓夊涓婚鍧囬€傜敤锛夆攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// Welcome screen
 function WelcomeScreen({ theme, onStart, loading }) {
   const [show, setShow] = React.useState(false);
   React.useEffect(() => { const t = setTimeout(() => setShow(true), 80); return () => clearTimeout(t); }, []);
@@ -532,7 +546,7 @@ function WelcomeScreen({ theme, onStart, loading }) {
         position: 'relative',
       }}>
         <div>
-          <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>浠?鏃?璧?绛?</div>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>今 日 起 签</div>
           <div style={{ fontSize: 11, color: theme.textMute, letterSpacing: 1.5, marginTop: 4 }}>{dateStr}</div>
         </div>
         <Seal char1="诗" char2="签" theme={theme} size={42} rotate={-5}/>
@@ -602,7 +616,7 @@ function WelcomeScreen({ theme, onStart, loading }) {
     </div>
   );
 }
-// 鈹€鈹€鈹€ Empty Home 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// Empty home
 function EmptyHomeScreen({ theme, onCompose, onTab }) {
   const d = new Date();
   const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
@@ -988,7 +1002,7 @@ function WritingParticles({ textareaRef, text, theme, enabled }) {
   );
 }
 
-// 鈹€鈹€鈹€ Compose Screen (real) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// Compose screen
 const MOODS_REAL = ['晴','雨','花','月','星','风','静','倦','喜','远','书','茶','云','海','灯'];
 
 function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', forceDraft = false, syncState, onChangePaper, onBack, onSaved }) {
@@ -1019,10 +1033,10 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
     if (editing || forceDraft) return;
     const autoLoc = JSON.parse(localStorage.getItem('d-autoLoc') ?? 'true');
     if (!autoLoc) { setPlace('未记录地点'); return; }
-    if (!navigator.geolocation) { setPlace('褰撳墠浣嶇疆'); return; }
+    if (!navigator.geolocation) { setPlace('当前位置'); return; }
     navigator.geolocation.getCurrentPosition(
       async p => setPlace(await geocode(p.coords.latitude, p.coords.longitude)),
-      () => setPlace('褰撳墠浣嶇疆'),
+      () => setPlace('当前位置'),
       { timeout: 6000 }
     );
   }, [editing, forceDraft]);
@@ -1033,7 +1047,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
       if (raw) {
         const draft = JSON.parse(raw);
         const differs = draft.title !== (entry?.title || '') || draft.body !== (entry?.body || '');
-        if ((forceDraft || differs) && (draft.title?.trim() || draft.body?.trim()) && (forceDraft || window.confirm('鍙戠幇涓€浠芥湭瀹屾垚鐨勬湰鍦拌崏绋匡紝瑕佺户缁啓鍚楋紵'))) {
+        if ((forceDraft || differs) && (draft.title?.trim() || draft.body?.trim()) && (forceDraft || window.confirm('发现一份未完成的本地草稿，要继续写吗？'))) {
           setTitle(draft.title || '');
           setBody(draft.body || '');
           setMood(draft.mood || '');
@@ -1043,7 +1057,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
         }
       }
     } catch (error) {
-      console.warn('璇诲彇鑽夌澶辫触:', error);
+      console.warn('读取草稿失败:', error);
     } finally {
       draftReady.current = true;
     }
@@ -1086,7 +1100,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
       window.PLAN?.recordShake?.(); // metering hook (free today; see MONETIZATION.md)
       setPoem(p); setShake('done');
     }
-    catch (e) { setErr(friendlyAiError(e, '鎽囩鐢熻瘲')); setShake('idle'); }
+    catch (e) { setErr(friendlyAiError(e, '摇签生诗')); setShake('idle'); }
   };
 
   const doSave = async (poemArg) => {
@@ -1216,7 +1230,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
         {/* title + text area */}
         <div className="compose-title" style={{ padding: `16px ${customPaper ? 52 : 28}px 0` }}>
           <input value={title} onChange={e => setTitle(e.target.value)} maxLength={80}
-            placeholder="缁欎粖澶╄捣涓爣棰橈紙鍙€夛級"
+            placeholder="给今天起个标题（可选）"
             style={{
               width: '100%', border: 'none', borderBottom: `0.5px solid ${customPaper ? 'rgba(81,74,67,.18)' : theme.line}`,
               outline: 'none', background: 'transparent', color: paperInk,
@@ -1327,7 +1341,7 @@ function SavedEntryNext({ theme, entry, onGenerateQuotes, onShake, onOpen, onDon
     setQuoteBusy(true);
     setQuoteError('');
     try { await onGenerateQuotes(); }
-    catch (err) { setQuoteError(friendlyAiError(err, 'AI 鎷惧彞')); }
+    catch (err) { setQuoteError(friendlyAiError(err, 'AI 拾句')); }
     finally { setQuoteBusy(false); }
   };
   return (
@@ -1380,7 +1394,7 @@ function SavedEntryNext({ theme, entry, onGenerateQuotes, onShake, onOpen, onDon
   );
 }
 
-// 鈹€鈹€鈹€ NewHexagram 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// New hexagram
 const HEXAGRAM_BY_TRIGRAMS = {
   '7:7':'乾', '7:3':'履', '7:5':'同人', '7:1':'无妄', '7:6':'姤', '7:2':'讼', '7:4':'遁', '7:0':'否',
   '3:7':'夬', '3:3':'兑', '3:5':'革', '3:1':'随', '3:6':'大过', '3:2':'困', '3:4':'咸', '3:0':'萃',
@@ -1428,7 +1442,7 @@ async function apiHexagram(question, hexName, lines, context = {}) {
   return d.interpretation;
 }
 
-// Render one yao line 鈥?tap to toggle yin/yang, [鍔╙ button for changing
+// Render one yao line - tap to toggle yin/yang, [动] button for changing
 function YaoRow({ line, idx, theme, onChange }) {
   const names = ['初','二','三','四','五','上'];
   return (
@@ -1618,7 +1632,7 @@ function NewHexagram({ theme, initialQuestion = '', entryId = '', diaryContext =
   );
 }
 
-// 鈹€鈹€鈹€ Main App 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// Main app
 function GuardedNewHexagram({ theme, params, parentHex, onBack, onSaved }) {
   const [unlocked, setUnlocked] = React.useState(false);
   const now = new Date();
@@ -1721,7 +1735,7 @@ function AutoPoemShake({ theme, entry, style = poemStyle(), onBack, onAccepted }
 
   const displayEntry = {
     ...entry,
-    poem: poemFromAiResult(result) || { title: '寰呰惤', form: '', lines: ['', '', '', ''] },
+    poem: poemFromAiResult(result) || { title: '待落', form: '', lines: ['', '', '', ''] },
     sign: signFromAiResult(result),
   };
 
@@ -1816,10 +1830,10 @@ function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPas
       ...skin(theme, 'screen'),
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <img src="assets/icons/app-icon-192.png" alt="璇楃" style={{ width: 58, height: 58, borderRadius: 15 }}/>
+        <img src="assets/icons/app-icon-192.png" alt="诗签" style={{ width: 58, height: 58, borderRadius: 15 }}/>
         <div>
-          <div className="serif" style={{ fontSize: 28, letterSpacing: 5 }}>璇楃</div>
-          <div style={{ fontSize: 11, color: theme.textSoft, marginTop: 5, letterSpacing: 2 }}>鍐欐棩璁帮紝涔熸敹钘忚瘲涓庡彞瀛?</div>
+          <div className="serif" style={{ fontSize: 28, letterSpacing: 5 }}>诗签</div>
+          <div style={{ fontSize: 11, color: theme.textSoft, marginTop: 5, letterSpacing: 2 }}>写日记，也收藏诗与句子</div>
         </div>
       </div>
       <div style={{
@@ -1827,7 +1841,7 @@ function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPas
         borderRadius: 18, padding: 20, ...skin(theme, 'panel'),
       }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, background: theme.surfaceSoft, padding: 4, borderRadius: 11 }}>
-          {[['login', '閭鐧诲綍'], ['register', '娉ㄥ唽閭']].map(([key, label]) => (
+          {[['login', '邮箱登录'], ['register', '注册邮箱']].map(([key, label]) => (
             <button key={key} type="button" onClick={() => { setMode(key); setMessage(''); }} style={{
               height: 36, border: 0, borderRadius: 8, fontFamily: 'inherit', cursor: 'pointer',
               background: mode === key ? theme.paper : 'transparent',
@@ -1836,9 +1850,9 @@ function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPas
           ))}
         </div>
         <input type="email" value={email} onChange={event => setEmail(event.target.value)}
-          placeholder="閭鍦板潃" autoComplete="email" style={{ ...inputStyle, marginTop: 16 }}/>
+          placeholder="邮箱地址" autoComplete="email" style={{ ...inputStyle, marginTop: 16 }}/>
         <input type="password" value={password} onChange={event => setPassword(event.target.value)}
-          placeholder={mode === 'register' ? '璁剧疆瀵嗙爜锛堣嚦灏?6 浣嶏級' : '瀵嗙爜'}
+          placeholder={mode === 'register' ? '设置密码（至少 6 位）' : '密码'}
           autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
           onKeyDown={event => event.key === 'Enter' && submit()}
           style={{ ...inputStyle, marginTop: 10 }}/>
@@ -1849,7 +1863,7 @@ function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPas
         {mode === 'login' && <button type="button" disabled={busy} onClick={reset} style={{
           width: '100%', border: 0, background: 'transparent', color: theme.textSoft,
           fontFamily: 'inherit', fontSize: 12, marginTop: 12,
-        }}>蹇樿瀵嗙爜</button>}
+        }}>忘记密码</button>}
         {message && <div style={{ color: theme.textSoft, fontSize: 11.5, lineHeight: 1.6, marginTop: 10 }}>{message}</div>}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0', color: theme.textMute, fontSize: 11 }}>
@@ -1860,7 +1874,7 @@ function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPas
         background: theme.paper, color: theme.text, fontFamily: 'inherit',
       }}>{loading ? '正在进入…' : '先匿名使用'}</button>
       <div style={{ marginTop: 12, color: theme.textMute, fontSize: 10.5, lineHeight: 1.7, textAlign: 'center' }}>
-        鍖垮悕浣跨敤鍚庯紝涔熷彲浠ュ湪鈥滄垜鈥濅腑缁戝畾閭骞朵繚鐣欏叏閮ㄦ棩璁般€?      </div>
+        匿名使用后，也可以在“我”中绑定邮箱并保留全部日记。      </div>
     </div>
   );
 }
@@ -1911,37 +1925,37 @@ function BindEmailNudge({ theme, onBindEmail, onClose }) {
       }}>
         {done ? (
           <>
-            <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 1 }}>宸茬粦瀹氾紝鏃ヨ瀹夊叏浜?</div>
+            <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 1 }}>已绑定，日记安全了</div>
             <div style={{ marginTop: 10, color: theme.textSoft, fontSize: 13, lineHeight: 1.8 }}>
-              鐜板湪鍙互鍦ㄤ换鎰忚澶囩敤杩欎釜閭鐧诲綍锛屾壘鍥炲叏閮ㄦ棩璁般€傚凡鍚戦偖绠卞彂閫佷簡楠岃瘉閭欢銆?            </div>
+              现在可以在任意设备用这个邮箱登录，找回全部日记。已向邮箱发送了验证邮件。            </div>
             <button type="button" onClick={finish} style={{
               width: '100%', height: 46, marginTop: 18, border: 0, borderRadius: 12,
               background: theme.text, color: theme.paper, fontFamily: 'inherit', fontSize: 14, cursor: 'pointer',
-            }}>濂界殑</button>
+            }}>好的</button>
           </>
         ) : (
           <>
-            <div style={{ fontSize: 10.5, letterSpacing: 3, color: theme.seal, fontWeight: 600 }}>鐣?浣?浣?鍐?涓?鐨?</div>
-            <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 1, marginTop: 8 }}>缁欐棩璁扮粦瀹氫竴涓偖绠?</div>
+            <div style={{ fontSize: 10.5, letterSpacing: 3, color: theme.seal, fontWeight: 600 }}>留 住 你 写 下 的</div>
+            <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 1, marginTop: 8 }}>给日记绑定一个邮箱</div>
             <div style={{ marginTop: 10, color: theme.textSoft, fontSize: 13, lineHeight: 1.8 }}>
-              鐜板湪鐨勬棩璁颁繚瀛樺湪杩欏彴璁惧鐨勫尶鍚嶈处鎴烽噷锛屾竻闄ゆ祻瑙堝櫒鏁版嵁鎴栨崲璁惧鍚庝細鎵句笉鍥炪€?              缁戝畾閭鍚庢棩璁颁粛鏄悓涓€浠斤紝杩樿兘璺ㄨ澶囧悓姝?鈥斺€?鍙渶鍗婂垎閽熴€?            </div>
+              现在的日记保存在这台设备的匿名账户里，清除浏览器数据或换设备后会找不回。绑定邮箱后日记仍是同一份，还能跨设备同步——只需半分钟。            </div>
             {!show ? (
               <div style={{ marginTop: 18, display: 'grid', gap: 10 }}>
                 <button type="button" onClick={() => setShow(true)} style={{
                   height: 48, border: 0, borderRadius: 12, background: theme.text, color: theme.paper,
                   fontFamily: 'inherit', fontSize: 14, fontWeight: 600, letterSpacing: 1, cursor: 'pointer',
-                }}>缁戝畾閭骞朵繚鐣欐棩璁?</button>
+                }}>绑定邮箱并保留日记</button>
                 <button type="button" onClick={later} style={{
                   height: 44, border: `1px solid ${theme.line}`, borderRadius: 12, background: 'transparent',
                   color: theme.textSoft, fontFamily: 'inherit', fontSize: 13, cursor: 'pointer',
-                }}>浠ュ悗鍐嶈</button>
+                }}>以后再说</button>
               </div>
             ) : (
               <>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="閭鍦板潃" autoComplete="email" style={input}/>
+                  placeholder="邮箱地址" autoComplete="email" style={input}/>
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="璁剧疆瀵嗙爜锛堣嚦灏?6 浣嶏級" autoComplete="new-password" style={input}/>
+                  placeholder="设置密码（至少 6 位）" autoComplete="new-password" style={input}/>
                 <button type="button" disabled={busy} onClick={bind} style={{
                   width: '100%', height: 46, marginTop: 12, border: 0, borderRadius: 12,
                   background: theme.text, color: theme.paper, fontFamily: 'inherit', fontSize: 14, cursor: 'pointer',
@@ -1949,7 +1963,7 @@ function BindEmailNudge({ theme, onBindEmail, onClose }) {
                 <button type="button" onClick={later} style={{
                   width: '100%', height: 40, marginTop: 8, border: 0, background: 'transparent',
                   color: theme.textMute, fontFamily: 'inherit', fontSize: 12, cursor: 'pointer',
-                }}>浠ュ悗鍐嶈</button>
+                }}>以后再说</button>
               </>
             )}
             {message && <div style={{ color: theme.seal, fontSize: 11.5, lineHeight: 1.6, marginTop: 10 }}>{message}</div>}
@@ -2335,16 +2349,16 @@ class AppErrorBoundary extends React.Component {
     return { error };
   }
   componentDidCatch(error, info) {
-    console.error('搴旂敤杩愯閿欒:', error, info);
+    console.error('应用运行错误:', error, info);
   }
   render() {
     if (!this.state.error) return this.props.children;
     return (
       <div style={{ width: W, minHeight: H, padding: '80px 28px', background: '#fff7f3', color: '#5b3028', fontFamily: 'sans-serif' }}>
-        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 14 }}>椤甸潰杩愯鍑洪敊</div>
+        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 14 }}>页面运行出错</div>
         <div style={{ fontSize: 13, lineHeight: 1.7, wordBreak: 'break-word' }}>{this.state.error.message}</div>
-        <div style={{ fontSize: 11, marginTop: 12, opacity: .65 }}>鐗堟湰 {APP_BUILD}</div>
-        <button onClick={() => location.reload()} style={{ marginTop: 24, height: 44, padding: '0 22px', border: 0, borderRadius: 22, background: '#5b3028', color: '#fff' }}>閲嶆柊鍔犺浇</button>
+        <div style={{ fontSize: 11, marginTop: 12, opacity: .65 }}>版本 {APP_BUILD}</div>
+        <button onClick={() => location.reload()} style={{ marginTop: 24, height: 44, padding: '0 22px', border: 0, borderRadius: 22, background: '#5b3028', color: '#fff' }}>重新加载</button>
       </div>
     );
   }

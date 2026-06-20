@@ -868,16 +868,14 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         ? `同步中 · ${syncState.pending} 项`
         : '已同步';
   const themeGroups = [
-    { label: '', keys: ['celadon', 'inkPlum', 'mossGarden', 'seaSalt', 'mintNote', 'study', 'morningPaper', 'dusk'] },
+    { label: '', keys: ['celadon', 'inkPlum', 'mossGarden', 'mintNote', 'morningPaper', 'dusk'] },
   ];
   const themeRecommendations = {
     celadon: '青釉浅色信纸 · 楷体',
     inkPlum: '宣纸留白 · 楷体',
     mossGarden: '苔庭信纸 · 楷体',
     dusk: '低对比浅色信纸 · 楷体',
-    seaSalt: '生成图海盐纸 · 楷体',
     mintNote: '浅青纸笺 · 松绿控件 · 楷体',
-    study: '旧书房案头微光 · 楷体',
     morningPaper: '新青年式报纸版 · 宋体',
   };
   const accountStateLabel = currentUser?.isAnonymous ? 'Firebase 匿名账户' : '邮箱账户已绑定';
@@ -933,7 +931,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                   }}>
                     <div className={`theme-card-preview theme-preview-${key}`} style={{
-                      width: '100%', borderRadius: (key === 'seaSalt' || key === 'mintNote') ? 18 : 12,
+                      width: '100%', borderRadius: key === 'mintNote' ? 18 : 12,
                       background: tokens.paper,
                       border: active ? `1.5px solid ${theme.text}` : `0.5px solid ${theme.line}`,
                       padding: 8, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 5,

@@ -162,7 +162,8 @@ export default async function handler(req, res) {
         'You read a personal diary entry (it may be written in Chinese) and draw from it one parchment-ready Shakespearean sonnet. ' +
         'Work only from what the diary actually contains: its real events, moods, images and tensions. ' +
         'Never invent facts, never foretell the future, never moralize, never make mystical or astrological claims.\n' +
-        'Do NOT write an oracle, judgment, prophecy, motto, explanation, or second poem for the English version. ' +
+        'Do NOT write an oracle, judgment, prophecy, motto, or second poem for the English version. ' +
+        'Do include two concise literary readings: one in Chinese for the app owner, and one in English for the sonnet reader. ' +
         'THE SONNET — EXACTLY fourteen lines: rhyme scheme strictly ABAB CDCD EFEF GG; iambic pentameter, usually ten syllables per line, with only rare natural substitutions and never padding. ' +
         'Use a clear volta at line 9 or in the final couplet. Keep one governing metaphor from the diary and develop it; avoid a list of unrelated images. ' +
         'Prefer plain strong nouns and verbs over ornate filler. A light Early-Modern cadence is welcome, but it must stay readable and emotionally precise. ' +
@@ -176,12 +177,13 @@ export default async function handler(req, res) {
         `From the diary below, write today's English sonnet as a literary mirror, not a prophecy.\n` +
         `Return strictly this JSON (and nothing else):\n` +
         `{"signTitle":"a 2-4 word English name for the lot","motif":"one concrete image taken from the diary",` +
-        `"judgmentLines":[],"interpretation":"",` +
+        `"judgmentLines":[],"interpretationZh":"60-100 Chinese characters explaining how the sonnet mirrors the diary, not as fate",` +
+        `"interpretationEn":"45-75 English words explaining the central image, volta, and emotional movement, not as prophecy","interpretation":"same as interpretationZh",` +
         `"timelineLine":"one short English memory-line under 12 words, not copied from the sonnet",` +
         `"title":"a 1-4 word English title for the sonnet, varied and specific","form":"sonnet",` +
         `"lines":["the 14 lines of a Shakespearean sonnet, one line per array item, rhyming ABAB CDCD EFEF GG in iambic pentameter"],` +
         `"quoteSuggestions":[{"quote":"verbatim from the diary, in its original language","reason":"why it is worth keeping","theme":"short theme","score":0-100}]}\n` +
-        `Hard rules: "lines" MUST contain exactly 14 items and obey ABAB CDCD EFEF GG; "judgmentLines" MUST be an empty array; keep one coherent metaphor; do not stuff the poem with named companies unless the diary makes them emotionally central; keep at most 3 quote suggestions. Output nothing but the JSON.\n\n` +
+        `Hard rules: "lines" MUST contain exactly 14 items and obey ABAB CDCD EFEF GG; "judgmentLines" MUST be an empty array; the readings must explain craft and diary correspondence only; keep one coherent metaphor; do not stuff the poem with named companies unless the diary makes them emotionally central; keep at most 3 quote suggestions. Output nothing but the JSON.\n\n` +
         `Diary:\n${diaryText.slice(0, 1600)}`,
     },
   ];
@@ -199,7 +201,7 @@ export default async function handler(req, res) {
         messages: isSonnet ? sonnetMessages : classicalMessages,
         response_format: { type: 'json_object' },
         temperature: isSonnet ? 0.85 : 0.92,
-        max_tokens: isSonnet ? 1400 : 1000,
+        max_tokens: isSonnet ? 1700 : 1000,
       }),
     });
 
@@ -257,7 +259,11 @@ export default async function handler(req, res) {
       signTitle: typeof poem.signTitle === 'string' ? poem.signTitle.slice(0, signTitleMax) : poem.title,
       motif: typeof poem.motif === 'string' ? poem.motif.slice(0, motifMax) : '',
       judgmentLines: Array.isArray(poem.judgmentLines) ? poem.judgmentLines.map(String).slice(0, isSonnet ? 0 : 1) : [],
-      interpretation: typeof poem.interpretation === 'string' ? poem.interpretation.slice(0, 600) : '',
+      interpretation: typeof poem.interpretation === 'string'
+        ? poem.interpretation.slice(0, 600)
+        : (typeof poem.interpretationZh === 'string' ? poem.interpretationZh.slice(0, 600) : ''),
+      interpretationZh: typeof poem.interpretationZh === 'string' ? poem.interpretationZh.slice(0, 600) : '',
+      interpretationEn: typeof poem.interpretationEn === 'string' ? poem.interpretationEn.slice(0, 900) : '',
       timelineLine: typeof poem.timelineLine === 'string' ? poem.timelineLine.slice(0, isSonnet ? 80 : 32) : '',
       quoteSuggestions: Array.isArray(poem.quoteSuggestions)
         ? poem.quoteSuggestions.filter(item => item && typeof item.quote === 'string').slice(0, 3)

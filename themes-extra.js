@@ -86,7 +86,7 @@
       hero: { backgroundImage: 'linear-gradient(150deg, rgba(255,255,255,.75), rgba(252,247,237,.94))' },
       panel: {
         borderRadius: 8, border: '1px solid rgba(94,72,56,.18)',
-        backgroundImage: 'radial-gradient(circle at 18px calc(100% - 18px), #b5342c 0 2px, transparent 2.5px), linear-gradient(150deg, rgba(255,255,255,.70), rgba(251,246,236,.92))',
+        backgroundImage: 'linear-gradient(150deg, rgba(255,255,255,.74), rgba(251,246,236,.94))',
         boxShadow: '0 6px 16px rgba(79,58,43,.08)',
       },
       nav: { borderTop: '1px solid rgba(45,43,41,.35)', background: 'rgba(250,246,237,.96)' },
@@ -116,27 +116,27 @@
       preview: { backgroundImage: 'url("assets/themes/generated/moss-garden-bg.webp")', backgroundPosition: 'center', backgroundSize: 'cover', backgroundRepeat: 'no-repeat' },
     },
     study: {
-      screen: { backgroundImage: `linear-gradient(180deg, rgba(78,50,28,.10), rgba(239,221,188,.18)), ${generated.quietNewsprint}`, backgroundPosition: 'center, center', backgroundSize: 'cover, cover', backgroundRepeat: 'no-repeat' },
+      screen: { backgroundImage: `linear-gradient(90deg, rgba(64,42,24,.22), transparent 23%, transparent 78%, rgba(84,55,29,.18)), ${art.studyDesk}, linear-gradient(180deg, #e4c486, #f0dfbd)`, backgroundPosition: 'center, center, center', backgroundSize: 'cover, cover, cover', backgroundRepeat: 'no-repeat' },
       poemCard: {
-        borderRadius: 12, border: '1px solid rgba(100,72,36,.17)',
-        backgroundImage: `linear-gradient(150deg, rgba(255,248,231,.88), rgba(246,229,198,.83)), ${generated.quietNewsprint}`,
-        backgroundPosition: 'center, center',
-        backgroundSize: 'cover, cover',
+        borderRadius: 10, border: '1px solid rgba(77,51,30,.28)',
+        backgroundImage: `linear-gradient(90deg, rgba(89,58,32,.16) 0 10px, transparent 10px), ${art.studyCard}, linear-gradient(150deg, rgba(255,248,226,.94), rgba(236,214,178,.90))`,
+        backgroundPosition: 'left top, center top, center',
+        backgroundSize: '100% 100%, 100% 138px, cover',
         backgroundRepeat: 'no-repeat',
-        boxShadow: '0 10px 24px rgba(92,63,36,.10), inset 0 0 0 1px rgba(255,255,255,.34)',
+        boxShadow: '0 10px 24px rgba(62,39,22,.16), inset 0 0 0 1px rgba(255,255,255,.38)',
       },
-      hero: { backgroundImage: `linear-gradient(150deg, rgba(255,248,231,.88), rgba(246,229,198,.83)), ${generated.quietNewsprint}`, backgroundPosition: 'center, center', backgroundSize: 'cover, cover', backgroundRepeat: 'no-repeat' },
+      hero: { backgroundImage: `linear-gradient(90deg, rgba(89,58,32,.15) 0 10px, transparent 10px), ${art.studyCard}, linear-gradient(150deg, rgba(255,248,226,.94), rgba(236,214,178,.90))`, backgroundPosition: 'left top, center top, center', backgroundSize: '100% 100%, 100% 148px, cover', backgroundRepeat: 'no-repeat' },
       panel: {
-        borderRadius: 12, border: '1px solid rgba(100,72,36,.13)',
-        backgroundImage: `linear-gradient(150deg, rgba(255,248,231,.90), rgba(242,224,193,.86)), ${generated.quietNewsprint}`,
-        backgroundPosition: 'center, center', backgroundSize: 'cover, cover', backgroundRepeat: 'no-repeat',
-        boxShadow: '0 7px 18px rgba(92,63,36,.07)',
+        borderRadius: 10, border: '1px solid rgba(77,51,30,.24)',
+        backgroundImage: `linear-gradient(90deg, rgba(89,58,32,.14) 0 9px, transparent 9px), ${art.studyCard}, linear-gradient(150deg, rgba(255,248,226,.94), rgba(238,217,184,.92))`,
+        backgroundPosition: 'left top, center top, center', backgroundSize: '100% 100%, 100% 118px, cover', backgroundRepeat: 'no-repeat',
+        boxShadow: '0 8px 22px rgba(62,39,22,.12)',
       },
-      nav: { borderTop: '1px solid rgba(100,72,36,.20)', background: 'rgba(244,232,207,.94)', boxShadow: '0 -5px 18px rgba(92,63,36,.06)' },
-      tabItem: { borderRadius: 14, background: 'rgba(255,250,234,.48)', boxShadow: '0 2px 8px rgba(92,63,36,.05)' },
-      tabActive: { color: '#6b3e18' },
-      primary: { borderRadius: 18, background: 'linear-gradient(145deg, #8a5b39, #5f3d25)', boxShadow: '0 7px 16px rgba(95,61,37,.20)' },
-      preview: { borderRadius: 12, backgroundImage: `linear-gradient(180deg, rgba(70,42,22,.06), rgba(236,209,164,.10)), ${generated.quietNewsprint}`, backgroundPosition: 'center', backgroundSize: 'cover', backgroundRepeat: 'no-repeat' },
+      nav: { borderTop: '3px double rgba(77,51,30,.34)', background: 'rgba(238,220,188,.96)', boxShadow: '0 -5px 18px rgba(62,39,22,.09)' },
+      tabItem: { borderRadius: 8, background: 'rgba(255,250,234,.48)', boxShadow: '0 2px 8px rgba(62,39,22,.06)' },
+      tabActive: { color: '#4d321e' },
+      primary: { borderRadius: 8, background: 'linear-gradient(145deg, #69452b, #352316)', boxShadow: '0 7px 16px rgba(53,35,22,.25)' },
+      preview: { borderRadius: 10, backgroundImage: `linear-gradient(90deg, rgba(46,29,17,.18), transparent 32%), ${art.studyRoom}, linear-gradient(180deg, rgba(70,42,22,.06), rgba(236,209,164,.10))`, backgroundPosition: 'center, center, center', backgroundSize: 'cover, cover, cover', backgroundRepeat: 'no-repeat' },
     },
     dusk: {
       screen: { backgroundImage: `linear-gradient(180deg, rgba(255,252,247,.26), rgba(218,207,226,.34)), ${art.duskPaper}`, backgroundPosition: 'center, center', backgroundSize: 'cover, cover', backgroundRepeat: 'no-repeat', backgroundColor: '#e8e3ed' },
@@ -184,29 +184,29 @@
     },
     seaSalt: {
       screen: {
-        backgroundImage: `linear-gradient(180deg, rgba(247,250,246,.30), rgba(218,233,232,.28)), ${generated.seaSalt}`,
-        backgroundPosition: 'center, center bottom',
-        backgroundSize: 'cover, cover',
+        backgroundImage: `${art.waves}, ${art.seaFog}, linear-gradient(180deg, #eef7f6 0%, #d6e7e8 64%, #bdd7dd 100%)`,
+        backgroundPosition: 'center bottom, center bottom, center',
+        backgroundSize: '100% 160px, cover, cover',
         backgroundRepeat: 'no-repeat',
       },
       poemCard: {
         borderRadius: 22, border: '1px solid rgba(83,128,135,.24)',
-        backgroundImage: `linear-gradient(155deg, rgba(250,251,244,.88), rgba(230,239,236,.90)), ${generated.seaSalt}`,
-        backgroundPosition: 'center, center bottom', backgroundSize: 'cover, 130% auto', backgroundRepeat: 'no-repeat',
+        backgroundImage: `${art.coastPaper}, linear-gradient(155deg, rgba(255,255,250,.92), rgba(226,240,239,.92))`,
+        backgroundPosition: 'center bottom, center', backgroundSize: '100% 150px, cover', backgroundRepeat: 'no-repeat',
         boxShadow: '0 11px 26px rgba(58,96,104,.12)',
       },
-      hero: { backgroundImage: `linear-gradient(155deg, rgba(250,251,244,.88), rgba(230,239,236,.90)), ${generated.seaSalt}`, backgroundPosition: 'center, center bottom', backgroundSize: 'cover, 130% auto', backgroundRepeat: 'no-repeat' },
+      hero: { backgroundImage: `${art.coastPaper}, linear-gradient(155deg, rgba(255,255,250,.92), rgba(226,240,239,.92))`, backgroundPosition: 'center bottom, center', backgroundSize: '100% 152px, cover', backgroundRepeat: 'no-repeat' },
       panel: {
         borderRadius: 18, border: '1px solid rgba(83,128,135,.20)',
-        backgroundImage: `linear-gradient(155deg, rgba(245,246,239,.88), rgba(228,239,237,.92)), ${generated.seaSalt}`,
-        backgroundPosition: 'center, center bottom', backgroundSize: 'cover, 132% auto', backgroundRepeat: 'no-repeat',
+        backgroundImage: `${art.coastPaper}, linear-gradient(155deg, rgba(250,251,244,.92), rgba(225,239,238,.94))`,
+        backgroundPosition: 'center bottom, center', backgroundSize: '100% 122px, cover', backgroundRepeat: 'no-repeat',
         boxShadow: '0 8px 20px rgba(58,96,104,.09)',
       },
       nav: { borderTop: '1px solid rgba(83,128,135,.18)', background: 'rgba(233,242,240,.96)', boxShadow: '0 -5px 18px rgba(58,96,104,.07)' },
       tabItem: { borderRadius: 20, background: 'rgba(248,250,244,.62)', boxShadow: '0 3px 10px rgba(58,96,104,.08)' },
       tabActive: { color: '#315f69' },
       primary: { background: 'linear-gradient(145deg, #6e9aa0, #315f69)', borderRadius: 26, boxShadow: '0 7px 18px rgba(49,95,105,.20)' },
-      preview: { borderRadius: 18, backgroundImage: `linear-gradient(180deg, rgba(247,250,246,.28), rgba(218,233,232,.20)), ${generated.seaSalt}`, backgroundPosition: 'center, center bottom', backgroundSize: 'cover, cover', backgroundRepeat: 'no-repeat' },
+      preview: { borderRadius: 18, backgroundImage: `${art.waves}, ${art.seaFog}, linear-gradient(180deg, #eef7f6, #d6e7e8)`, backgroundPosition: 'center bottom, center bottom, center', backgroundSize: '100% 66px, cover, cover', backgroundRepeat: 'no-repeat' },
     },
     mintNote: {
       screen: {
@@ -516,7 +516,7 @@
       line: '#9bb9b7',
       border: '#bed1cd',
       nav: '#e9f2f0',
-      seal: '#b8995d',
+      seal: '#2d819f',
     },
   });
 
@@ -645,6 +645,8 @@
   delete window.THEMES.mandela;
   delete window.THEMES.obsidianDawn;
   delete window.THEMES.snowNight;
+  delete window.THEMES.study;
+  delete window.THEMES.seaSalt;
   delete window.THEMES.gardenia;
   delete window.THEMES.redLacquer;
   delete window.THEMES.rainWindow;

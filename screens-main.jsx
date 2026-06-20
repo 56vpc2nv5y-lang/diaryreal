@@ -693,6 +693,56 @@ function QuickCapture({ theme, kind = 'photo' }) {
   );
 }
 
+function hasHanText(value) {
+  return /[\u4e00-\u9fff]/.test(String(value || ''));
+}
+
+function buildSonnetReading(sign = {}, poem = {}) {
+  const raw = String(sign?.interpretation || '').trim();
+  const rawZh = String(sign?.interpretationZh || sign?.explanationZh || sign?.readingZh || '').trim();
+  const rawEn = String(sign?.interpretationEn || sign?.explanationEn || sign?.readingEn || '').trim();
+  const motif = String(sign?.motif || poem?.title || '').trim();
+  const zhMotif = motif ? `「${motif}」` : '日记中的核心意象';
+  const enMotif = motif && !hasHanText(motif) ? motif : 'the diary’s central image';
+  const zh = rawZh || (hasHanText(raw) ? raw : `这首英文十四行诗以${zhMotif}为中心，把日记中的情绪转成十四行诗的起承转合：前三节铺开处境与愿望，末尾双行收束为一种清醒的自我回应。它是文学回望，不是命运判断。`);
+  const en = rawEn || (!hasHanText(raw) && raw ? raw : `This sonnet centres on ${enMotif}, shaping the diary into a measured turn of feeling. Its quatrains develop the situation and pressure, while the closing couplet gathers the poem into a quieter self-recognition rather than a prediction.`);
+  return { zh, en };
+}
+
+function SonnetReadingCard({ theme, sign, poem, compact = false }) {
+  const reading = buildSonnetReading(sign, poem);
+  return (
+    <div className="sonnet-reading-card" style={{
+      maxWidth: compact ? 310 : 620,
+      margin: compact ? '0 auto 24px' : '24px auto 0',
+      padding: compact ? '14px 16px' : '16px 18px',
+      borderTop: `1px solid ${theme.line}`,
+      borderBottom: `1px solid ${theme.line}`,
+      background: 'rgba(255,255,255,.28)',
+      textAlign: 'left',
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+        color: theme.seal, fontSize: 10, letterSpacing: 2.6, fontWeight: 700,
+        textTransform: 'uppercase', marginBottom: 10,
+      }}>
+        <span>解读</span>
+        <span style={{ color: theme.textMute, letterSpacing: 1.8 }}>Reading</span>
+      </div>
+      <div style={{ color: theme.textSoft, fontSize: compact ? 12 : 12.5, lineHeight: 1.78 }}>
+        {reading.zh}
+      </div>
+      <div style={{
+        marginTop: 12, paddingTop: 12, borderTop: `0.5px solid ${theme.line}`,
+        color: theme.text, fontSize: compact ? 12.5 : 13, lineHeight: 1.72,
+        fontFamily: 'Georgia, "Times New Roman", serif',
+      }}>
+        {reading.en}
+      </div>
+    </div>
+  );
+}
+
 function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, entry, saving = false, error = '', notice = '' }) {
   // state: 'ready' | 'shaking' | 'done'
   const e = entry;
@@ -804,15 +854,15 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
             <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>
               {lbl.drop}
             </div>
-            <Seal char1={c1} char2={c2} theme={theme} size={40} rotate={-4} />
+            {!enSign && <Seal char1={c1} char2={c2} theme={theme} size={40} rotate={-4} />}
           </div>
 
           <div style={enSign ? {
-            maxWidth: 280, minHeight: 56, margin: '18px auto 20px', borderRadius: '10px',
-            background: `linear-gradient(135deg, ${theme.accent}, ${theme.text})`, color: theme.bg,
-            boxShadow: `0 14px 34px ${theme.text}33`, padding: '14px 22px',
+            maxWidth: 310, minHeight: 0, margin: '18px auto 18px', borderRadius: 0,
+            background: 'transparent', color: theme.text,
+            borderBottom: `1px solid ${theme.seal}55`, boxShadow: 'none', padding: '4px 10px 12px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: "'Noto Serif SC', serif", fontStyle: 'italic', fontSize: 19, letterSpacing: 1,
+            fontFamily: 'Georgia, "Times New Roman", serif', fontStyle: 'normal', fontSize: 22, letterSpacing: 1.2,
             animation: 'sign-drop .7s cubic-bezier(.16,1,.3,1) both',
           } : {
             width: 64, minHeight: 214, margin: '18px auto 20px', borderRadius: '8px 8px 20px 20px',
@@ -843,7 +893,9 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
             }}>{line}</div>)}
           </div>}
 
-          {e.sign?.interpretation && <div style={{
+          {enSign && <SonnetReadingCard theme={theme} sign={e.sign} poem={e.poem} compact />}
+
+          {!enSign && e.sign?.interpretation && <div style={{
             textAlign: 'left', margin: '0 auto 26px', maxWidth: 310,
             color: theme.textSoft, fontSize: 12.5, lineHeight: 1.85,
             paddingLeft: 14, borderLeft: `2px solid ${theme.seal}40`,
@@ -856,10 +908,18 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
           </div>
 
           <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600, marginBottom: 3 }}>
-            今 日 之 诗 <span style={{ marginLeft: 8, opacity: 0.7 }}>{e.poem.form || '五绝'}</span>
+            {enSign ? "TODAY'S SONNET" : '今 日 之 诗'} <span style={{ marginLeft: 8, opacity: 0.7 }}>{e.poem.form || (enSign ? 'sonnet' : '五绝')}</span>
           </div>
-          <div style={{ fontSize: 9.5, color: theme.textMute, letterSpacing: 1.5, marginBottom: 14 }}>据日记原创的古体诗</div>
-          <div className="serif" style={{ fontSize: 28, fontWeight: 500, color: theme.text, letterSpacing: 8, lineHeight: 1.1, paddingLeft: '0.5em' }}>
+          <div style={{ fontSize: 9.5, color: theme.textMute, letterSpacing: 1.5, marginBottom: 14 }}>{enSign ? 'A literary mirror in English' : '据日记原创的古体诗'}</div>
+          <div className="serif" style={{
+            fontSize: enSign ? 22 : 28,
+            fontWeight: 500,
+            color: theme.text,
+            letterSpacing: enSign ? 1 : 8,
+            lineHeight: 1.15,
+            paddingLeft: enSign ? 0 : '0.5em',
+            fontFamily: enSign ? 'Georgia, "Times New Roman", serif' : undefined,
+          }}>
             {e.poem.title}
           </div>
           <div style={{ width: 32, height: 1, background: theme.accent, margin: '16px auto 20px' }} />
@@ -877,6 +937,11 @@ function Shake({ theme, state = 'ready', onCancel, onShake, onAccept, onRegen, e
         borderTop: `0.5px solid ${theme.line}`,
         display: 'flex', gap: 10
       }}>
+          <button type="button" onClick={onCancel} disabled={saving} style={{
+          flex: .78, height: 50, borderRadius: 25, border: `0.5px solid ${theme.line}`,
+          background: 'transparent', color: theme.textMute,
+          fontSize: 14, letterSpacing: 1, fontFamily: 'inherit', cursor: saving ? 'default' : 'pointer'
+        }}>取消</button>
           <button onClick={onRegen} disabled={saving} style={{
           flex: 1, height: 50, borderRadius: 25, border: `0.5px solid ${theme.line}`,
           background: theme.surface, color: theme.text,
@@ -1360,6 +1425,7 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
           <div className="serif poem-title-main" style={{ fontSize: enSign ? 24 : 28, fontWeight: 500, color: theme.text, letterSpacing: enSign ? 1 : 8, fontStyle: enSign ? 'italic' : 'normal', marginTop: 16, lineHeight: 1.15, paddingLeft: enSign ? 0 : '0.5em' }}>{e.poem.title}</div>
           <div style={{ width: 28, height: 1, background: theme.accent, margin: '18px auto 24px' }} />
           <PoemBody lines={e.poem.lines} size={21} theme={theme} />
+          {enSign && <SonnetReadingCard theme={theme} sign={e.sign} poem={e.poem} />}
 
           {/* 判词 & 解语 in detail view */}
           {!enSign && !!e.sign?.judgmentLines?.length && (
