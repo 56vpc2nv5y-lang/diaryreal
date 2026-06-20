@@ -811,7 +811,7 @@ class WritingParticle {
     else if (fx === 'snow') { this.vx = (r() - .5) * .35; this.vy = r() * .45 + .2; this.rad = r() * 1.8 + 1; this.decay = .005 + r() * .004; this.sway = r() * Math.PI * 2; this.color = '#ffffff'; }
     else if (fx === 'wind') { this.vx = r() * 2.2 + 1.1; this.vy = (r() - .5) * .5; this.rad = r() * 1 + .5; this.len = r() * 14 + 8; this.decay = .015 + r() * .012; this.color = theme.textSoft || theme.textMute; }
     else if (fx === 'leaf') { this.vx = (r() - .5) * .6; this.vy = r() * .42 + .18; this.rad = r() * 3 + 3; this.decay = .006 + r() * .005; this.spin = (r() - .5) * .06; this.sway = r() * Math.PI * 2; this.color = theme.accent; }
-    else if (fx === 'ink') { this.vx = (r() - .5) * .32; this.vy = -(r() * .42 + .12); this.rad = r() * 2.2 + 1.2; this.decay = .011 + r() * .007; this.color = theme.text; this.glyph = ['璇?, '鍙?, '瀛?, '澧?, '路'][Math.floor(r() * 5)]; }
+    else if (fx === 'ink') { this.vx = (r() - .5) * .32; this.vy = -(r() * .42 + .12); this.rad = r() * 2.2 + 1.2; this.decay = .011 + r() * .007; this.color = theme.text; this.glyph = ['诗', '句', '字', '墨', '·'][Math.floor(r() * 5)]; }
     else if (fx === 'ember') { this.vx = (r() - .5) * .5; this.vy = -(r() * .8 + .4); this.rad = r() * 2 + 1; this.decay = .012 + r() * .01; this.color = theme.accent; this.warm = true; }
     else if (fx === 'memory') { this.vx = (r() - .5) * .24; this.vy = -(r() * .18 + .05); this.rad = r() * 5 + 4; this.decay = .005 + r() * .004; this.color = theme.textSoft || theme.textMute; this.tw = r() * Math.PI * 2; }
     else { this.vx = (r() - .5) * .35; this.vy = -(r() * .35 + .12); this.rad = r() * 2 + 1.4; this.decay = .009 + r() * .006; this.color = theme.seal; this.tw = r() * Math.PI * 2; }
