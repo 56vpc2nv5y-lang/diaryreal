@@ -1,6 +1,6 @@
-// app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
+﻿// app-real.jsx 鈥?Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.20-r70';
+const APP_BUILD = '2026.06.20-r71';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -35,7 +35,7 @@ function trackWrite(writePromise) {
     emitSyncState();
   }, error => {
     syncTracker.pending = Math.max(0, syncTracker.pending - 1);
-    syncTracker.error = error?.message || '同步失败';
+    syncTracker.error = error?.message || '鍚屾澶辫触';
     emitSyncState();
   });
   return syncTracker.online ? writePromise : Promise.resolve();
@@ -43,14 +43,14 @@ function trackWrite(writePromise) {
 
 firebase.firestore().enablePersistence({ synchronizeTabs: true }).catch(error => {
   if (error?.code !== 'failed-precondition' && error?.code !== 'unimplemented') {
-    console.warn('Firestore 离线持久化未启用:', error);
+    console.warn('Firestore 绂荤嚎鎸佷箙鍖栨湭鍚敤:', error);
   }
 });
 
-// ─── Firebase helpers ─────────────────────────────────────────────
+// 鈹€鈹€鈹€ Firebase helpers 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function col(name) {
   const uid = firebase.auth().currentUser?.uid;
-  if (!uid) throw new Error('未登录');
+  if (!uid) throw new Error('鏈櫥褰?);
   return firebase.firestore().collection('users').doc(uid).collection(name);
 }
 
@@ -61,8 +61,8 @@ function normalizePoemRecord(poem) {
   const lines = poem.lines.map(String).filter(Boolean).slice(0, limit);
   if (lines.length !== limit) return null;
   return {
-    title: String(poem.title || (isSonnet ? 'Untitled' : '未题')).slice(0, isSonnet ? 48 : 12),
-    form: String(poem.form || (isSonnet ? 'sonnet' : '五绝')).slice(0, 16),
+    title: String(poem.title || (isSonnet ? 'Untitled' : '鏈')).slice(0, isSonnet ? 48 : 12),
+    form: String(poem.form || (isSonnet ? 'sonnet' : '浜旂粷')).slice(0, 16),
     style: isSonnet ? 'en-sonnet' : 'zh-classical',
     lines,
   };
@@ -144,7 +144,7 @@ function normalizeEntry(data, id) {
     date: typeof data?.date === 'string' ? data.date : fallbackDate,
     weekday: typeof data?.weekday === 'string' ? data.weekday : '',
     time: typeof data?.time === 'string' ? data.time : '',
-    place: typeof data?.place === 'string' ? data.place : '未记录地点',
+    place: typeof data?.place === 'string' ? data.place : '鏈褰曞湴鐐?,
     title: typeof data?.title === 'string' ? data.title : '',
     body: typeof data?.body === 'string' ? data.body : '',
     mood: typeof data?.mood === 'string' ? data.mood : '',
@@ -172,7 +172,7 @@ async function dbGetEntries() {
     return snap.docs
       .map(d => normalizeEntry(d.data(), d.id))
       .sort((a, b) => `${b.date || ''} ${b.time || ''}`.localeCompare(`${a.date || ''} ${a.time || ''}`));
-  } catch (e) { console.error('读取日记失败:', e); return []; }
+  } catch (e) { console.error('璇诲彇鏃ヨ澶辫触:', e); return []; }
 }
 
 async function dbSaveEntry(data) {
@@ -209,7 +209,7 @@ async function dbImportEntries(entries) {
   const normalized = entries.map(entry => normalizeEntry(entry || {}, entry?.id)).filter(entry => entry.body.trim());
   for (const entry of normalized) {
     const bytes = new Blob([JSON.stringify(entry)]).size;
-    if (bytes > 900 * 1024) throw new Error(`日记“${entry.poem?.title || entry.date}”过大，无法写入 Firestore`);
+    if (bytes > 900 * 1024) throw new Error(`鏃ヨ鈥?{entry.poem?.title || entry.date}鈥濊繃澶э紝鏃犳硶鍐欏叆 Firestore`);
   }
   for (const entry of normalized) {
     const { id, ...data } = entry;
@@ -246,7 +246,7 @@ async function dbGetHexagrams() {
 }
 
 async function aiFetch(url, options, timeoutMs = 45000) {
-  if (!navigator.onLine) throw new Error('当前离线，无法连接 AI 服务');
+  if (!navigator.onLine) throw new Error('褰撳墠绂荤嚎锛屾棤娉曡繛鎺?AI 鏈嶅姟');
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -280,9 +280,9 @@ async function apiPoem(diaryText, style = poemStyle()) {
   let json;
   try { json = text ? JSON.parse(text) : {}; }
   catch {
-    throw new Error(`生诗服务返回了非 JSON 内容（HTTP ${r.status}）。请检查 Vercel Functions 部署和日志。`);
+    throw new Error(`鐢熻瘲鏈嶅姟杩斿洖浜嗛潪 JSON 鍐呭锛圚TTP ${r.status}锛夈€傝妫€鏌?Vercel Functions 閮ㄧ讲鍜屾棩蹇椼€俙);
   }
-  if (!r.ok) throw new Error(json.error || '生诗失败');
+  if (!r.ok) throw new Error(json.error || '鐢熻瘲澶辫触');
   return json;
 }
 
@@ -300,9 +300,9 @@ async function apiPoemSuggest(payload) {
   let json;
   try { json = text ? JSON.parse(text) : {}; }
   catch {
-    throw new Error(`改诗建议服务返回了非 JSON 内容（HTTP ${r.status}）。`);
+    throw new Error(`鏀硅瘲寤鸿鏈嶅姟杩斿洖浜嗛潪 JSON 鍐呭锛圚TTP ${r.status}锛夈€俙);
   }
-  if (!r.ok) throw new Error(json.error || '改诗建议失败');
+  if (!r.ok) throw new Error(json.error || '鏀硅瘲寤鸿澶辫触');
   return json;
 }
 
@@ -310,15 +310,15 @@ function poemFromAiResult(result) {
   if (!result || !Array.isArray(result.lines)) return null;
   const isSonnet = result.style === 'en-sonnet' || result.form === 'sonnet' || result.lines.length > 4;
   return {
-    title: String(result.title || result.signTitle || (isSonnet ? 'Untitled' : '未题')).slice(0, isSonnet ? 48 : 12),
-    form: String(result.form || (isSonnet ? 'sonnet' : '五绝')).slice(0, 12),
+    title: String(result.title || result.signTitle || (isSonnet ? 'Untitled' : '鏈')).slice(0, isSonnet ? 48 : 12),
+    form: String(result.form || (isSonnet ? 'sonnet' : '浜旂粷')).slice(0, 12),
     style: isSonnet ? 'en-sonnet' : 'zh-classical',
     lines: result.lines.map(String).slice(0, isSonnet ? 14 : 4),
   };
 }
 
 function compactTextForCompare(value) {
-  return String(value || '').toLowerCase().replace(/[\s，。！？、；：,.!?;:'"“”‘’《》()\[\]{}-]/g, '');
+  return String(value || '').toLowerCase().replace(/[\s锛屻€傦紒锛熴€侊紱锛?.!?;:'"鈥溾€濃€樷€欍€娿€?)\[\]{}-]/g, '');
 }
 
 function isNearDuplicateText(a, b) {
@@ -415,7 +415,7 @@ async function apiQuestion(question) {
     body: JSON.stringify({ question }),
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || '理问失败');
+  if (!response.ok) throw new Error(data.error || '鐞嗛棶澶辫触');
   return data.analysis;
 }
 
@@ -428,17 +428,17 @@ async function geocode(lat, lng) {
     const d = await r.json();
     const a = d.address || {};
     return [a.city || a.county || a.state, a.suburb || a.neighbourhood || a.road]
-      .filter(Boolean).join(' · ') || '当前位置';
-  } catch { return '当前位置'; }
+      .filter(Boolean).join(' 路 ') || '褰撳墠浣嶇疆';
+  } catch { return '褰撳墠浣嶇疆'; }
 }
 
 function nowInfo() {
   const d = new Date(), p = n => String(n).padStart(2, '0');
   return {
     date: `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`,
-    weekday: `周${'日一二三四五六'[d.getDay()]}`,
+    weekday: `鍛?{'鏃ヤ竴浜屼笁鍥涗簲鍏?[d.getDay()]}`,
     time: `${p(d.getHours())}:${p(d.getMinutes())}`,
-    label: `${d.getMonth()+1}月${d.getDate()}日 · 周${'日一二三四五六'[d.getDay()]} · ${p(d.getHours())}:${p(d.getMinutes())}`,
+    label: `${d.getMonth()+1}鏈?{d.getDate()}鏃?路 鍛?{'鏃ヤ竴浜屼笁鍥涗簲鍏?[d.getDay()]} 路 ${p(d.getHours())}:${p(d.getMinutes())}`,
   };
 }
 
@@ -459,28 +459,28 @@ function readLocalDrafts(entries = []) {
       const savedAt = draft.savedAt ? new Date(draft.savedAt) : null;
       const time = savedAt && !Number.isNaN(savedAt.getTime())
         ? savedAt.toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })
-        : '刚刚';
+        : '鍒氬垰';
       drafts.push({
         id: key,
         key,
         targetId: isEditDraft ? targetId : '',
         kind: 'text',
-        title: String(draft.title || draft.body || '未命名草稿').slice(0, 42),
+        title: String(draft.title || draft.body || '鏈懡鍚嶈崏绋?).slice(0, 42),
         time,
         savedAt: savedAt?.getTime() || 0,
       });
     }
   } catch (error) {
-    console.warn('读取本地草稿失败:', error);
+    console.warn('璇诲彇鏈湴鑽夌澶辫触:', error);
   }
   return drafts.sort((a, b) => b.savedAt - a.savedAt).slice(0, 8);
 }
 
-// ─── Splash (brief init screen) ─────────────────────────────────
+// 鈹€鈹€鈹€ Splash (brief init screen) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function SplashScreen({ theme }) {
   return (
     <div style={{ width: W, height: H, background: theme.paper, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <img src="assets/icons/app-icon-192.png" alt="诗签" style={{
+      <img src="assets/icons/app-icon-192.png" alt="璇楃" style={{
         width: 86, height: 86, borderRadius: 22,
         boxShadow: `0 12px 32px ${theme.text}22`,
       }}/>
@@ -488,18 +488,18 @@ function SplashScreen({ theme }) {
   );
 }
 
-// ─── Welcome — 开场页（亮色，三套主题均适用）────────────────────
+// 鈹€鈹€鈹€ Welcome 鈥?寮€鍦洪〉锛堜寒鑹诧紝涓夊涓婚鍧囬€傜敤锛夆攢鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function WelcomeScreen({ theme, onStart, loading }) {
   const [show, setShow] = React.useState(false);
   React.useEffect(() => { const t = setTimeout(() => setShow(true), 80); return () => clearTimeout(t); }, []);
 
   const now = new Date();
-  const MM = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
-  const dateStr = `${now.getFullYear()} · ${MM[now.getMonth()]} · ${now.getDate()}日`;
+  const MM = ['涓€鏈?,'浜屾湀','涓夋湀','鍥涙湀','浜旀湀','鍏湀','涓冩湀','鍏湀','涔濇湀','鍗佹湀','鍗佷竴鏈?,'鍗佷簩鏈?];
+  const dateStr = `${now.getFullYear()} 路 ${MM[now.getMonth()]} 路 ${now.getDate()}鏃;
 
   const poem = {
-    title: '旧 约', form: '七绝',
-    lines: ['雨歇斜阳过午迟', '帘前犹是少年时', '冰沉杯底无人语', '笑里偷藏一寸丝'],
+    title: '鏃?绾?, form: '涓冪粷',
+    lines: ['闆ㄦ瓏鏂滈槼杩囧崍杩?, '甯樺墠鐘规槸灏戝勾鏃?, '鍐版矇鏉簳鏃犱汉璇?, '绗戦噷鍋疯棌涓€瀵镐笣'],
   };
 
   const up = (d = 0) => ({
@@ -531,10 +531,10 @@ function WelcomeScreen({ theme, onStart, loading }) {
         position: 'relative',
       }}>
         <div>
-          <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>今 日 赠 签</div>
+          <div style={{ fontSize: 10, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>浠?鏃?璧?绛?/div>
           <div style={{ fontSize: 11, color: theme.textMute, letterSpacing: 1.5, marginTop: 4 }}>{dateStr}</div>
         </div>
-        <Seal char1="诗" char2="签" theme={theme} size={42} rotate={-5}/>
+        <Seal char1="璇? char2="绛? theme={theme} size={42} rotate={-5}/>
       </div>
 
       {/* poem block */}
@@ -580,8 +580,7 @@ function WelcomeScreen({ theme, onStart, loading }) {
         position: 'relative',
       }}>
         <div className="serif" style={{ fontSize: 13, color: theme.textSoft, letterSpacing: 3, marginBottom: 2 }}>
-          写今天，得属于你的一首
-        </div>
+          鍐欎粖澶╋紝寰楀睘浜庝綘鐨勪竴棣?        </div>
         <button onClick={onStart} disabled={loading} style={{
           width: '100%', height: 56, borderRadius: 28,
           border: 'none',
@@ -594,39 +593,38 @@ function WelcomeScreen({ theme, onStart, loading }) {
           transition: 'opacity .2s',
           ...skin(theme, 'primary'),
         }}>
-          {loading ? '…' : '开 始 写 今 天'}
+          {loading ? '鈥? : '寮€ 濮?鍐?浠?澶?}
         </button>
-        <div style={{ fontSize: 10.5, color: theme.textMute, letterSpacing: 2 }}>数据保存在你的 Firebase 匿名账户</div>
+        <div style={{ fontSize: 10.5, color: theme.textMute, letterSpacing: 2 }}>鏁版嵁淇濆瓨鍦ㄤ綘鐨?Firebase 鍖垮悕璐︽埛</div>
       </div>
     </div>
   );
 }
-// ─── Empty Home ───────────────────────────────────────────────────
+// 鈹€鈹€鈹€ Empty Home 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function EmptyHomeScreen({ theme, onCompose, onTab }) {
   const d = new Date();
   const months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
   const steps = [
-    ['1', '写日记', '先把今天留下来，标题可写可不写。'],
-    ['2', '摇签选诗', '保存后进入摇签，生成诗、判词和拾句。'],
-    ['3', '收入藏册', '喜欢的诗和句子会进入诗册、拾句册。'],
+    ['1', '鍐欐棩璁?, '鍏堟妸浠婂ぉ鐣欎笅鏉ワ紝鏍囬鍙啓鍙笉鍐欍€?],
+    ['2', '鎽囩閫夎瘲', '淇濆瓨鍚庤繘鍏ユ憞绛撅紝鐢熸垚璇椼€佸垽璇嶅拰鎷惧彞銆?],
+    ['3', '鏀跺叆钘忓唽', '鍠滄鐨勮瘲鍜屽彞瀛愪細杩涘叆璇楀唽銆佹嬀鍙ュ唽銆?],
   ];
   return (
     <Screen theme={theme} tab="home" onTab={onTab}>
       <div style={{ padding: '64px 24px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <div style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 500 }}>
-            {d.getFullYear()} · {months[d.getMonth()]} · {d.getDate()}
+            {d.getFullYear()} 路 {months[d.getMonth()]} 路 {d.getDate()}
           </div>
-          <div className="serif" style={{ fontSize: 30, fontWeight: 600, letterSpacing: -0.5, marginTop: 4, color: theme.text }}>今日</div>
+          <div className="serif" style={{ fontSize: 30, fontWeight: 600, letterSpacing: -0.5, marginTop: 4, color: theme.text }}>浠婃棩</div>
         </div>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '34px 28px 118px', textAlign: 'center' }}>
-        <Seal char1="诗" char2="签" theme={theme} size={60} rotate={-3}/>
-        <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 4, marginTop: 28, marginBottom: 12 }}>今天还没有日记</div>
+        <Seal char1="璇? char2="绛? theme={theme} size={60} rotate={-3}/>
+        <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 4, marginTop: 28, marginBottom: 12 }}>浠婂ぉ杩樻病鏈夋棩璁?/div>
         <div className="serif" style={{ fontSize: 15, color: theme.textSoft, lineHeight: 2, letterSpacing: 2 }}>
-          写下今天的片段<br/>摇一摇，得一首古诗
-        </div>
+          鍐欎笅浠婂ぉ鐨勭墖娈?br/>鎽囦竴鎽囷紝寰椾竴棣栧彜璇?        </div>
         <div style={{ width: '100%', marginTop: 26, display: 'grid', gap: 10 }}>
           {steps.map(([num, title, desc]) => (
             <div key={num} style={{
@@ -653,22 +651,21 @@ function EmptyHomeScreen({ theme, onCompose, onTab }) {
           fontSize: 16, fontWeight: 600, letterSpacing: 3, fontFamily: 'inherit', cursor: 'pointer',
           boxShadow: `0 8px 24px ${theme.text}33`,
           ...skin(theme, 'primary'),
-        }}>开 始 写</button>
+        }}>寮€ 濮?鍐?/button>
         <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
           <button type="button" onClick={() => onTab?.('settings')} style={{
             height: 34, padding: '0 14px', borderRadius: 17,
             border: `0.5px solid ${theme.line}`, background: theme.surface,
             color: theme.textSoft, fontFamily: 'inherit', fontSize: 12, cursor: 'pointer',
-          }}>账户与备份</button>
+          }}>璐︽埛涓庡浠?/button>
           <button type="button" onClick={() => onTab?.('timeline')} style={{
             height: 34, padding: '0 14px', borderRadius: 17,
             border: `0.5px solid ${theme.line}`, background: 'transparent',
             color: theme.textMute, fontFamily: 'inherit', fontSize: 12, cursor: 'pointer',
-          }}>看看藏册</button>
+          }}>鐪嬬湅钘忓唽</button>
         </div>
         <div style={{ marginTop: 12, fontSize: 10.5, color: theme.textMute, lineHeight: 1.6 }}>
-          日记会保存到当前 Firebase 账户；换设备前建议绑定邮箱或导出备份。
-        </div>
+          鏃ヨ浼氫繚瀛樺埌褰撳墠 Firebase 璐︽埛锛涙崲璁惧鍓嶅缓璁粦瀹氶偖绠辨垨瀵煎嚭澶囦唤銆?        </div>
       </div>
     </Screen>
   );
@@ -680,17 +677,17 @@ function SignLanding({ theme, entries = [], onCompose, onShake, onOpen, onTab })
   const poemEntry = entries.find(entry => entry?.poem?.title && Array.isArray(entry.poem.lines));
   const displayEntry = featuredEntry || (latest?.poem ? latest : poemEntry);
   const canShakeLatest = !!latest?.id && !!latest?.body?.trim();
-  const meta = entry => [entry?.date, entry?.place, entry?.time].filter(Boolean).join(' · ');
+  const meta = entry => [entry?.date, entry?.place, entry?.time].filter(Boolean).join(' 路 ');
 
   return (
     <Screen theme={theme} tab="sign" onTab={onTab}>
       <div style={{ padding: '64px 24px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ fontSize: 11, letterSpacing: 3, color: theme.textMute, fontWeight: 600 }}>POEM LOT</div>
-          <div className="serif" style={{ fontSize: 32, fontWeight: 600, marginTop: 4, color: theme.text }}>签</div>
-          <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 8, lineHeight: 1.7 }}>这里收住诗签，不会自动跳进写日记。</div>
+          <div className="serif" style={{ fontSize: 32, fontWeight: 600, marginTop: 4, color: theme.text }}>绛?/div>
+          <div style={{ fontSize: 12, color: theme.textSoft, marginTop: 8, lineHeight: 1.7 }}>杩欓噷鏀朵綇璇楃锛屼笉浼氳嚜鍔ㄨ烦杩涘啓鏃ヨ銆?/div>
         </div>
-        <Seal char1="诗" char2="签" theme={theme} size={42} rotate={-4}/>
+        <Seal char1="璇? char2="绛? theme={theme} size={42} rotate={-4}/>
       </div>
 
       <div style={{ padding: '22px 22px 126px' }}>
@@ -706,7 +703,7 @@ function SignLanding({ theme, entries = [], onCompose, onShake, onOpen, onTab })
             ...skin(theme, 'poemCard'),
           }}>
             <ThemeMotif theme={theme} variant="hero" />
-            <div style={{ fontSize: 10, color: theme.textMute, letterSpacing: 3, fontWeight: 600 }}>最近诗签</div>
+            <div style={{ fontSize: 10, color: theme.textMute, letterSpacing: 3, fontWeight: 600 }}>鏈€杩戣瘲绛?/div>
             <div className="serif" style={{ fontSize: 30, color: theme.text, letterSpacing: 8, marginTop: 18, paddingLeft: '0.5em' }}>
               {displayEntry.poem.title}
             </div>
@@ -717,12 +714,12 @@ function SignLanding({ theme, entries = [], onCompose, onShake, onOpen, onTab })
               <button type="button" onClick={() => onOpen(displayEntry.id)} style={{
                 flex: 1, height: 44, borderRadius: 22, border: `0.5px solid ${theme.line}`,
                 background: theme.surface, color: theme.text, fontFamily: 'inherit', cursor: 'pointer',
-              }}>查看日记</button>
+              }}>鏌ョ湅鏃ヨ</button>
               {canShakeLatest && <button type="button" onClick={() => onShake(latest.id)} style={{
                 flex: 1.2, height: 44, borderRadius: 22, border: 'none',
                 background: theme.text, color: theme.bg, fontFamily: 'inherit', cursor: 'pointer',
                 ...skin(theme, 'primary'),
-              }}>{latest?.poem ? '再摇一签' : '为今日摇签'}</button>}
+              }}>{latest?.poem ? '鍐嶆憞涓€绛? : '涓轰粖鏃ユ憞绛?}</button>}
             </div>
           </div>
         ) : (
@@ -734,16 +731,15 @@ function SignLanding({ theme, entries = [], onCompose, onShake, onOpen, onTab })
             textAlign: 'center',
             ...skin(theme, 'panel'),
           }}>
-            <div className="serif" style={{ fontSize: 24, color: theme.text, letterSpacing: 4 }}>还没有可摇的签</div>
+            <div className="serif" style={{ fontSize: 24, color: theme.text, letterSpacing: 4 }}>杩樻病鏈夊彲鎽囩殑绛?/div>
             <div style={{ color: theme.textSoft, fontSize: 13, lineHeight: 1.8, marginTop: 14 }}>
-              先保存一篇日记，再回来摇签选诗。底部按钮会一直保留，不需要先退出这个页面。
-            </div>
+              鍏堜繚瀛樹竴绡囨棩璁帮紝鍐嶅洖鏉ユ憞绛鹃€夎瘲銆傚簳閮ㄦ寜閽細涓€鐩翠繚鐣欙紝涓嶉渶瑕佸厛閫€鍑鸿繖涓〉闈€?            </div>
             <button type="button" onClick={onCompose} style={{
               height: 46, padding: '0 28px', borderRadius: 23, marginTop: 28,
               border: 'none', background: theme.text, color: theme.bg,
               fontFamily: 'inherit', cursor: 'pointer', letterSpacing: 2,
               ...skin(theme, 'primary'),
-            }}>写新日记</button>
+            }}>鍐欐柊鏃ヨ</button>
           </div>
         )}
 
@@ -752,36 +748,35 @@ function SignLanding({ theme, entries = [], onCompose, onShake, onOpen, onTab })
             width: '100%', marginTop: 14, height: 52, borderRadius: 26,
             border: `0.5px solid ${theme.line}`, background: theme.surface,
             color: theme.text, fontFamily: 'inherit', cursor: 'pointer', letterSpacing: 2,
-          }}>为最近一篇日记摇签</button>
+          }}>涓烘渶杩戜竴绡囨棩璁版憞绛?/button>
         )}
 
         {(displayEntry || latest) && <button type="button" onClick={onCompose} style={{
           width: '100%', marginTop: 12, height: 48, borderRadius: 24,
           border: 'none', background: 'transparent', color: theme.textSoft,
           fontFamily: 'inherit', cursor: 'pointer', letterSpacing: 2,
-        }}>写新日记</button>}
+        }}>鍐欐柊鏃ヨ</button>}
       </div>
     </Screen>
   );
 }
 
-// ─── 写字时的元素粒子 ──────────────────────────────────────────────
-// 写日记时，提到的自然/情绪意象（花/雨/雪/风/火/月…）会从那个词轻轻升起对应的
-// 水墨粒子。覆盖在 textarea 之上的 canvas（pointer-events:none，不影响打字），
-// 用镜像 div 定位关键词。配色取自当前主题，气质克制，可在设置里关闭。
-const WRITING_FX = [
-  { fx: 'petal', re: /花|樱|瓣|梅|桃|杏|蕊|落英|flower|petal|blossom|bloom/gi },
-  { fx: 'rain',  re: /雨|淋|潮|霖|drizzle|rain/gi },
-  { fx: 'wave',  re: /海|河|湖|浪|潮|水|shore|sea|river|wave|water/gi },
-  { fx: 'snow',  re: /雪|霜|寒|冰|snow|frost/gi },
-  { fx: 'wind',  re: /风|吹|飘|拂|wind|breeze|gust/gi },
-  { fx: 'leaf',  re: /叶|草|树|林|森|枝|竹|苔|园|leaf|tree|grass|garden|branch/gi },
-  { fx: 'ink',   re: /墨|字|诗|句|写|纸|书|信|ink|word|letter|poem|write|paper/gi },
-  { fx: 'ember', re: /火|焰|烛|灯|炉|暖|fire|flame|ember|lamp|candle/gi },
-  { fx: 'memory', re: /梦|忆|旧|远|念|影|年|后来|从前|时间|quiet|dream|memory|remember|shadow|year|time|once|afterward/gi },
-  { fx: 'glow',  re: /月|星|光|萤|烁|莹|魔法|咒|故事|奇迹|愿望|moon|star|light|glow|shine|magic|spell|story|wish|wonder/gi },
-  { fx: 'wind',  re: /路|车|站|桥|街|城|跑|走|归|旅|road|street|city|bridge|run|walk|return|journey/gi },
-  { fx: 'ember', re: /心|痛|哭|笑|怕|勇|焦|热|heart|cry|laugh|fear|brave|anxious|warm/gi },
+// 鈹€鈹€鈹€ 鍐欏瓧鏃剁殑鍏冪礌绮掑瓙 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// 鍐欐棩璁版椂锛屾彁鍒扮殑鑷劧/鎯呯华鎰忚薄锛堣姳/闆?闆?椋?鐏?鏈堚€︼級浼氫粠閭ｄ釜璇嶈交杞诲崌璧峰搴旂殑
+// 姘村ⅷ绮掑瓙銆傝鐩栧湪 textarea 涔嬩笂鐨?canvas锛坧ointer-events:none锛屼笉褰卞搷鎵撳瓧锛夛紝
+// 鐢ㄩ暅鍍?div 瀹氫綅鍏抽敭璇嶃€傞厤鑹插彇鑷綋鍓嶄富棰橈紝姘旇川鍏嬪埗锛屽彲鍦ㄨ缃噷鍏抽棴銆?const WRITING_FX = [
+  { fx: 'petal', re: /鑺眧妯眧鐡姊厊妗億鏉弢钑妡钀借嫳|flower|petal|blossom|bloom/gi },
+  { fx: 'rain',  re: /闆▅娣媩娼畖闇東drizzle|rain/gi },
+  { fx: 'wave',  re: /娴穦娌硘婀東娴獆娼畖姘磡shore|sea|river|wave|water/gi },
+  { fx: 'snow',  re: /闆獆闇渱瀵抾鍐皘snow|frost/gi },
+  { fx: 'wind',  re: /椋巪鍚箌椋榺鎷倈wind|breeze|gust/gi },
+  { fx: 'leaf',  re: /鍙秥鑽墊鏍憒鏋梶妫畖鏋潀绔箌鑻攟鍥瓅leaf|tree|grass|garden|branch/gi },
+  { fx: 'ink',   re: /澧▅瀛梶璇梶鍙鍐檤绾竱涔淇ink|word|letter|poem|write|paper/gi },
+  { fx: 'ember', re: /鐏珅鐒皘鐑泑鐏瘄鐐墊鏆東fire|flame|ember|lamp|candle/gi },
+  { fx: 'memory', re: /姊蹇唡鏃杩渱蹇祙褰眧骞磡鍚庢潵|浠庡墠|鏃堕棿|quiet|dream|memory|remember|shadow|year|time|once|afterward/gi },
+  { fx: 'glow',  re: /鏈坾鏄焲鍏墊钀鐑亅鑾箌榄旀硶|鍜抾鏁呬簨|濂囪抗|鎰挎湜|moon|star|light|glow|shine|magic|spell|story|wish|wonder/gi },
+  { fx: 'wind',  re: /璺瘄杞绔檤妗琛梶鍩巪璺憒璧皘褰抾鏃厊road|street|city|bridge|run|walk|return|journey/gi },
+  { fx: 'ember', re: /蹇億鐥泑鍝瓅绗憒鎬晐鍕噟鐒鐑瓅heart|cry|laugh|fear|brave|anxious|warm/gi },
 ];
 
 function hexToRgba(hex, a) {
@@ -816,7 +811,7 @@ class WritingParticle {
     else if (fx === 'snow') { this.vx = (r() - .5) * .35; this.vy = r() * .45 + .2; this.rad = r() * 1.8 + 1; this.decay = .005 + r() * .004; this.sway = r() * Math.PI * 2; this.color = '#ffffff'; }
     else if (fx === 'wind') { this.vx = r() * 2.2 + 1.1; this.vy = (r() - .5) * .5; this.rad = r() * 1 + .5; this.len = r() * 14 + 8; this.decay = .015 + r() * .012; this.color = theme.textSoft || theme.textMute; }
     else if (fx === 'leaf') { this.vx = (r() - .5) * .6; this.vy = r() * .42 + .18; this.rad = r() * 3 + 3; this.decay = .006 + r() * .005; this.spin = (r() - .5) * .06; this.sway = r() * Math.PI * 2; this.color = theme.accent; }
-    else if (fx === 'ink') { this.vx = (r() - .5) * .32; this.vy = -(r() * .42 + .12); this.rad = r() * 2.2 + 1.2; this.decay = .011 + r() * .007; this.color = theme.text; this.glyph = ['诗', '句', '字', '墨', '·'][Math.floor(r() * 5)]; }
+    else if (fx === 'ink') { this.vx = (r() - .5) * .32; this.vy = -(r() * .42 + .12); this.rad = r() * 2.2 + 1.2; this.decay = .011 + r() * .007; this.color = theme.text; this.glyph = ['璇?, '鍙?, '瀛?, '澧?, '路'][Math.floor(r() * 5)]; }
     else if (fx === 'ember') { this.vx = (r() - .5) * .5; this.vy = -(r() * .8 + .4); this.rad = r() * 2 + 1; this.decay = .012 + r() * .01; this.color = theme.accent; this.warm = true; }
     else if (fx === 'memory') { this.vx = (r() - .5) * .24; this.vy = -(r() * .18 + .05); this.rad = r() * 5 + 4; this.decay = .005 + r() * .004; this.color = theme.textSoft || theme.textMute; this.tw = r() * Math.PI * 2; }
     else { this.vx = (r() - .5) * .35; this.vy = -(r() * .35 + .12); this.rad = r() * 2 + 1.4; this.decay = .009 + r() * .006; this.color = theme.seal; this.tw = r() * Math.PI * 2; }
@@ -993,8 +988,8 @@ function WritingParticles({ textareaRef, text, theme, enabled }) {
   );
 }
 
-// ─── Compose Screen (real) ────────────────────────────────────────
-const MOODS_REAL = ['☕','🌙','🌸','🌊','✨','🌿','💐','😴','🥲','🎯','📖','🏃','🌳','💌','🍂'];
+// 鈹€鈹€鈹€ Compose Screen (real) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+const MOODS_REAL = ['鈽?,'馃寵','馃尭','馃寠','鉁?,'馃尶','馃拹','馃槾','馃ゲ','馃幆','馃摉','馃弮','馃尦','馃拰','馃崅'];
 
 function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', forceDraft = false, syncState, onChangePaper, onBack, onSaved }) {
   const editing = !!entry?.id;
@@ -1003,7 +998,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
   const [body, setBody] = React.useState(entry?.body || '');
   const [mood, setMood] = React.useState(entry?.mood || '');
   const [flag, setFlag] = React.useState(!!entry?.flag);
-  const [place, setPlace] = React.useState(entry?.place || '获取位置中…');
+  const [place, setPlace] = React.useState(entry?.place || '鑾峰彇浣嶇疆涓€?);
   const [activePaper, setActivePaper] = React.useState(entry?.paper || paper);
   const [shake, setShake] = React.useState('idle'); // idle|gen|done
   const [poem, setPoem] = React.useState(entry?.poem || null);
@@ -1023,11 +1018,11 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
   React.useEffect(() => {
     if (editing || forceDraft) return;
     const autoLoc = JSON.parse(localStorage.getItem('d-autoLoc') ?? 'true');
-    if (!autoLoc) { setPlace('未记录地点'); return; }
-    if (!navigator.geolocation) { setPlace('当前位置'); return; }
+    if (!autoLoc) { setPlace('鏈褰曞湴鐐?); return; }
+    if (!navigator.geolocation) { setPlace('褰撳墠浣嶇疆'); return; }
     navigator.geolocation.getCurrentPosition(
       async p => setPlace(await geocode(p.coords.latitude, p.coords.longitude)),
-      () => setPlace('当前位置'),
+      () => setPlace('褰撳墠浣嶇疆'),
       { timeout: 6000 }
     );
   }, [editing, forceDraft]);
@@ -1038,17 +1033,17 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
       if (raw) {
         const draft = JSON.parse(raw);
         const differs = draft.title !== (entry?.title || '') || draft.body !== (entry?.body || '');
-        if ((forceDraft || differs) && (draft.title?.trim() || draft.body?.trim()) && (forceDraft || window.confirm('发现一份未完成的本地草稿，要继续写吗？'))) {
+        if ((forceDraft || differs) && (draft.title?.trim() || draft.body?.trim()) && (forceDraft || window.confirm('鍙戠幇涓€浠芥湭瀹屾垚鐨勬湰鍦拌崏绋匡紝瑕佺户缁啓鍚楋紵'))) {
           setTitle(draft.title || '');
           setBody(draft.body || '');
           setMood(draft.mood || '');
           setFlag(!!draft.flag);
-          setPlace(draft.place || entry?.place || '未记录地点');
+          setPlace(draft.place || entry?.place || '鏈褰曞湴鐐?);
           if (window.PAPER_LIBRARY.some(item => item.id === draft.paper)) setActivePaper(draft.paper);
         }
       }
     } catch (error) {
-      console.warn('读取草稿失败:', error);
+      console.warn('璇诲彇鑽夌澶辫触:', error);
     } finally {
       draftReady.current = true;
     }
@@ -1074,7 +1069,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
   const info = nowInfo();
   const entryInfo = editing ? {
     date: entry.date, weekday: entry.weekday, time: entry.time,
-    label: `${(entry.date || '').replace(/-/g, '.')} · ${entry.weekday || ''} · ${entry.time || ''}`,
+    label: `${(entry.date || '').replace(/-/g, '.')} 路 ${entry.weekday || ''} 路 ${entry.time || ''}`,
   } : info;
 
   const choosePaper = nextPaper => {
@@ -1091,7 +1086,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
       window.PLAN?.recordShake?.(); // metering hook (free today; see MONETIZATION.md)
       setPoem(p); setShake('done');
     }
-    catch (e) { setErr(friendlyAiError(e, '摇签生诗')); setShake('idle'); }
+    catch (e) { setErr(friendlyAiError(e, '鎽囩鐢熻瘲')); setShake('idle'); }
   };
 
   const doSave = async (poemArg) => {
@@ -1117,7 +1112,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
       });
       localStorage.removeItem(draftKey);
       await onSaved({ id, body: body.trim(), editing, hasGeneratedPoem: !!generated });
-    } catch (e) { setErr('保存失败: ' + e.message); setSaving(false); }
+    } catch (e) { setErr('淇濆瓨澶辫触: ' + e.message); setSaving(false); }
   };
 
   React.useEffect(() => {
@@ -1132,7 +1127,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [body, saving, focusMode, title, mood, flag, place, activePaper]);
 
-  const displayPoem = poemFromAiResult(poem) || poem || { title: '…', form: '五绝', lines: ['', '', '', ''] };
+  const displayPoem = poemFromAiResult(poem) || poem || { title: '鈥?, form: '浜旂粷', lines: ['', '', '', ''] };
   const fakeEntry = { body, poem: displayPoem, sign: signFromAiResult(poem) };
 
   if (shake === 'gen')
@@ -1168,10 +1163,10 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
           <button onClick={onBack} style={{ border: 'none', background: 'transparent', cursor: 'pointer', padding: 8 }}>
             <IconClose color={customPaper ? paperSoft : theme.textSoft} size={20}/>
           </button>
-          <div style={{ fontSize: 12, color: customPaper ? paperSoft : theme.textSoft, fontWeight: 500 }}>{editing ? '编辑日记' : '新日记'}</div>
+          <div style={{ fontSize: 12, color: customPaper ? paperSoft : theme.textSoft, fontWeight: 500 }}>{editing ? '缂栬緫鏃ヨ' : '鏂版棩璁?}</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button className="compose-focus-toggle" type="button" onClick={() => setFocusMode(!focusMode)} style={{ height: 28, padding: '0 11px', borderRadius: 14, background: customPaper ? 'rgba(255,253,247,.76)' : theme.surface + 'dd', border: `0.5px solid ${customPaper ? 'rgba(81,74,67,.16)' : theme.line}`, color: paperSoft, fontSize: 10.5, letterSpacing: 1.5, fontFamily: 'inherit', cursor: 'pointer' }}>
-              {focusMode ? '退出专注' : '专注写作'}
+              {focusMode ? '閫€鍑轰笓娉? : '涓撴敞鍐欎綔'}
             </button>
             <button type="button" onClick={() => setPaperOpen(true)} style={{ height: 28, padding: '0 10px', borderRadius: 14, background: customPaper ? 'rgba(255,253,247,.76)' : theme.surface + 'dd', border: `0.5px solid ${customPaper ? 'rgba(81,74,67,.16)' : theme.line}`, backdropFilter: customPaper ? 'blur(12px)' : 'none', display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: paperSoft, letterSpacing: 1.5, fontFamily: 'inherit', cursor: 'pointer' }}>
               <span style={{ width: 4, height: 4, borderRadius: 2, background: theme.accent, display: 'inline-block' }}/>
@@ -1203,7 +1198,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
             WebkitMaskImage: customPaper ? 'linear-gradient(to right, #000 0%, #000 88%, transparent 100%)' : 'none',
             maskImage: customPaper ? 'linear-gradient(to right, #000 0%, #000 88%, transparent 100%)' : 'none',
           }}>
-            <span style={{ fontSize: 10.5, color: paperMuted, letterSpacing: 1.5, flexShrink: 0, marginRight: 2 }}>心 情</span>
+            <span style={{ fontSize: 10.5, color: paperMuted, letterSpacing: 1.5, flexShrink: 0, marginRight: 2 }}>蹇?鎯?/span>
             {MOODS_REAL.map(m => (
               <span key={m} onClick={() => setMood(mood === m ? '' : m)} style={{
                 width: 30, height: 30, borderRadius: 15, cursor: 'pointer', flexShrink: 0,
@@ -1221,7 +1216,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
         {/* title + text area */}
         <div className="compose-title" style={{ padding: `16px ${customPaper ? 52 : 28}px 0` }}>
           <input value={title} onChange={e => setTitle(e.target.value)} maxLength={80}
-            placeholder="给今天起个标题（可选）"
+            placeholder="缁欎粖澶╄捣涓爣棰橈紙鍙€夛級"
             style={{
               width: '100%', border: 'none', borderBottom: `0.5px solid ${customPaper ? 'rgba(81,74,67,.18)' : theme.line}`,
               outline: 'none', background: 'transparent', color: paperInk,
@@ -1231,7 +1226,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
           />
         </div>
         <div className="compose-body" style={{ position: 'relative', flex: 1, padding: `14px ${customPaper ? 52 : 28}px 0`, minHeight: 0 }}>
-          <textarea ref={bodyRef} value={body} onChange={e => setBody(e.target.value)} placeholder="今天，"
+          <textarea ref={bodyRef} value={body} onChange={e => setBody(e.target.value)} placeholder="浠婂ぉ锛?
             style={{
               position: 'relative', zIndex: 1,
               width: '100%', height: '100%', border: 'none', outline: 'none', resize: 'none',
@@ -1265,13 +1260,12 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
               boxShadow: floatingControlShadow,
               backdropFilter: customPaper ? 'blur(14px)' : 'none',
             }}>
-              <FlagDot theme={theme} size={10}/>里程碑
-            </button>
+              <FlagDot theme={theme} size={10}/>閲岀▼纰?            </button>
             <div style={{ flex: 1 }}/>
             <span style={{ fontSize: 10.5, color: syncState?.error ? theme.seal : paperMuted }}>
-              {!syncState?.online ? '离线待同步' : syncState?.pending ? '同步中…' : draftSavedAt ? `草稿 ${draftSavedAt}` : ''}
+              {!syncState?.online ? '绂荤嚎寰呭悓姝? : syncState?.pending ? '鍚屾涓€? : draftSavedAt ? `鑽夌 ${draftSavedAt}` : ''}
             </span>
-            <span style={{ fontSize: 11, color: paperMuted }}>{body.length > 0 ? body.length + ' 字' : ''}</span>
+            <span style={{ fontSize: 11, color: paperMuted }}>{body.length > 0 ? body.length + ' 瀛? : ''}</span>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <button onClick={() => doSave(null)} disabled={!filled || saving} style={{
@@ -1283,7 +1277,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
               boxShadow: filled && !saving && customPaper ? '0 8px 22px rgba(67,55,43,.22)' : floatingControlShadow,
               backdropFilter: customPaper ? 'blur(14px)' : 'none',
               ...(filled && !saving && !customPaper ? skin(theme, 'primary') : {}),
-            }}>{saving ? '保存中…' : editing ? '保 存 修 改' : '保 存 日 记'}</button>
+            }}>{saving ? '淇濆瓨涓€? : editing ? '淇?瀛?淇?鏀? : '淇?瀛?鏃?璁?}</button>
           </div>
         </div>
       </div>
@@ -1292,10 +1286,10 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
           <div className="paper-picker-sheet" onClick={event => event.stopPropagation()} style={{ width: '100%', maxWidth: W, maxHeight: '72vh', background: theme.bg, borderRadius: '24px 24px 0 0', padding: '20px 16px 34px', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 6px 14px' }}>
               <div>
-                <div className="serif" style={{ fontSize: 19, color: theme.text, letterSpacing: 3 }}>选 择 信 纸</div>
-                <div style={{ fontSize: 11, color: theme.textMute, marginTop: 4 }}>基础纹样、插画与新信纸</div>
+                <div className="serif" style={{ fontSize: 19, color: theme.text, letterSpacing: 3 }}>閫?鎷?淇?绾?/div>
+                <div style={{ fontSize: 11, color: theme.textMute, marginTop: 4 }}>鍩虹绾规牱銆佹彃鐢讳笌鏂颁俊绾?/div>
               </div>
-              <button type="button" aria-label="关闭信纸选择器" onClick={() => setPaperOpen(false)} style={{ border: 'none', background: 'transparent', padding: 6, cursor: 'pointer' }}>
+              <button type="button" aria-label="鍏抽棴淇＄焊閫夋嫨鍣? onClick={() => setPaperOpen(false)} style={{ border: 'none', background: 'transparent', padding: 6, cursor: 'pointer' }}>
                 <IconClose color={theme.textSoft} size={18}/>
               </button>
             </div>
@@ -1332,29 +1326,27 @@ function SavedEntryNext({ theme, entry, onGenerateQuotes, onShake, onOpen, onDon
     setQuoteBusy(true);
     setQuoteError('');
     try { await onGenerateQuotes(); }
-    catch (err) { setQuoteError(friendlyAiError(err, 'AI 拾句')); }
+    catch (err) { setQuoteError(friendlyAiError(err, 'AI 鎷惧彞')); }
     finally { setQuoteBusy(false); }
   };
   return (
     <Screen theme={theme} noTab>
       <div style={{ minHeight: '100%', padding: '96px 26px 44px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-        <div style={{ fontSize: 10.5, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>今 日 已 记 下</div>
+        <div style={{ fontSize: 10.5, letterSpacing: 4, color: theme.textMute, fontWeight: 600 }}>浠?鏃?宸?璁?涓?/div>
         <div className="serif" style={{ marginTop: 12, fontSize: 32, lineHeight: 1.35, color: theme.text, letterSpacing: 2 }}>
-          日记保存好了
+          鏃ヨ淇濆瓨濂戒簡
         </div>
         <div style={{ marginTop: 12, color: theme.textSoft, fontSize: 13.5, lineHeight: 1.8 }}>
-          先让文字安静地留下，再决定要不要继续。
-        </div>
+          鍏堣鏂囧瓧瀹夐潤鍦扮暀涓嬶紝鍐嶅喅瀹氳涓嶈缁х画銆?        </div>
 
         <div className="theme-saved-card" style={{ marginTop: 34, padding: '20px 18px', borderRadius: 20, background: theme.paper, border: `0.5px solid ${theme.line}`, position: 'relative', overflow: 'hidden', ...skin(theme, 'panel') }}>
           <ThemeCardArt theme={theme} kind="quote" />
           <ThemeMotif theme={theme} variant="panel" />
           <div className="serif" style={{ color: theme.text, fontSize: 18, lineHeight: 1.6 }}>
-            {entry?.title || entry?.body?.slice(0, 32) || '今日的日记'}
+            {entry?.title || entry?.body?.slice(0, 32) || '浠婃棩鐨勬棩璁?}
           </div>
           <div style={{ marginTop: 8, color: theme.textMute, fontSize: 11.5 }}>
-            {entry?.date?.replace(/-/g, '.')} · {entry?.body?.length || 0} 字
-          </div>
+            {entry?.date?.replace(/-/g, '.')} 路 {entry?.body?.length || 0} 瀛?          </div>
         </div>
 
         <div style={{ marginTop: 24, display: 'grid', gap: 10 }}>
@@ -1362,11 +1354,11 @@ function SavedEntryNext({ theme, entry, onGenerateQuotes, onShake, onOpen, onDon
             height: 50, borderRadius: 25, border: 'none', background: theme.text, color: theme.bg,
             fontFamily: 'inherit', fontSize: 14, fontWeight: 600, letterSpacing: 2, cursor: 'pointer',
             ...skin(theme, 'primary'),
-          }}>摇 签 选 诗</button>
+          }}>鎽?绛?閫?璇?/button>
           <button type="button" disabled={quoteBusy || !onGenerateQuotes} onClick={generateQuotes} style={{
             height: 48, borderRadius: 24, border: `1px solid ${theme.accent}`, background: 'transparent', color: theme.accent,
             fontFamily: 'inherit', fontSize: 13.5, letterSpacing: 1.5, cursor: quoteBusy ? 'default' : 'pointer',
-          }}>{quoteBusy ? '正在认真拾句…' : '让 AI 拾句'}</button>
+          }}>{quoteBusy ? '姝ｅ湪璁ょ湡鎷惧彞鈥? : '璁?AI 鎷惧彞'}</button>
           {quoteError && <div style={{
             padding: '12px 14px', borderRadius: 14, background: theme.surface,
             border: `0.5px solid ${theme.line}`, color: theme.seal,
@@ -1375,26 +1367,26 @@ function SavedEntryNext({ theme, entry, onGenerateQuotes, onShake, onOpen, onDon
           <button type="button" onClick={onOpen} style={{
             height: 46, borderRadius: 23, border: `0.5px solid ${theme.line}`, background: theme.surface, color: theme.textSoft,
             fontFamily: 'inherit', fontSize: 13, cursor: 'pointer',
-          }}>查看这篇日记</button>
+          }}>鏌ョ湅杩欑瘒鏃ヨ</button>
           <button type="button" onClick={onDone} style={{
             height: 42, border: 'none', background: 'transparent', color: theme.textMute, fontFamily: 'inherit', fontSize: 12.5, cursor: 'pointer',
-          }}>就到这里</button>
+          }}>灏卞埌杩欓噷</button>
         </div>
       </div>
     </Screen>
   );
 }
 
-// ─── NewHexagram ────────────────────────────────────────────────
+// 鈹€鈹€鈹€ NewHexagram 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 const HEXAGRAM_BY_TRIGRAMS = {
-  '7:7':'乾', '7:3':'履', '7:5':'同人', '7:1':'无妄', '7:6':'姤', '7:2':'讼', '7:4':'遯', '7:0':'否',
-  '3:7':'夬', '3:3':'兑', '3:5':'革', '3:1':'随', '3:6':'大过', '3:2':'困', '3:4':'咸', '3:0':'萃',
-  '5:7':'大有', '5:3':'睽', '5:5':'离', '5:1':'噬嗑', '5:6':'鼎', '5:2':'未济', '5:4':'旅', '5:0':'晋',
-  '1:7':'大壮', '1:3':'归妹', '1:5':'丰', '1:1':'震', '1:6':'恒', '1:2':'解', '1:4':'小过', '1:0':'豫',
-  '6:7':'小畜', '6:3':'中孚', '6:5':'家人', '6:1':'益', '6:6':'巽', '6:2':'涣', '6:4':'渐', '6:0':'观',
-  '2:7':'需', '2:3':'节', '2:5':'既济', '2:1':'屯', '2:6':'井', '2:2':'坎', '2:4':'蹇', '2:0':'比',
-  '4:7':'大畜', '4:3':'损', '4:5':'贲', '4:1':'颐', '4:6':'蛊', '4:2':'蒙', '4:4':'艮', '4:0':'剥',
-  '0:7':'泰', '0:3':'临', '0:5':'明夷', '0:1':'复', '0:6':'升', '0:2':'师', '0:4':'谦', '0:0':'坤',
+  '7:7':'涔?, '7:3':'灞?, '7:5':'鍚屼汉', '7:1':'鏃犲', '7:6':'濮?, '7:2':'璁?, '7:4':'閬?, '7:0':'鍚?,
+  '3:7':'澶?, '3:3':'鍏?, '3:5':'闈?, '3:1':'闅?, '3:6':'澶ц繃', '3:2':'鍥?, '3:4':'鍜?, '3:0':'钀?,
+  '5:7':'澶ф湁', '5:3':'鐫?, '5:5':'绂?, '5:1':'鍣棏', '5:6':'榧?, '5:2':'鏈祹', '5:4':'鏃?, '5:0':'鏅?,
+  '1:7':'澶у．', '1:3':'褰掑', '1:5':'涓?, '1:1':'闇?, '1:6':'鎭?, '1:2':'瑙?, '1:4':'灏忚繃', '1:0':'璞?,
+  '6:7':'灏忕暅', '6:3':'涓瓪', '6:5':'瀹朵汉', '6:1':'鐩?, '6:6':'宸?, '6:2':'娑?, '6:4':'娓?, '6:0':'瑙?,
+  '2:7':'闇€', '2:3':'鑺?, '2:5':'鏃㈡祹', '2:1':'灞?, '2:6':'浜?, '2:2':'鍧?, '2:4':'韫?, '2:0':'姣?,
+  '4:7':'澶х暅', '4:3':'鎹?, '4:5':'璐?, '4:1':'棰?, '4:6':'铔?, '4:2':'钂?, '4:4':'鑹?, '4:0':'鍓?,
+  '0:7':'娉?, '0:3':'涓?, '0:5':'鏄庡し', '0:1':'澶?, '0:6':'鍗?, '0:2':'甯?, '0:4':'璋?, '0:0':'鍧?,
 };
 function trigramValue(lines) {
   return lines.reduce((sum, line, i) => sum + (line?.type === 'yang' ? 1 : 0) * Math.pow(2, i), 0);
@@ -1402,13 +1394,13 @@ function trigramValue(lines) {
 function hexNameFor(lines) {
   const lower = trigramValue(lines.slice(0, 3));
   const upper = trigramValue(lines.slice(3, 6));
-  return HEXAGRAM_BY_TRIGRAMS[`${upper}:${lower}`] || '未定';
+  return HEXAGRAM_BY_TRIGRAMS[`${upper}:${lower}`] || '鏈畾';
 }
-const TRIGRAM_NAME_BY_VALUE = { 7:'乾', 3:'兑', 5:'离', 1:'震', 6:'巽', 2:'坎', 4:'艮', 0:'坤' };
+const TRIGRAM_NAME_BY_VALUE = { 7:'涔?, 3:'鍏?, 5:'绂?, 1:'闇?, 6:'宸?, 2:'鍧?, 4:'鑹?, 0:'鍧? };
 function trigramNamesFor(lines) {
   return {
-    lower: TRIGRAM_NAME_BY_VALUE[trigramValue(lines.slice(0, 3))] || '未定',
-    upper: TRIGRAM_NAME_BY_VALUE[trigramValue(lines.slice(3, 6))] || '未定',
+    lower: TRIGRAM_NAME_BY_VALUE[trigramValue(lines.slice(0, 3))] || '鏈畾',
+    upper: TRIGRAM_NAME_BY_VALUE[trigramValue(lines.slice(3, 6))] || '鏈畾',
   };
 }
 
@@ -1426,21 +1418,20 @@ async function apiHexagram(question, hexName, lines, context = {}) {
   let d;
   try { d = text ? JSON.parse(text) : {}; }
   catch {
-    throw new Error(`解签服务返回了非 JSON 内容（HTTP ${r.status}）。请检查 Vercel Functions 部署和日志。`);
+    throw new Error(`瑙ｇ鏈嶅姟杩斿洖浜嗛潪 JSON 鍐呭锛圚TTP ${r.status}锛夈€傝妫€鏌?Vercel Functions 閮ㄧ讲鍜屾棩蹇椼€俙);
   }
-  if (!r.ok) throw new Error(d.error || 'AI解签失败');
-  if (!d.interpretation) throw new Error('AI 解签返回内容为空');
+  if (!r.ok) throw new Error(d.error || 'AI瑙ｇ澶辫触');
+  if (!d.interpretation) throw new Error('AI 瑙ｇ杩斿洖鍐呭涓虹┖');
   return d.interpretation;
 }
 
-// Render one yao line — tap to toggle yin/yang, [动] button for changing
+// Render one yao line 鈥?tap to toggle yin/yang, [鍔╙ button for changing
 function YaoRow({ line, idx, theme, onChange }) {
-  const names = ['初','二','三','四','五','上'];
+  const names = ['鍒?,'浜?,'涓?,'鍥?,'浜?,'涓?];
   return (
     <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 0', borderBottom:`0.5px solid ${theme.line}`, cursor:'pointer' }}>
       <span className="serif" style={{ width:28, fontSize:12, color:theme.textMute, flexShrink:0, textAlign:'right' }}>
-        {names[idx]}爻
-      </span>
+        {names[idx]}鐖?      </span>
       <div onClick={() => onChange('type')} style={{ flex:1, display:'flex', alignItems:'center', gap:8, padding:'4px 0' }}>
         {line.type==='yang' ? (
           <div style={{ flex:1, height:6, borderRadius:3,
@@ -1455,7 +1446,7 @@ function YaoRow({ line, idx, theme, onChange }) {
         )}
       </div>
       <span style={{ fontSize:11, color:theme.textMute, width:24, flexShrink:0, textAlign:'center' }}>
-        {line.type==='yang' ? '阳' : '阴'}
+        {line.type==='yang' ? '闃? : '闃?}
       </span>
       <button onClick={() => onChange('changing')} style={{
         height:26, padding:'0 8px', borderRadius:13, border:'none', flexShrink:0,
@@ -1463,7 +1454,7 @@ function YaoRow({ line, idx, theme, onChange }) {
         color: line.changing ? theme.seal : theme.textMute,
         fontSize:11, cursor:'pointer', letterSpacing:1,
         outline: line.changing ? `1px solid ${theme.seal}88` : 'none',
-      }}>动</button>
+      }}>鍔?/button>
     </div>
   );
 }
@@ -1489,7 +1480,7 @@ function NewHexagram({ theme, initialQuestion = '', entryId = '', diaryContext =
   );
 
   const doInterpret = async () => {
-    if (!question.trim()) { setErr('请先写下问题'); return; }
+    if (!question.trim()) { setErr('璇峰厛鍐欎笅闂'); return; }
     setStep('loading'); setErr('');
     try {
       const result = await apiHexagram(question.trim(), hexName, lines, {
@@ -1498,7 +1489,7 @@ function NewHexagram({ theme, initialQuestion = '', entryId = '', diaryContext =
         parentContext,
       });
       setInterp(result); setStep('done');
-    } catch(e) { setErr(friendlyAiError(e, 'AI 解签')); setStep('setup'); }
+    } catch(e) { setErr(friendlyAiError(e, 'AI 瑙ｇ')); setStep('setup'); }
   };
 
   const doSave = async () => {
@@ -1510,7 +1501,7 @@ function NewHexagram({ theme, initialQuestion = '', entryId = '', diaryContext =
         changedHexName, trigrams, lines, interp, mood, entryId, diaryContext,
         parentHexId, rootHexId: rootHexId || parentHexId || '', followUps: [],
       });
-    } catch(e) { setErr('保存失败：' + e.message); setSaving(false); }
+    } catch(e) { setErr('淇濆瓨澶辫触锛? + e.message); setSaving(false); }
   };
 
   return (
@@ -1520,16 +1511,16 @@ function NewHexagram({ theme, initialQuestion = '', entryId = '', diaryContext =
         <button onClick={onBack} style={{ border:'none', background:'transparent', cursor:'pointer', padding:8 }}>
           <IconClose color={theme.textSoft} size={20}/>
         </button>
-        <div className="serif" style={{ fontSize:15, color:theme.text, letterSpacing:3 }}>起 一 卦</div>
+        <div className="serif" style={{ fontSize:15, color:theme.text, letterSpacing:3 }}>璧?涓€ 鍗?/div>
         <div style={{ width:36 }}/>
       </div>
 
       <div className="no-scroll" style={{ flex:1, overflowY:'auto', padding:'18px 26px 140px' }}>
 
         {/* question */}
-        <div style={{ fontSize:10, letterSpacing:4, color:theme.textMute, fontWeight:600, marginBottom:8 }}>今 日 疑 问</div>
+        <div style={{ fontSize:10, letterSpacing:4, color:theme.textMute, fontWeight:600, marginBottom:8 }}>浠?鏃?鐤?闂?/div>
         <textarea value={question} onChange={e=>setQuestion(e.target.value)} disabled={step!=='setup'}
-          placeholder="心里有什么想问的……"
+          placeholder="蹇冮噷鏈変粈涔堟兂闂殑鈥︹€?
           style={{ width:'100%', height:76, border:`0.5px solid ${theme.line}`, borderRadius:14,
             background:theme.surface, padding:'11px 14px', fontSize:15, color:theme.text,
             fontFamily:"'Noto Serif SC',serif", resize:'none', outline:'none', letterSpacing:0.5, lineHeight:1.7 }}
@@ -1537,8 +1528,8 @@ function NewHexagram({ theme, initialQuestion = '', entryId = '', diaryContext =
 
         {/* mood */}
         <div style={{ display:'flex', alignItems:'center', gap:6, margin:'12px 0 20px', flexWrap:'wrap' }}>
-          <span style={{ fontSize:10.5, color:theme.textMute, letterSpacing:1.5 }}>心情</span>
-          {['焦虑','犹豫','平静','期待','低落','迷茫'].map(m=>(
+          <span style={{ fontSize:10.5, color:theme.textMute, letterSpacing:1.5 }}>蹇冩儏</span>
+          {['鐒﹁檻','鐘硅鲍','骞抽潤','鏈熷緟','浣庤惤','杩疯尗'].map(m=>(
             <span key={m} onClick={()=>setMood(mood===m?'':m)} style={{
               padding:'4px 10px', borderRadius:12, fontSize:12, cursor:'pointer',
               background:mood===m?theme.seal+'22':theme.surface,
@@ -1550,13 +1541,13 @@ function NewHexagram({ theme, initialQuestion = '', entryId = '', diaryContext =
 
         {/* hexagram setup */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-          <div style={{ fontSize:10, letterSpacing:4, color:theme.textMute, fontWeight:600 }}>设 爻</div>
+          <div style={{ fontSize:10, letterSpacing:4, color:theme.textMute, fontWeight:600 }}>璁?鐖?/div>
           <div style={{ display:'flex', alignItems:'center', gap:10 }}>
             <HexagramGlyph lines={lines} color={theme.text} size="sm"/>
             <div className="serif" style={{ fontSize:16, color:theme.text, letterSpacing:3, fontWeight:500 }}>{hexName}</div>
           </div>
         </div>
-        <div style={{ fontSize:11, color:theme.textMute, marginBottom:10 }}>点击横线切换阴阳 · 点「动」标记动爻（上爻在上）</div>
+        <div style={{ fontSize:11, color:theme.textMute, marginBottom:10 }}>鐐瑰嚮妯嚎鍒囨崲闃撮槼 路 鐐广€屽姩銆嶆爣璁板姩鐖伙紙涓婄埢鍦ㄤ笂锛?/div>
 
         {/* lines: show top-to-bottom = index 5 down to 0 */}
         <div style={{ background:theme.surface, borderRadius:16, padding:'4px 16px', border:`0.5px solid ${theme.line}` }}>
@@ -1569,13 +1560,13 @@ function NewHexagram({ theme, initialQuestion = '', entryId = '', diaryContext =
         {/* AI result */}
         {step==='done' && interp && (
           <div style={{ marginTop:20, padding:'18px 18px', background:theme.paper, borderRadius:16, border:`0.5px solid ${theme.line}` }}>
-            <div style={{ fontSize:10, letterSpacing:4, color:theme.textMute, fontWeight:600, marginBottom:12 }}>AI 解 签</div>
+            <div style={{ fontSize:10, letterSpacing:4, color:theme.textMute, fontWeight:600, marginBottom:12 }}>AI 瑙?绛?/div>
             {interp.split(/\n/).filter(Boolean).map((ln, i) => (
               <div key={i} className="serif" style={{
-                fontSize:14.5, color: ln.startsWith('【') ? theme.seal : theme.text,
+                fontSize:14.5, color: ln.startsWith('銆?) ? theme.seal : theme.text,
                 lineHeight:1.9, letterSpacing:0.5,
-                fontWeight: ln.startsWith('【') ? 600 : 400,
-                marginBottom: ln.startsWith('【') ? 2 : 8,
+                fontWeight: ln.startsWith('銆?) ? 600 : 400,
+                marginBottom: ln.startsWith('銆?) ? 2 : 8,
               }}>{ln}</div>
             ))}
           </div>
@@ -1595,11 +1586,11 @@ function NewHexagram({ theme, initialQuestion = '', entryId = '', diaryContext =
             fontSize:16, fontWeight:600, letterSpacing:3, fontFamily:"'Noto Serif SC',serif",
             cursor: question.trim() ? 'pointer' : 'default',
             boxShadow: question.trim() ? `0 8px 24px ${theme.seal}44` : 'none',
-          }}>求 AI 解 签</button>
+          }}>姹?AI 瑙?绛?/button>
         )}
         {step==='loading' && (
           <div style={{ textAlign:'center', padding:'12px 0' }}>
-            <div className="serif" style={{ fontSize:14, color:theme.textSoft, letterSpacing:3 }}>正在解卦…</div>
+            <div className="serif" style={{ fontSize:14, color:theme.textSoft, letterSpacing:3 }}>姝ｅ湪瑙ｅ崷鈥?/div>
           </div>
         )}
         {step==='done' && (
@@ -1608,14 +1599,14 @@ function NewHexagram({ theme, initialQuestion = '', entryId = '', diaryContext =
               flex:1, height:50, borderRadius:25, border:`0.5px solid ${theme.line}`,
               background:'transparent', color:theme.textSoft,
               fontSize:14, fontFamily:'inherit', cursor:'pointer', letterSpacing:1,
-            }}>换一卦</button>
+            }}>鎹竴鍗?/button>
             <button onClick={doSave} disabled={saving} style={{
               flex:1.4, height:50, borderRadius:25, border:'none',
               background: saving ? theme.surfaceSoft : theme.text,
               color: saving ? theme.textMute : theme.bg,
               fontSize:15, fontWeight:600, letterSpacing:3, fontFamily:'inherit',
               cursor: saving ? 'default' : 'pointer',
-            }}>{saving?'保存中…':'存 此 一 卦'}</button>
+            }}>{saving?'淇濆瓨涓€?:'瀛?姝?涓€ 鍗?}</button>
           </div>
         )}
       </div>
@@ -1623,7 +1614,7 @@ function NewHexagram({ theme, initialQuestion = '', entryId = '', diaryContext =
   );
 }
 
-// ─── Main App ──────────────────────────────────────────────────────
+// 鈹€鈹€鈹€ Main App 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function GuardedNewHexagram({ theme, params, parentHex, onBack, onSaved }) {
   const [unlocked, setUnlocked] = React.useState(false);
   const now = new Date();
@@ -1638,27 +1629,24 @@ function GuardedNewHexagram({ theme, params, parentHex, onBack, onSaved }) {
   const needsGate = !unlocked && (cooling || isZiHour || isWuHour);
 
   if (needsGate) {
-    const timeReason = isZiHour ? '现在是子时（23:00–01:00）' : isWuHour ? '现在是午时（11:00–13:00）' : '';
+    const timeReason = isZiHour ? '鐜板湪鏄瓙鏃讹紙23:00鈥?1:00锛? : isWuHour ? '鐜板湪鏄崍鏃讹紙11:00鈥?3:00锛? : '';
     return (
       <div style={{ width: W, height: H, background: theme.paper, padding: '76px 28px 36px', display: 'flex', flexDirection: 'column' }}>
-        <button type="button" onClick={onBack} style={{ alignSelf: 'flex-start', border: 'none', background: 'transparent', color: theme.textSoft, fontFamily: 'inherit', cursor: 'pointer', padding: 0 }}>返回</button>
+        <button type="button" onClick={onBack} style={{ alignSelf: 'flex-start', border: 'none', background: 'transparent', color: theme.textSoft, fontFamily: 'inherit', cursor: 'pointer', padding: 0 }}>杩斿洖</button>
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-          <div className="serif" style={{ color: theme.text, fontSize: 30, letterSpacing: 5 }}>静候，再问</div>
+          <div className="serif" style={{ color: theme.text, fontSize: 30, letterSpacing: 5 }}>闈欏€欙紝鍐嶉棶</div>
           <div style={{ width: 34, height: 1, background: theme.accent, margin: '22px 0' }}/>
           {cooling && <div style={{ color: theme.text, fontSize: 15, lineHeight: 1.9, marginBottom: 14 }}>
-            这是对「{parentHex.question || '上一卦'}」的再次起卦。应用建议同一问卦链先静候 3 天，再观察事情是否已有变化。
-          </div>}
+            杩欐槸瀵广€寋parentHex.question || '涓婁竴鍗?}銆嶇殑鍐嶆璧峰崷銆傚簲鐢ㄥ缓璁悓涓€闂崷閾惧厛闈欏€?3 澶╋紝鍐嶈瀵熶簨鎯呮槸鍚﹀凡鏈夊彉鍖栥€?          </div>}
           {timeReason && <div style={{ color: theme.text, fontSize: 15, lineHeight: 1.9, marginBottom: 14 }}>
-            {timeReason}。部分流派会避开子时、午时起卦；这不是统一规则，应用仅作提醒。
-          </div>}
+            {timeReason}銆傞儴鍒嗘祦娲句細閬垮紑瀛愭椂銆佸崍鏃惰捣鍗︼紱杩欎笉鏄粺涓€瑙勫垯锛屽簲鐢ㄤ粎浣滄彁閱掋€?          </div>}
           {cooling && unlockAt && <div style={{ color: theme.textMute, fontSize: 12, lineHeight: 1.8 }}>
-            建议解锁时间：{unlockAt.toLocaleString('zh-CN', { hour12: false })}
+            寤鸿瑙ｉ攣鏃堕棿锛歿unlockAt.toLocaleString('zh-CN', { hour12: false })}
           </div>}
           <div style={{ color: theme.textMute, fontSize: 11.5, lineHeight: 1.8, marginTop: 18 }}>
-            “初筮告，再三渎，渎则不告”强调避免因焦虑而反复求同一答案；3 天是本应用的反思期设置，并非所有传统的固定天数。
-          </div>
+            鈥滃垵绛憡锛屽啀涓夋笌锛屾笌鍒欎笉鍛娾€濆己璋冮伩鍏嶅洜鐒﹁檻鑰屽弽澶嶆眰鍚屼竴绛旀锛? 澶╂槸鏈簲鐢ㄧ殑鍙嶆€濇湡璁剧疆锛屽苟闈炴墍鏈変紶缁熺殑鍥哄畾澶╂暟銆?          </div>
         </div>
-        <button type="button" onClick={() => setUnlocked(true)} style={{ height: 50, borderRadius: 25, border: 'none', background: theme.text, color: theme.bg, fontFamily: 'inherit', fontSize: 15, letterSpacing: 2, cursor: 'pointer' }}>我已想清楚，仍然起卦</button>
+        <button type="button" onClick={() => setUnlocked(true)} style={{ height: 50, borderRadius: 25, border: 'none', background: theme.text, color: theme.bg, fontFamily: 'inherit', fontSize: 15, letterSpacing: 2, cursor: 'pointer' }}>鎴戝凡鎯虫竻妤氾紝浠嶇劧璧峰崷</button>
       </div>
     );
   }
@@ -1681,14 +1669,14 @@ function AutoPoemShake({ theme, entry, style = poemStyle(), onBack, onAccepted }
     running.current = true;
     setState('shaking'); setError(''); setNotice('');
     const slowTimer = setTimeout(() => {
-      setNotice('生成时间有点久。签还在路上，如果稍后失败，可以直接轻触重试。');
+      setNotice('鐢熸垚鏃堕棿鏈夌偣涔呫€傜杩樺湪璺笂锛屽鏋滅◢鍚庡け璐ワ紝鍙互鐩存帴杞昏Е閲嶈瘯銆?);
     }, 12000);
     try {
       const generated = await apiPoem(entry.body, style);
       setResult(generated);
       setState('done');
     } catch (err) {
-      setError(friendlyAiError(err, '摇签生诗'));
+      setError(friendlyAiError(err, '鎽囩鐢熻瘲'));
       setState('ready');
     } finally {
       clearTimeout(slowTimer);
@@ -1701,7 +1689,7 @@ function AutoPoemShake({ theme, entry, style = poemStyle(), onBack, onAccepted }
       try {
         const permission = await DeviceMotionEvent.requestPermission();
         if (permission !== 'granted') {
-          setError('没有获得摇晃感应权限，也可以点这里直接落签。');
+          setError('娌℃湁鑾峰緱鎽囨檭鎰熷簲鏉冮檺锛屼篃鍙互鐐硅繖閲岀洿鎺ヨ惤绛俱€?);
         }
       } catch (_) {
         // Some browsers expose the API but do not allow permission prompts.
@@ -1726,7 +1714,7 @@ function AutoPoemShake({ theme, entry, style = poemStyle(), onBack, onAccepted }
 
   const displayEntry = {
     ...entry,
-    poem: poemFromAiResult(result) || { title: '待落', form: '', lines: ['', '', '', ''] },
+    poem: poemFromAiResult(result) || { title: '寰呰惤', form: '', lines: ['', '', '', ''] },
     sign: signFromAiResult(result),
   };
 
@@ -1736,7 +1724,7 @@ function AutoPoemShake({ theme, entry, style = poemStyle(), onBack, onAccepted }
     try {
       await onAccepted(patchFromAiPoemResult(result, entry));
     } catch (err) {
-      setError(err?.message || '收入失败，请稍后重试。');
+      setError(err?.message || '鏀跺叆澶辫触锛岃绋嶅悗閲嶈瘯銆?);
       setSaving(false);
     }
   };
@@ -1750,25 +1738,25 @@ function normalizeEmail(value) {
   return String(value || '').trim().toLowerCase();
 }
 
-const PASSWORD_RESET_SENT_MESSAGE = '重置密码邮件已发送。只会发送到已注册邮箱；如果 2 分钟内没收到，请检查垃圾箱，并确认邮箱地址无误。';
+const PASSWORD_RESET_SENT_MESSAGE = '閲嶇疆瀵嗙爜閭欢宸插彂閫併€傚彧浼氬彂閫佸埌宸叉敞鍐岄偖绠憋紱濡傛灉 2 鍒嗛挓鍐呮病鏀跺埌锛岃妫€鏌ュ瀮鍦剧锛屽苟纭閭鍦板潃鏃犺銆?;
 
 function friendlyAuthError(error) {
   const messages = {
-    'auth/email-already-in-use': '这个邮箱已经注册，请直接登录。',
-    'auth/invalid-email': '邮箱格式不正确。',
-    'auth/missing-email': '请先填写邮箱地址。',
-    'auth/invalid-credential': '邮箱或密码不正确。',
-    'auth/wrong-password': '邮箱或密码不正确。',
-    'auth/user-not-found': '没有找到这个邮箱账户。',
-    'auth/weak-password': '密码至少需要 6 位。',
-    'auth/credential-already-in-use': '这个邮箱已经绑定到其他账户。',
-    'auth/provider-already-linked': '当前账户已经绑定邮箱。',
-    'auth/too-many-requests': '尝试次数过多，请稍后再试。',
-    'auth/unauthorized-domain': '当前域名未加入 Firebase Authentication 的授权域名，邮件无法发送。',
-    'auth/network-request-failed': '网络连接失败，请稍后再试。',
-    'auth/operation-not-allowed': '请先在 Firebase Console 开启“电子邮件/密码”登录。',
+    'auth/email-already-in-use': '杩欎釜閭宸茬粡娉ㄥ唽锛岃鐩存帴鐧诲綍銆?,
+    'auth/invalid-email': '閭鏍煎紡涓嶆纭€?,
+    'auth/missing-email': '璇峰厛濉啓閭鍦板潃銆?,
+    'auth/invalid-credential': '閭鎴栧瘑鐮佷笉姝ｇ‘銆?,
+    'auth/wrong-password': '閭鎴栧瘑鐮佷笉姝ｇ‘銆?,
+    'auth/user-not-found': '娌℃湁鎵惧埌杩欎釜閭璐︽埛銆?,
+    'auth/weak-password': '瀵嗙爜鑷冲皯闇€瑕?6 浣嶃€?,
+    'auth/credential-already-in-use': '杩欎釜閭宸茬粡缁戝畾鍒板叾浠栬处鎴枫€?,
+    'auth/provider-already-linked': '褰撳墠璐︽埛宸茬粡缁戝畾閭銆?,
+    'auth/too-many-requests': '灏濊瘯娆℃暟杩囧锛岃绋嶅悗鍐嶈瘯銆?,
+    'auth/unauthorized-domain': '褰撳墠鍩熷悕鏈姞鍏?Firebase Authentication 鐨勬巿鏉冨煙鍚嶏紝閭欢鏃犳硶鍙戦€併€?,
+    'auth/network-request-failed': '缃戠粶杩炴帴澶辫触锛岃绋嶅悗鍐嶈瘯銆?,
+    'auth/operation-not-allowed': '璇峰厛鍦?Firebase Console 寮€鍚€滅數瀛愰偖浠?瀵嗙爜鈥濈櫥褰曘€?,
   };
-  return messages[error?.code] || error?.message || '操作失败，请稍后重试。';
+  return messages[error?.code] || error?.message || '鎿嶄綔澶辫触锛岃绋嶅悗閲嶈瘯銆?;
 }
 
 function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPasswordReset, loading }) {
@@ -1781,7 +1769,7 @@ function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPas
     setMessage('');
     const normalizedEmail = normalizeEmail(email);
     if (!normalizedEmail || password.length < 6) {
-      setMessage('请输入邮箱，并使用至少 6 位密码。');
+      setMessage('璇疯緭鍏ラ偖绠憋紝骞朵娇鐢ㄨ嚦灏?6 浣嶅瘑鐮併€?);
       return;
     }
     setBusy(true);
@@ -1796,7 +1784,7 @@ function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPas
   const reset = async () => {
     const normalizedEmail = normalizeEmail(email);
     if (!normalizedEmail) {
-      setMessage('请先填写邮箱地址。');
+      setMessage('璇峰厛濉啓閭鍦板潃銆?);
       return;
     }
     setBusy(true);
@@ -1821,10 +1809,10 @@ function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPas
       ...skin(theme, 'screen'),
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-        <img src="assets/icons/app-icon-192.png" alt="诗签" style={{ width: 58, height: 58, borderRadius: 15 }}/>
+        <img src="assets/icons/app-icon-192.png" alt="璇楃" style={{ width: 58, height: 58, borderRadius: 15 }}/>
         <div>
-          <div className="serif" style={{ fontSize: 28, letterSpacing: 5 }}>诗签</div>
-          <div style={{ fontSize: 11, color: theme.textSoft, marginTop: 5, letterSpacing: 2 }}>写日记，也收藏诗与句子</div>
+          <div className="serif" style={{ fontSize: 28, letterSpacing: 5 }}>璇楃</div>
+          <div style={{ fontSize: 11, color: theme.textSoft, marginTop: 5, letterSpacing: 2 }}>鍐欐棩璁帮紝涔熸敹钘忚瘲涓庡彞瀛?/div>
         </div>
       </div>
       <div style={{
@@ -1832,7 +1820,7 @@ function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPas
         borderRadius: 18, padding: 20, ...skin(theme, 'panel'),
       }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5, background: theme.surfaceSoft, padding: 4, borderRadius: 11 }}>
-          {[['login', '邮箱登录'], ['register', '注册邮箱']].map(([key, label]) => (
+          {[['login', '閭鐧诲綍'], ['register', '娉ㄥ唽閭']].map(([key, label]) => (
             <button key={key} type="button" onClick={() => { setMode(key); setMessage(''); }} style={{
               height: 36, border: 0, borderRadius: 8, fontFamily: 'inherit', cursor: 'pointer',
               background: mode === key ? theme.paper : 'transparent',
@@ -1841,32 +1829,31 @@ function AuthChoiceScreen({ theme, onGuest, onEmailLogin, onEmailRegister, onPas
           ))}
         </div>
         <input type="email" value={email} onChange={event => setEmail(event.target.value)}
-          placeholder="邮箱地址" autoComplete="email" style={{ ...inputStyle, marginTop: 16 }}/>
+          placeholder="閭鍦板潃" autoComplete="email" style={{ ...inputStyle, marginTop: 16 }}/>
         <input type="password" value={password} onChange={event => setPassword(event.target.value)}
-          placeholder={mode === 'register' ? '设置密码（至少 6 位）' : '密码'}
+          placeholder={mode === 'register' ? '璁剧疆瀵嗙爜锛堣嚦灏?6 浣嶏級' : '瀵嗙爜'}
           autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
           onKeyDown={event => event.key === 'Enter' && submit()}
           style={{ ...inputStyle, marginTop: 10 }}/>
         <button type="button" disabled={busy} onClick={submit} style={{
           width: '100%', height: 48, marginTop: 14, border: 0, borderRadius: 12,
           background: theme.text, color: theme.paper, fontFamily: 'inherit', fontSize: 15,
-        }}>{busy ? '请稍候…' : mode === 'register' ? '注册并开始写日记' : '登录'}</button>
+        }}>{busy ? '璇风◢鍊欌€? : mode === 'register' ? '娉ㄥ唽骞跺紑濮嬪啓鏃ヨ' : '鐧诲綍'}</button>
         {mode === 'login' && <button type="button" disabled={busy} onClick={reset} style={{
           width: '100%', border: 0, background: 'transparent', color: theme.textSoft,
           fontFamily: 'inherit', fontSize: 12, marginTop: 12,
-        }}>忘记密码</button>}
+        }}>蹇樿瀵嗙爜</button>}
         {message && <div style={{ color: theme.textSoft, fontSize: 11.5, lineHeight: 1.6, marginTop: 10 }}>{message}</div>}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '24px 0', color: theme.textMute, fontSize: 11 }}>
-        <i style={{ flex: 1, borderTop: `1px solid ${theme.line}` }}/><span>或者</span><i style={{ flex: 1, borderTop: `1px solid ${theme.line}` }}/>
+        <i style={{ flex: 1, borderTop: `1px solid ${theme.line}` }}/><span>鎴栬€?/span><i style={{ flex: 1, borderTop: `1px solid ${theme.line}` }}/>
       </div>
       <button type="button" disabled={loading} onClick={onGuest} style={{
         width: '100%', height: 46, border: `1px solid ${theme.line}`, borderRadius: 12,
         background: theme.paper, color: theme.text, fontFamily: 'inherit',
-      }}>{loading ? '正在进入…' : '先匿名使用'}</button>
+      }}>{loading ? '姝ｅ湪杩涘叆鈥? : '鍏堝尶鍚嶄娇鐢?}</button>
       <div style={{ marginTop: 12, color: theme.textMute, fontSize: 10.5, lineHeight: 1.7, textAlign: 'center' }}>
-        匿名使用后，也可以在“我”中绑定邮箱并保留全部日记。
-      </div>
+        鍖垮悕浣跨敤鍚庯紝涔熷彲浠ュ湪鈥滄垜鈥濅腑缁戝畾閭骞朵繚鐣欏叏閮ㄦ棩璁般€?      </div>
     </div>
   );
 }
@@ -1887,14 +1874,14 @@ function BindEmailNudge({ theme, onBindEmail, onClose }) {
   const bind = async () => {
     setMessage('');
     const normalizedEmail = normalizeEmail(email);
-    if (!normalizedEmail || password.length < 6) { setMessage('请输入邮箱，并使用至少 6 位密码。'); return; }
+    if (!normalizedEmail || password.length < 6) { setMessage('璇疯緭鍏ラ偖绠憋紝骞朵娇鐢ㄨ嚦灏?6 浣嶅瘑鐮併€?); return; }
     setBusy(true);
     try {
       await onBindEmail(normalizedEmail, password);
       setDone(true);
       localStorage.setItem('d-bindNudgeDone', '1');
     } catch (error) {
-      setMessage(typeof friendlyAuthError === 'function' ? friendlyAuthError(error) : (error?.message || '绑定失败，请稍后重试。'));
+      setMessage(typeof friendlyAuthError === 'function' ? friendlyAuthError(error) : (error?.message || '缁戝畾澶辫触锛岃绋嶅悗閲嶈瘯銆?));
     } finally { setBusy(false); }
   };
 
@@ -1917,48 +1904,45 @@ function BindEmailNudge({ theme, onBindEmail, onClose }) {
       }}>
         {done ? (
           <>
-            <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 1 }}>已绑定，日记安全了</div>
+            <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 1 }}>宸茬粦瀹氾紝鏃ヨ瀹夊叏浜?/div>
             <div style={{ marginTop: 10, color: theme.textSoft, fontSize: 13, lineHeight: 1.8 }}>
-              现在可以在任意设备用这个邮箱登录，找回全部日记。已向邮箱发送了验证邮件。
-            </div>
+              鐜板湪鍙互鍦ㄤ换鎰忚澶囩敤杩欎釜閭鐧诲綍锛屾壘鍥炲叏閮ㄦ棩璁般€傚凡鍚戦偖绠卞彂閫佷簡楠岃瘉閭欢銆?            </div>
             <button type="button" onClick={finish} style={{
               width: '100%', height: 46, marginTop: 18, border: 0, borderRadius: 12,
               background: theme.text, color: theme.paper, fontFamily: 'inherit', fontSize: 14, cursor: 'pointer',
-            }}>好的</button>
+            }}>濂界殑</button>
           </>
         ) : (
           <>
-            <div style={{ fontSize: 10.5, letterSpacing: 3, color: theme.seal, fontWeight: 600 }}>留 住 你 写 下 的</div>
-            <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 1, marginTop: 8 }}>给日记绑定一个邮箱</div>
+            <div style={{ fontSize: 10.5, letterSpacing: 3, color: theme.seal, fontWeight: 600 }}>鐣?浣?浣?鍐?涓?鐨?/div>
+            <div className="serif" style={{ fontSize: 22, color: theme.text, letterSpacing: 1, marginTop: 8 }}>缁欐棩璁扮粦瀹氫竴涓偖绠?/div>
             <div style={{ marginTop: 10, color: theme.textSoft, fontSize: 13, lineHeight: 1.8 }}>
-              现在的日记保存在这台设备的匿名账户里，清除浏览器数据或换设备后会找不回。
-              绑定邮箱后日记仍是同一份，还能跨设备同步 —— 只需半分钟。
-            </div>
+              鐜板湪鐨勬棩璁颁繚瀛樺湪杩欏彴璁惧鐨勫尶鍚嶈处鎴烽噷锛屾竻闄ゆ祻瑙堝櫒鏁版嵁鎴栨崲璁惧鍚庝細鎵句笉鍥炪€?              缁戝畾閭鍚庢棩璁颁粛鏄悓涓€浠斤紝杩樿兘璺ㄨ澶囧悓姝?鈥斺€?鍙渶鍗婂垎閽熴€?            </div>
             {!show ? (
               <div style={{ marginTop: 18, display: 'grid', gap: 10 }}>
                 <button type="button" onClick={() => setShow(true)} style={{
                   height: 48, border: 0, borderRadius: 12, background: theme.text, color: theme.paper,
                   fontFamily: 'inherit', fontSize: 14, fontWeight: 600, letterSpacing: 1, cursor: 'pointer',
-                }}>绑定邮箱并保留日记</button>
+                }}>缁戝畾閭骞朵繚鐣欐棩璁?/button>
                 <button type="button" onClick={later} style={{
                   height: 44, border: `1px solid ${theme.line}`, borderRadius: 12, background: 'transparent',
                   color: theme.textSoft, fontFamily: 'inherit', fontSize: 13, cursor: 'pointer',
-                }}>以后再说</button>
+                }}>浠ュ悗鍐嶈</button>
               </div>
             ) : (
               <>
                 <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                  placeholder="邮箱地址" autoComplete="email" style={input}/>
+                  placeholder="閭鍦板潃" autoComplete="email" style={input}/>
                 <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="设置密码（至少 6 位）" autoComplete="new-password" style={input}/>
+                  placeholder="璁剧疆瀵嗙爜锛堣嚦灏?6 浣嶏級" autoComplete="new-password" style={input}/>
                 <button type="button" disabled={busy} onClick={bind} style={{
                   width: '100%', height: 46, marginTop: 12, border: 0, borderRadius: 12,
                   background: theme.text, color: theme.paper, fontFamily: 'inherit', fontSize: 14, cursor: 'pointer',
-                }}>{busy ? '绑定中…' : '完成绑定'}</button>
+                }}>{busy ? '缁戝畾涓€? : '瀹屾垚缁戝畾'}</button>
                 <button type="button" onClick={later} style={{
                   width: '100%', height: 40, marginTop: 8, border: 0, background: 'transparent',
                   color: theme.textMute, fontFamily: 'inherit', fontSize: 12, cursor: 'pointer',
-                }}>以后再说</button>
+                }}>浠ュ悗鍐嶈</button>
               </>
             )}
             {message && <div style={{ color: theme.seal, fontSize: 11.5, lineHeight: 1.6, marginTop: 10 }}>{message}</div>}
@@ -2029,7 +2013,7 @@ function AppReal() {
 
   const updateEntry = async (id, patch) => {
     const current = entries.find(e => e.id === id);
-    if (!current) throw new Error('找不到这篇日记');
+    if (!current) throw new Error('鎵句笉鍒拌繖绡囨棩璁?);
     await dbSaveEntry({ ...current, ...patch, id });
     await refresh();
   };
@@ -2080,8 +2064,8 @@ function AppReal() {
 
   const handleSignOut = async () => {
     const message = currentUser?.isAnonymous
-      ? '当前是匿名账号。退出后可能无法再访问旧数据。建议先绑定邮箱或备份数据。确定仍要退出吗？'
-      : `确定退出邮箱账户 ${currentUser?.email || ''} 吗？日记会保留在账户中，下次登录后仍可访问。`;
+      ? '褰撳墠鏄尶鍚嶈处鍙枫€傞€€鍑哄悗鍙兘鏃犳硶鍐嶈闂棫鏁版嵁銆傚缓璁厛缁戝畾閭鎴栧浠芥暟鎹€傜‘瀹氫粛瑕侀€€鍑哄悧锛?
+      : `纭畾閫€鍑洪偖绠辫处鎴?${currentUser?.email || ''} 鍚楋紵鏃ヨ浼氫繚鐣欏湪璐︽埛涓紝涓嬫鐧诲綍鍚庝粛鍙闂€俙;
     if (!window.confirm(message)) return;
     await firebase.auth().signOut();
     setEntries([]); setHexagrams([]); setStack([{ screen: 'home', params: {} }]);
@@ -2091,13 +2075,13 @@ function AppReal() {
   const handleStart = async () => {
     setStartLoading(true);
     try { await firebase.auth().signInAnonymously(); }
-    catch (e) { alert('请先在 Firebase Console → Authentication 开启 Anonymous 匿名登录'); setStartLoading(false); }
+    catch (e) { alert('璇峰厛鍦?Firebase Console 鈫?Authentication 寮€鍚?Anonymous 鍖垮悕鐧诲綍'); setStartLoading(false); }
   };
 
   const handleBindEmail = async (email, password) => {
     const user = firebase.auth().currentUser;
-    if (!user) throw new Error('当前没有可绑定的账户。');
-    if (!user.isAnonymous) throw new Error('当前账户已经绑定邮箱。');
+    if (!user) throw new Error('褰撳墠娌℃湁鍙粦瀹氱殑璐︽埛銆?);
+    if (!user.isAnonymous) throw new Error('褰撳墠璐︽埛宸茬粡缁戝畾閭銆?);
     const credential = firebase.auth.EmailAuthProvider.credential(normalizeEmail(email), password);
     const result = await user.linkWithCredential(credential);
     await result.user.sendEmailVerification().catch(() => {});
@@ -2215,7 +2199,7 @@ function AppReal() {
         } : null}
         onSavePoemVariant={async (style, poemPatch) => {
           const poem = normalizePoemRecord({ ...poemPatch, style });
-          if (!poem) throw new Error(style === 'en-sonnet' ? '英文诗需要 14 行。' : '中文诗需要 4 句。');
+          if (!poem) throw new Error(style === 'en-sonnet' ? '鑻辨枃璇楅渶瑕?14 琛屻€? : '涓枃璇楅渶瑕?4 鍙ャ€?);
           const variants = {
             ...(entry.poemVariants || {}),
             [style]: {
@@ -2292,8 +2276,8 @@ function AppReal() {
         rootHexId: hex.rootHexId || hex.id,
         entryId: hex.entryId || '',
         diaryContext: hex.diaryContext || '',
-        question: `关于「${hex.question || '上一卦'}」，我想进一步问：`,
-        parentContext: `原问题：${hex.question || ''}\n原卦：${hex.name || '未定'}${hex.changedHexName ? ` → ${hex.changedHexName}` : ''}\n原解签：${hex.interp || ''}`,
+        question: `鍏充簬銆?{hex.question || '涓婁竴鍗?}銆嶏紝鎴戞兂杩涗竴姝ラ棶锛歚,
+        parentContext: `鍘熼棶棰橈細${hex.question || ''}\n鍘熷崷锛?{hex.name || '鏈畾'}${hex.changedHexName ? ` 鈫?${hex.changedHexName}` : ''}\n鍘熻В绛撅細${hex.interp || ''}`,
       })} onTab={tabHandler}/>;
 
     case 'settings':
@@ -2344,16 +2328,16 @@ class AppErrorBoundary extends React.Component {
     return { error };
   }
   componentDidCatch(error, info) {
-    console.error('应用运行错误:', error, info);
+    console.error('搴旂敤杩愯閿欒:', error, info);
   }
   render() {
     if (!this.state.error) return this.props.children;
     return (
       <div style={{ width: W, minHeight: H, padding: '80px 28px', background: '#fff7f3', color: '#5b3028', fontFamily: 'sans-serif' }}>
-        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 14 }}>页面运行出错</div>
+        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 14 }}>椤甸潰杩愯鍑洪敊</div>
         <div style={{ fontSize: 13, lineHeight: 1.7, wordBreak: 'break-word' }}>{this.state.error.message}</div>
-        <div style={{ fontSize: 11, marginTop: 12, opacity: .65 }}>版本 {APP_BUILD}</div>
-        <button onClick={() => location.reload()} style={{ marginTop: 24, height: 44, padding: '0 22px', border: 0, borderRadius: 22, background: '#5b3028', color: '#fff' }}>重新加载</button>
+        <div style={{ fontSize: 11, marginTop: 12, opacity: .65 }}>鐗堟湰 {APP_BUILD}</div>
+        <button onClick={() => location.reload()} style={{ marginTop: 24, height: 44, padding: '0 22px', border: 0, borderRadius: 22, background: '#5b3028', color: '#fff' }}>閲嶆柊鍔犺浇</button>
       </div>
     );
   }

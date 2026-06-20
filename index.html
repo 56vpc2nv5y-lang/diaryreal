@@ -9,9 +9,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="诗签">
 <meta name="theme-color" content="#E2EDE5">
-<link rel="manifest" href="manifest.webmanifest?v=2026.06.20-r70">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=2026.06.20-r70">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=2026.06.20-r70">
+<link rel="manifest" href="manifest.webmanifest?v=2026.06.20-r71">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=2026.06.20-r71">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=2026.06.20-r71">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=ZCOOL+XiaoWei&display=swap">
@@ -739,10 +739,8 @@
   }
   .theme-poem-hero-sonnet {
     background:
-      radial-gradient(circle at 12% 10%, rgba(255,238,162,.26), transparent 25%),
-      radial-gradient(circle at 88% 20%, rgba(62,93,101,.12), transparent 28%),
-      radial-gradient(circle at 72% 88%, rgba(205,151,62,.16), transparent 30%),
-      url("assets/themes/generated/magic-vellum-r70.svg") center / cover no-repeat,
+      linear-gradient(180deg, rgba(255,247,223,.18), rgba(108,76,38,.10)),
+      url("assets/themes/generated/magic-parchment-r71.png") center / cover no-repeat,
       linear-gradient(180deg, rgba(255,252,241,.74), rgba(244,235,213,.86)) !important;
     box-shadow: 0 22px 56px rgba(73,55,32,.15) !important;
   }
@@ -759,11 +757,8 @@
     border-radius: 8px;
     border: 1px solid rgba(121,88,46,.28);
     background:
-      linear-gradient(100deg, rgba(255,255,255,.58), transparent 22%, transparent 78%, rgba(126,86,34,.10)),
-      radial-gradient(circle at 18% 12%, rgba(255,255,255,.70), transparent 24%),
-      radial-gradient(circle at 92% 82%, rgba(211,158,61,.20), transparent 27%),
-      radial-gradient(circle at 12% 92%, rgba(54,86,92,.12), transparent 29%),
-      url("assets/themes/generated/magic-vellum-r70.svg") center / cover no-repeat,
+      linear-gradient(100deg, rgba(255,255,255,.16), transparent 25%, transparent 75%, rgba(126,86,34,.08)),
+      url("assets/themes/generated/magic-parchment-r71.png") center / cover no-repeat,
       linear-gradient(145deg, #fffaf0 0%, #f0dfbd 58%, #fff3d7 100%);
     box-shadow:
       inset 0 0 0 1px rgba(255,255,255,.52),
@@ -793,7 +788,7 @@
       radial-gradient(circle at 74% 12%, rgba(222,176,71,.22) 0 1px, transparent 2px),
       radial-gradient(circle at 86% 78%, rgba(222,176,71,.24) 0 1px, transparent 2px);
     background-size: 100% 100%, 92px 74px, 118px 86px, 104px 94px;
-    opacity: .78;
+    opacity: .30;
     z-index: 0;
     animation: magic-candle-pulse 6.8s ease-in-out infinite;
   }
@@ -814,6 +809,13 @@
   .poem-body-en .text-particle-aura i {
     color: #c99a35;
     text-shadow: 0 0 12px rgba(222, 174, 75, .48), 0 0 26px rgba(83, 58, 26, .18);
+  }
+  .poem-body-en-text {
+    position: relative;
+    z-index: 3;
+    width: min(610px, 100%);
+    margin: 0 auto;
+    padding: 2px clamp(0px, 1.2vw, 12px);
   }
   .magic-english-layer {
     position: absolute !important;
@@ -1138,8 +1140,9 @@
   }
   .quote-box-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(176px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 248px));
+    justify-content: center;
+    gap: 38px 52px;
     align-items: start;
   }
   .quote-box-grid > .serif {
@@ -1148,7 +1151,7 @@
   .quote-mystery-box {
     appearance: none;
     width: 100%;
-    min-height: 214px;
+    min-height: 278px;
     border: none;
     background: transparent;
     color: var(--quote-text);
@@ -1156,7 +1159,7 @@
     text-align: center;
     cursor: pointer;
     position: relative;
-    perspective: 900px;
+    perspective: 1100px;
     padding: 0;
     transform: translateZ(0);
     transition: transform .28s ease, filter .28s ease;
@@ -1167,23 +1170,23 @@
   .quote-mystery-box::before {
     content: "";
     position: absolute;
-    left: 14%;
-    right: 14%;
-    bottom: 12px;
-    height: 20px;
+    left: 10%;
+    right: 10%;
+    bottom: 22px;
+    height: 28px;
     border-radius: 50%;
-    background: rgba(27, 67, 62, .16);
-    filter: blur(14px);
+    background: rgba(27, 67, 62, .18);
+    filter: blur(16px);
     transition: opacity .42s ease, transform .42s ease;
   }
   .quote-mystery-glow {
     position: absolute;
-    inset: 18px 8px 24px;
-    border-radius: 30px;
+    inset: 8px 2px 28px;
+    border-radius: 34px;
     background:
-      radial-gradient(circle at 50% 12%, rgba(255,255,255,.68), transparent 42%),
-      radial-gradient(circle at 50% 78%, color-mix(in srgb, var(--quote-accent) 22%, transparent), transparent 58%);
-    opacity: .76;
+      radial-gradient(circle at 50% 7%, rgba(255,255,255,.82), transparent 36%),
+      radial-gradient(circle at 50% 72%, color-mix(in srgb, var(--quote-accent) 22%, transparent), transparent 58%);
+    opacity: .84;
     pointer-events: none;
     transition: opacity .42s ease, transform .42s ease;
   }
@@ -1207,27 +1210,36 @@
   }
   .quote-mystery-lid {
     position: absolute;
-    left: 14%;
-    right: 14%;
-    top: 28px;
-    height: 48px;
-    border-radius: 12px 12px 7px 7px;
+    left: 5%;
+    right: 5%;
+    top: 34px;
+    height: 60px;
+    border-radius: 14px 14px 8px 8px;
     background:
-      linear-gradient(135deg, rgba(255,255,255,.62), rgba(255,255,255,.08)),
-      repeating-linear-gradient(90deg, rgba(98, 118, 112, .08) 0 1px, transparent 1px 10px),
-      var(--quote-surface);
+      linear-gradient(180deg, rgba(255,255,255,.66), rgba(255,255,255,.18)),
+      linear-gradient(90deg, transparent 0 36%, color-mix(in srgb, var(--quote-seal) 16%, transparent) 36% 64%, transparent 64% 100%),
+      repeating-linear-gradient(90deg, rgba(98, 118, 112, .075) 0 1px, transparent 1px 11px),
+      color-mix(in srgb, var(--quote-paper) 88%, white);
     border: 1px solid var(--quote-line);
-    box-shadow: inset 0 -10px 20px rgba(59, 79, 72, .08), 0 10px 22px rgba(43, 74, 70, .09);
+    box-shadow: inset 0 -12px 22px rgba(59, 79, 72, .10), 0 12px 24px rgba(43, 74, 70, .12);
     transform-origin: 50% 100%;
-    transition: transform .72s cubic-bezier(.16,1,.3,1), top .72s cubic-bezier(.16,1,.3,1);
+    transition: transform .82s cubic-bezier(.16,1,.3,1), top .82s cubic-bezier(.16,1,.3,1), opacity .42s ease;
     z-index: 4;
+  }
+  .quote-mystery-lid::before {
+    content: "";
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    bottom: -1px;
+    border-bottom: 1px dashed color-mix(in srgb, var(--quote-seal) 34%, transparent);
   }
   .quote-mystery-lid span {
     position: absolute;
     left: 50%;
-    top: -8px;
-    width: 48px;
-    height: 18px;
+    top: -9px;
+    width: 58px;
+    height: 20px;
     border-radius: 50%;
     transform: translateX(-50%);
     border: 1px solid color-mix(in srgb, var(--quote-accent) 52%, transparent);
@@ -1235,29 +1247,54 @@
   }
   .quote-mystery-body {
     position: absolute;
-    left: 18%;
-    right: 18%;
-    top: 72px;
-    bottom: 28px;
-    border-radius: 9px 9px 18px 18px;
+    left: 11%;
+    right: 11%;
+    top: 86px;
+    bottom: 42px;
+    border-radius: 8px 8px 22px 22px;
     background:
-      linear-gradient(90deg, rgba(255,255,255,.42), transparent 34%, rgba(255,255,255,.28)),
+      linear-gradient(90deg, rgba(255,255,255,.54), transparent 22%, transparent 78%, rgba(255,255,255,.28)),
+      linear-gradient(90deg, transparent 0 43%, color-mix(in srgb, var(--quote-seal) 20%, transparent) 43% 57%, transparent 57% 100%),
       repeating-linear-gradient(0deg, rgba(44, 92, 85, .04) 0 1px, transparent 1px 12px),
-      color-mix(in srgb, var(--quote-surface) 88%, white);
+      color-mix(in srgb, var(--quote-surface) 90%, white);
     border: 1px solid var(--quote-line);
-    box-shadow: inset 10px 0 16px rgba(255,255,255,.34), inset -10px 0 16px rgba(60, 90, 82, .06);
+    box-shadow:
+      inset 10px 0 16px rgba(255,255,255,.34),
+      inset -10px 0 16px rgba(60, 90, 82, .06),
+      0 12px 26px rgba(43, 74, 70, .12);
     z-index: 2;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    transition: transform .58s cubic-bezier(.16,1,.3,1), opacity .42s ease;
+    transition: transform .68s cubic-bezier(.16,1,.3,1), opacity .42s ease, filter .42s ease;
+  }
+  .quote-mystery-body::before,
+  .quote-mystery-body::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+  }
+  .quote-mystery-body::before {
+    left: 18px;
+    right: 18px;
+    top: 18px;
+    border-top: 1px dashed color-mix(in srgb, var(--quote-seal) 32%, transparent);
+  }
+  .quote-mystery-body::after {
+    left: -7px;
+    right: -7px;
+    bottom: -1px;
+    height: 18px;
+    border-radius: 0 0 24px 24px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--quote-line) 16%, transparent), transparent);
+    opacity: .52;
   }
   .quote-mystery-stamp {
     width: 42px;
     height: 42px;
-    border-radius: 14px;
+    border-radius: 50%;
     background: color-mix(in srgb, var(--quote-seal) 88%, white);
     color: #fff;
     display: grid;
@@ -1265,37 +1302,45 @@
     font-family: var(--theme-serif-font, 'Noto Serif SC', serif);
     font-size: 22px;
     box-shadow: 0 8px 18px color-mix(in srgb, var(--quote-seal) 28%, transparent);
+    position: relative;
+    z-index: 2;
   }
   .quote-mystery-label {
     color: var(--quote-text);
     font-family: var(--theme-serif-font, 'Noto Serif SC', serif);
-    font-size: 17px;
-    letter-spacing: 2px;
+    font-size: 16px;
+    letter-spacing: 2.5px;
+    position: relative;
+    z-index: 2;
   }
   .quote-mystery-meta {
     color: var(--quote-mute);
     font-size: 10px;
     letter-spacing: 1px;
+    position: relative;
+    z-index: 2;
   }
   .quote-mystery-flap {
     position: absolute;
-    left: 22%;
-    right: 22%;
-    top: 68px;
-    height: 34px;
-    background: color-mix(in srgb, var(--quote-paper) 88%, white);
+    left: 14%;
+    right: 14%;
+    top: 82px;
+    height: 48px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.36), transparent),
+      color-mix(in srgb, var(--quote-paper) 90%, white);
     border: 1px solid var(--quote-line);
-    border-radius: 0 0 22px 22px;
+    border-radius: 0 0 28px 28px;
     transform-origin: 50% 0%;
     transition: transform .66s cubic-bezier(.16,1,.3,1), opacity .42s ease;
     z-index: 3;
   }
   .quote-prize-card {
     position: absolute;
-    left: 8px;
-    right: 8px;
+    left: 10px;
+    right: 10px;
     top: 24px;
-    min-height: 166px;
+    min-height: 208px;
     border-radius: 18px;
     border: 1px solid color-mix(in srgb, var(--quote-accent) 38%, transparent);
     background:
@@ -1305,8 +1350,8 @@
     padding: 18px 16px 16px;
     z-index: 1;
     opacity: 0;
-    transform: translateY(48px) scale(.92);
-    transition: opacity .44s ease .14s, transform .7s cubic-bezier(.16,1,.3,1) .08s;
+    transform: translateY(78px) scale(.88) rotateX(-8deg);
+    transition: opacity .44s ease .16s, transform .82s cubic-bezier(.16,1,.3,1) .10s;
   }
   .quote-prize-kicker {
     color: var(--quote-seal);
@@ -1357,20 +1402,22 @@
     animation-delay: calc(var(--i) * 48ms);
   }
   .quote-mystery-box-open .quote-mystery-lid {
-    top: 16px;
-    transform: translateY(-34px) rotateX(72deg) scaleX(1.04);
+    top: 18px;
+    opacity: .92;
+    transform: translateY(-58px) rotateX(82deg) rotateZ(-2deg) scaleX(1.04);
   }
   .quote-mystery-box-open .quote-mystery-body {
-    transform: translateY(38px) scale(.86);
-    opacity: .26;
+    transform: translateY(58px) scale(.82) rotateX(-10deg);
+    opacity: .18;
+    filter: blur(.25px);
   }
   .quote-mystery-box-open .quote-mystery-flap {
-    transform: rotateX(-78deg);
-    opacity: .24;
+    transform: translateY(-16px) rotateX(-96deg) scaleY(1.12);
+    opacity: .16;
   }
   .quote-mystery-box-open .quote-prize-card {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(-8px) scale(1) rotateX(0deg);
     z-index: 5;
   }
   .quote-mystery-box-open .quote-mystery-hint {
@@ -1385,8 +1432,8 @@
   }
   @media (min-width: 900px) {
     .quote-box-grid {
-      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 252px));
+      gap: 42px 58px;
     }
   }
   @media (max-width: 520px) {
@@ -1397,7 +1444,7 @@
       padding-right: 16px !important;
     }
     .quote-mystery-box {
-      min-height: 190px;
+      min-height: 222px;
     }
     .quote-prize-card {
       left: 4px;
@@ -4194,7 +4241,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- Firebase config (edit firebase-config.js) -->
-<script src="firebase-config.js?v=2026.06.20-r70"></script>
+<script src="firebase-config.js?v=2026.06.20-r71"></script>
 
 <!-- React + Babel -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -4202,18 +4249,18 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- Shared data (THEMES, HEXAGRAMS, TAGS) -->
-<script src="data.js?v=2026.06.20-r70"></script>
-<script src="themes-extra.js?v=2026.06.20-r70"></script>
-<script src="plan.js?v=2026.06.20-r70"></script>
+<script src="data.js?v=2026.06.20-r71"></script>
+<script src="themes-extra.js?v=2026.06.20-r71"></script>
+<script src="plan.js?v=2026.06.20-r71"></script>
 
 <!-- UI components (load order matters) -->
-<script type="text/babel" src="primitives.jsx?v=2026.06.20-r70"></script>
-<script type="text/babel" src="screens-main.jsx?v=2026.06.20-r70"></script>
-<script type="text/babel" src="screens-other.jsx?v=2026.06.20-r70"></script>
-<script type="text/babel" src="enhancements.jsx?v=2026.06.20-r70"></script>
+<script type="text/babel" src="primitives.jsx?v=2026.06.20-r71"></script>
+<script type="text/babel" src="screens-main.jsx?v=2026.06.20-r71"></script>
+<script type="text/babel" src="screens-other.jsx?v=2026.06.20-r71"></script>
+<script type="text/babel" src="enhancements.jsx?v=2026.06.20-r71"></script>
 
 <!-- Real app -->
-<script type="text/babel" src="app-real.jsx?v=2026.06.20-r70"></script>
+<script type="text/babel" src="app-real.jsx?v=2026.06.20-r71"></script>
 
 <script>
   // Reveal the "slow load" hint if React still hasn't replaced the splash after 9s

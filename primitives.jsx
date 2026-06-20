@@ -674,25 +674,27 @@ function PoemBody({ lines, size = 22, theme, color, weight = 500 }) {
     return (
       <div className="serif poem-body-lines poem-body-en text-particle-host text-particle-host-en" style={{
         textAlign: 'left', color: color || theme.text, fontWeight: weight,
-        width: '100%', maxWidth: 720, margin: '0 auto', overflow: 'hidden',
+        width: 'min(820px, 100%)', maxWidth: 'calc(100vw - 36px)', margin: '0 auto', overflow: 'hidden',
         fontStyle: 'normal',
         fontFamily: 'Georgia, "Times New Roman", "Noto Serif SC", serif',
       }}>
         <MagicEnglishLayer />
         <TextParticleAura theme={theme} variant="spell" density="rich" />
-        {enLines.map((ln, i) => {
-          const couplet = isSonnet && i >= 12;
-          const quatrainGap = isSonnet && (i === 4 || i === 8 || i === 12);
-          return (
-            <div key={i} className="poem-body-en-line" style={{
-              fontSize, lineHeight: 1.68,
-              paddingLeft: couplet ? '1.4em' : 0,
-              marginTop: quatrainGap ? '0.62em' : 0,
-              animationDelay: `${Math.min(i * 0.065, 0.82)}s`,
-              '--line-delay': `${Math.min(i * 0.065, 0.82)}s`,
-            }}>{ln}</div>
-          );
-        })}
+        <div className="poem-body-en-text">
+          {enLines.map((ln, i) => {
+            const couplet = isSonnet && i >= 12;
+            const quatrainGap = isSonnet && (i === 4 || i === 8 || i === 12);
+            return (
+              <div key={i} className="poem-body-en-line" style={{
+                fontSize, lineHeight: 1.68,
+                paddingLeft: couplet ? '1.4em' : 0,
+                marginTop: quatrainGap ? '0.62em' : 0,
+                animationDelay: `${Math.min(i * 0.065, 0.82)}s`,
+                '--line-delay': `${Math.min(i * 0.065, 0.82)}s`,
+              }}>{ln}</div>
+            );
+          })}
+        </div>
       </div>
     );
   }
