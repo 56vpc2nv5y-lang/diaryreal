@@ -155,6 +155,46 @@ function TextParticleAura({ theme, variant = 'poem', density = 'soft' }) {
   );
 }
 
+const MAGIC_ENGLISH_GLYPHS = [
+  { ch: 'A', x: '7%', y: '16%', s: '13px', d: '0s' },
+  { ch: 'e', x: '91%', y: '17%', s: '11px', d: '.7s' },
+  { ch: 'M', x: '12%', y: '76%', s: '12px', d: '1.3s' },
+  { ch: 'V', x: '87%', y: '72%', s: '13px', d: '2.1s' },
+  { ch: 's', x: '18%', y: '34%', s: '10px', d: '2.8s' },
+  { ch: 'n', x: '82%', y: '39%', s: '10px', d: '3.4s' },
+  { ch: 'l', x: '43%', y: '9%', s: '9px', d: '1.8s' },
+  { ch: 'r', x: '55%', y: '88%', s: '9px', d: '2.6s' },
+];
+
+function MagicEnglishLayer() {
+  const reduce = typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) return null;
+  return (
+    <span className="magic-english-layer" aria-hidden="true">
+      <span className="magic-star-map magic-star-map-a" />
+      <span className="magic-star-map magic-star-map-b" />
+      <span className="magic-marginalia magic-marginalia-left" />
+      <span className="magic-marginalia magic-marginalia-right" />
+      {MAGIC_ENGLISH_GLYPHS.map((glyph, i) => (
+        <i
+          key={`${glyph.ch}-${i}`}
+          className="magic-glyph"
+          style={{
+            '--magic-x': glyph.x,
+            '--magic-y': glyph.y,
+            '--magic-size': glyph.s,
+            '--magic-delay': glyph.d,
+          }}
+        >
+          {glyph.ch}
+        </i>
+      ))}
+    </span>
+  );
+}
+
 function ThemeCardArt({ theme, kind = 'poem' }) {
   const key = theme?.key;
   if (!DECOR_THEME_KEYS.has(key)) return null;
@@ -634,10 +674,11 @@ function PoemBody({ lines, size = 22, theme, color, weight = 500 }) {
     return (
       <div className="serif poem-body-lines poem-body-en text-particle-host text-particle-host-en" style={{
         textAlign: 'left', color: color || theme.text, fontWeight: weight,
-        width: '100%', maxWidth: 680, margin: '0 auto', overflow: 'visible',
+        width: '100%', maxWidth: 720, margin: '0 auto', overflow: 'hidden',
         fontStyle: 'normal',
         fontFamily: 'Georgia, "Times New Roman", "Noto Serif SC", serif',
       }}>
+        <MagicEnglishLayer />
         <TextParticleAura theme={theme} variant="spell" density="rich" />
         {enLines.map((ln, i) => {
           const couplet = isSonnet && i >= 12;
@@ -648,6 +689,7 @@ function PoemBody({ lines, size = 22, theme, color, weight = 500 }) {
               paddingLeft: couplet ? '1.4em' : 0,
               marginTop: quatrainGap ? '0.62em' : 0,
               animationDelay: `${Math.min(i * 0.065, 0.82)}s`,
+              '--line-delay': `${Math.min(i * 0.065, 0.82)}s`,
             }}>{ln}</div>
           );
         })}

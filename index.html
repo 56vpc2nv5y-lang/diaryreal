@@ -9,9 +9,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="诗签">
 <meta name="theme-color" content="#E2EDE5">
-<link rel="manifest" href="manifest.webmanifest?v=2026.06.19-r69">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=2026.06.19-r68">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=2026.06.19-r68">
+<link rel="manifest" href="manifest.webmanifest?v=2026.06.20-r70">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=2026.06.20-r70">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=2026.06.20-r70">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=ZCOOL+XiaoWei&display=swap">
@@ -739,10 +739,12 @@
   }
   .theme-poem-hero-sonnet {
     background:
-      radial-gradient(circle at 16% 14%, rgba(222,178,82,.18), transparent 24%),
-      radial-gradient(circle at 88% 24%, rgba(87,116,142,.13), transparent 30%),
-      linear-gradient(180deg, rgba(255,252,241,.72), rgba(244,235,213,.82)) !important;
-    box-shadow: 0 18px 48px rgba(73,55,32,.11) !important;
+      radial-gradient(circle at 12% 10%, rgba(255,238,162,.26), transparent 25%),
+      radial-gradient(circle at 88% 20%, rgba(62,93,101,.12), transparent 28%),
+      radial-gradient(circle at 72% 88%, rgba(205,151,62,.16), transparent 30%),
+      url("assets/themes/generated/magic-vellum-r70.svg") center / cover no-repeat,
+      linear-gradient(180deg, rgba(255,252,241,.74), rgba(244,235,213,.86)) !important;
+    box-shadow: 0 22px 56px rgba(73,55,32,.15) !important;
   }
   .theme-sign-card .theme-card-art,
   .theme-sign-card .theme-card-motif {
@@ -751,27 +753,29 @@
   .poem-body-en {
     box-sizing: border-box;
     position: relative;
-    width: min(760px, 100%);
+    width: min(820px, 100%);
     margin: 0 auto;
-    padding: clamp(26px, 4.6vw, 48px) clamp(24px, 5vw, 56px);
+    padding: clamp(28px, 4.8vw, 54px) clamp(25px, 5.6vw, 64px);
     border-radius: 8px;
-    border: 1px solid rgba(120,88,46,.22);
+    border: 1px solid rgba(121,88,46,.28);
     background:
-      radial-gradient(circle at 18% 12%, rgba(255,255,255,.72), transparent 26%),
-      radial-gradient(circle at 92% 82%, rgba(204,150,57,.18), transparent 28%),
-      radial-gradient(circle at 12% 92%, rgba(74,99,118,.10), transparent 28%),
-      repeating-linear-gradient(0deg, rgba(110,78,38,.035) 0 1px, transparent 1px 9px),
-      linear-gradient(90deg, rgba(96,62,24,.08), transparent 10%, transparent 90%, rgba(96,62,24,.09)),
-      linear-gradient(145deg, #fffaf0 0%, #f3e7cf 54%, #fff6e4 100%);
+      linear-gradient(100deg, rgba(255,255,255,.58), transparent 22%, transparent 78%, rgba(126,86,34,.10)),
+      radial-gradient(circle at 18% 12%, rgba(255,255,255,.70), transparent 24%),
+      radial-gradient(circle at 92% 82%, rgba(211,158,61,.20), transparent 27%),
+      radial-gradient(circle at 12% 92%, rgba(54,86,92,.12), transparent 29%),
+      url("assets/themes/generated/magic-vellum-r70.svg") center / cover no-repeat,
+      linear-gradient(145deg, #fffaf0 0%, #f0dfbd 58%, #fff3d7 100%);
     box-shadow:
-      inset 0 0 0 1px rgba(255,255,255,.46),
-      inset 18px 0 24px rgba(128,84,32,.055),
-      inset -18px 0 24px rgba(128,84,32,.06),
-      0 24px 54px rgba(65,45,25,.13);
-    color: #283f43 !important;
+      inset 0 0 0 1px rgba(255,255,255,.52),
+      inset 24px 0 30px rgba(98,62,24,.075),
+      inset -24px 0 30px rgba(98,62,24,.08),
+      inset 0 16px 34px rgba(255,252,218,.34),
+      0 28px 62px rgba(65,45,25,.16);
+    color: #20393d !important;
     transform-origin: top center;
     animation: parchment-unfurl 1.08s cubic-bezier(.16,1,.3,1) both;
     isolation: isolate;
+    overflow: hidden;
   }
   .poem-body-en::before,
   .poem-body-en::after {
@@ -782,14 +786,16 @@
   .poem-body-en::before {
     inset: 10px;
     border-radius: 5px;
-    border: 1px solid rgba(128,91,43,.12);
+    border: 1px solid rgba(128,91,43,.14);
     background:
-      radial-gradient(circle at 16% 18%, rgba(217,166,65,.24) 0 1px, transparent 2px),
-      radial-gradient(circle at 74% 12%, rgba(217,166,65,.18) 0 1px, transparent 2px),
-      radial-gradient(circle at 86% 78%, rgba(217,166,65,.20) 0 1px, transparent 2px);
-    background-size: 92px 74px, 118px 86px, 104px 94px;
-    opacity: .72;
+      linear-gradient(105deg, transparent 0 38%, rgba(255,244,181,.18) 48%, transparent 58% 100%),
+      radial-gradient(circle at 16% 18%, rgba(222,176,71,.30) 0 1px, transparent 2px),
+      radial-gradient(circle at 74% 12%, rgba(222,176,71,.22) 0 1px, transparent 2px),
+      radial-gradient(circle at 86% 78%, rgba(222,176,71,.24) 0 1px, transparent 2px);
+    background-size: 100% 100%, 92px 74px, 118px 86px, 104px 94px;
+    opacity: .78;
     z-index: 0;
+    animation: magic-candle-pulse 6.8s ease-in-out infinite;
   }
   .poem-body-en::after {
     left: 14px;
@@ -802,29 +808,141 @@
   }
   .poem-body-en .text-particle-aura {
     inset: -26px -18px;
-    z-index: 0;
+    z-index: 2;
     mix-blend-mode: normal;
   }
   .poem-body-en .text-particle-aura i {
     color: #c99a35;
     text-shadow: 0 0 12px rgba(222, 174, 75, .48), 0 0 26px rgba(83, 58, 26, .18);
   }
+  .magic-english-layer {
+    position: absolute !important;
+    inset: 0;
+    z-index: 1 !important;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: inherit;
+  }
+  .magic-english-layer::before {
+    content: '';
+    position: absolute;
+    inset: 15px;
+    border-radius: 6px;
+    background:
+      radial-gradient(circle at 8% 50%, rgba(198,151,66,.18), transparent 22%),
+      radial-gradient(circle at 92% 48%, rgba(198,151,66,.16), transparent 24%),
+      linear-gradient(90deg, rgba(61,83,86,.08), transparent 16%, transparent 84%, rgba(61,83,86,.08));
+    opacity: .75;
+  }
+  .magic-star-map {
+    position: absolute;
+    width: 170px;
+    height: 96px;
+    border-top: 1px solid rgba(188,145,61,.30);
+    border-right: 1px solid rgba(188,145,61,.16);
+    transform: rotate(-13deg);
+    opacity: .54;
+    animation: magic-star-breathe 8.4s ease-in-out infinite;
+  }
+  .magic-star-map::before,
+  .magic-star-map::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(214,174,79,.62);
+    box-shadow:
+      44px 28px 0 rgba(214,174,79,.35),
+      96px 12px 0 rgba(214,174,79,.42),
+      126px 62px 0 rgba(214,174,79,.32);
+  }
+  .magic-star-map::before {
+    left: 8px;
+    top: -4px;
+    width: 6px;
+    height: 6px;
+  }
+  .magic-star-map::after {
+    right: 18px;
+    bottom: 16px;
+    width: 4px;
+    height: 4px;
+  }
+  .magic-star-map-a {
+    left: clamp(18px, 6vw, 48px);
+    top: clamp(16px, 4vw, 34px);
+  }
+  .magic-star-map-b {
+    right: clamp(18px, 6vw, 52px);
+    bottom: clamp(18px, 5vw, 42px);
+    transform: rotate(168deg) scale(.86);
+    animation-delay: 1.8s;
+  }
+  .magic-marginalia {
+    position: absolute;
+    top: 18%;
+    width: 32px;
+    height: 64%;
+    opacity: .20;
+    background:
+      radial-gradient(ellipse at center, transparent 48%, rgba(98,73,39,.52) 50% 52%, transparent 54%),
+      repeating-linear-gradient(180deg, transparent 0 18px, rgba(98,73,39,.38) 19px 20px, transparent 21px 34px);
+    filter: blur(.1px);
+  }
+  .magic-marginalia-left {
+    left: clamp(12px, 2.6vw, 30px);
+  }
+  .magic-marginalia-right {
+    right: clamp(12px, 2.6vw, 30px);
+    transform: scaleX(-1);
+  }
+  .magic-glyph {
+    position: absolute;
+    left: var(--magic-x);
+    top: var(--magic-y);
+    color: rgba(151,96,42,.42);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: var(--magic-size);
+    font-style: italic;
+    font-weight: 600;
+    line-height: 1;
+    opacity: 0;
+    text-shadow: 0 0 13px rgba(230,181,78,.52);
+    transform: translate3d(0, 16px, 0) rotate(-9deg);
+    animation: magic-glyph-drift 8.2s ease-in-out infinite;
+    animation-delay: var(--magic-delay);
+  }
   .poem-body-en .poem-body-en-line {
     opacity: 0;
     transform: translateY(7px);
     position: relative;
-    z-index: 2;
-    color: #283f43 !important;
+    z-index: 3;
+    color: #20393d !important;
     font-family: Georgia, "Times New Roman", serif;
     font-size: clamp(15px, 1.8vw, 19px);
     line-height: 1.74;
     letter-spacing: .01em;
     text-align: left;
-    text-shadow: 0 0 11px rgba(199,150,57,.10), 0 1px 0 rgba(255,255,255,.44);
+    text-shadow: 0 0 13px rgba(214,169,72,.12), 0 1px 0 rgba(255,255,255,.50);
     animation: ink-float-in .92s ease-out forwards;
   }
+  .poem-body-en .poem-body-en-line::after {
+    content: '';
+    position: absolute;
+    left: -.22em;
+    right: -.22em;
+    top: .18em;
+    bottom: .12em;
+    border-radius: 999px;
+    background: linear-gradient(100deg, transparent 0 42%, rgba(244,206,104,.30) 49%, transparent 58% 100%);
+    opacity: 0;
+    mix-blend-mode: screen;
+    transform: translateX(-120%);
+    animation: magic-ink-glint 7.8s ease-in-out infinite;
+    animation-delay: calc(var(--line-delay, 0s) + 1.1s);
+  }
   .poem-body-en .poem-body-en-line::first-letter {
-    color: #9d642d;
+    color: #8f5a29;
+    text-shadow: 0 0 14px rgba(218,176,76,.22);
   }
   .text-particle-host {
     position: relative;
@@ -899,6 +1017,25 @@
   @keyframes ink-float-in {
     to { opacity: 1; transform: translateY(0); }
   }
+  @keyframes magic-candle-pulse {
+    0%, 100% { opacity: .62; filter: brightness(1) saturate(1); }
+    50% { opacity: .86; filter: brightness(1.06) saturate(1.05); }
+  }
+  @keyframes magic-star-breathe {
+    0%, 100% { opacity: .34; filter: blur(.15px); }
+    48% { opacity: .68; filter: blur(0); }
+  }
+  @keyframes magic-glyph-drift {
+    0%, 100% { opacity: 0; transform: translate3d(0, 18px, 0) rotate(-10deg) scale(.86); }
+    24% { opacity: .18; }
+    52% { opacity: .52; transform: translate3d(9px, -10px, 0) rotate(6deg) scale(1.08); }
+    76% { opacity: .14; transform: translate3d(-7px, -28px, 0) rotate(-2deg) scale(.96); }
+  }
+  @keyframes magic-ink-glint {
+    0%, 72%, 100% { opacity: 0; transform: translateX(-120%); }
+    82% { opacity: .38; }
+    92% { opacity: 0; transform: translateX(120%); }
+  }
   @keyframes text-particle-drift {
     0%, 100% { opacity: 0; transform: translate3d(0, 12px, 0) scale(.78) rotate(-4deg); }
     22% { opacity: .18; }
@@ -913,10 +1050,21 @@
   }
   @media (prefers-reduced-motion: reduce) {
     .text-particle-aura,
+    .magic-english-layer,
     .lot-word-field,
     .lot-ink-field,
     .quote-mystery-sparks {
       display: none !important;
+    }
+    .poem-body-en,
+    .poem-body-en::before,
+    .poem-body-en .poem-body-en-line,
+    .poem-body-en .poem-body-en-line::after {
+      animation: none !important;
+    }
+    .poem-body-en .poem-body-en-line {
+      opacity: 1 !important;
+      transform: none !important;
     }
   }
 
@@ -3670,7 +3818,7 @@
       box-shadow: inset 0 0 0 7px rgba(255,255,255,.14), inset 0 0 0 8px rgba(63,118,104,.10) !important;
     }
 
-    /* r69: celadon keeps the supplied porcelain-paper bitmap as the skin map. */
+    /* Celadon keeps the supplied porcelain-paper bitmap as the skin map. */
     html[data-diary-theme="celadon"] .app-screen:not(.app-screen-custom-bg) {
       background-color: #e6efe8 !important;
       background-image:
@@ -3689,7 +3837,7 @@
       display: none !important;
     }
 
-    /* r69: New Youth newspaper skin with no masthead/text overlap. */
+    /* New Youth newspaper skin with no masthead/text overlap. */
     html[data-diary-theme="morningPaper"] {
       --theme-card-radius: 1px;
       --theme-control-radius: 1px;
@@ -3839,7 +3987,7 @@
       z-index: 1;
     }
 
-    /* r69: retired the weakest SVG-only literary skins from the visible picker. */
+    /* Retired the weakest SVG-only literary skins from the visible picker. */
     html[data-diary-theme="gardenia"] :is(.theme-poem-card:not(.theme-preview-poem-card), .theme-poem-hero, .theme-quote-card, .theme-sign-card, .theme-settings-panel, .theme-saved-card, .theme-settings-account) {
       border-color: rgba(88,111,69,.22) !important;
       background-blend-mode: normal, multiply;
@@ -3898,7 +4046,7 @@
       opacity: .44;
     }
 
-    /* r69: smoother book page turn, inspired by page-flip libraries. */
+    /* Smoother book page turn, inspired by page-flip libraries. */
     .book-page-shell {
       transform-style: preserve-3d !important;
       perspective: 1800px;
@@ -4046,7 +4194,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- Firebase config (edit firebase-config.js) -->
-<script src="firebase-config.js?v=2026.06.19-r69"></script>
+<script src="firebase-config.js?v=2026.06.20-r70"></script>
 
 <!-- React + Babel -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -4054,18 +4202,18 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- Shared data (THEMES, HEXAGRAMS, TAGS) -->
-<script src="data.js?v=2026.06.19-r69"></script>
-<script src="themes-extra.js?v=2026.06.19-r69"></script>
-<script src="plan.js?v=2026.06.19-r69"></script>
+<script src="data.js?v=2026.06.20-r70"></script>
+<script src="themes-extra.js?v=2026.06.20-r70"></script>
+<script src="plan.js?v=2026.06.20-r70"></script>
 
 <!-- UI components (load order matters) -->
-<script type="text/babel" src="primitives.jsx?v=2026.06.19-r69"></script>
-<script type="text/babel" src="screens-main.jsx?v=2026.06.19-r69"></script>
-<script type="text/babel" src="screens-other.jsx?v=2026.06.19-r69"></script>
-<script type="text/babel" src="enhancements.jsx?v=2026.06.19-r69"></script>
+<script type="text/babel" src="primitives.jsx?v=2026.06.20-r70"></script>
+<script type="text/babel" src="screens-main.jsx?v=2026.06.20-r70"></script>
+<script type="text/babel" src="screens-other.jsx?v=2026.06.20-r70"></script>
+<script type="text/babel" src="enhancements.jsx?v=2026.06.20-r70"></script>
 
 <!-- Real app -->
-<script type="text/babel" src="app-real.jsx?v=2026.06.19-r69"></script>
+<script type="text/babel" src="app-real.jsx?v=2026.06.20-r70"></script>
 
 <script>
   // Reveal the "slow load" hint if React still hasn't replaced the splash after 9s

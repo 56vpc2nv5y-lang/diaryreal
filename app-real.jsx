@@ -1,6 +1,6 @@
 // app-real.jsx — Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.19-r69';
+const APP_BUILD = '2026.06.20-r70';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
