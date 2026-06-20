@@ -112,13 +112,16 @@ function QuoteMysteryBox({ quote, entry, theme, onOpen }) {
       <div className="quote-mystery-sparks" aria-hidden="true">
         {Array.from({ length: 7 }).map((_, i) => <i key={i} style={{ '--i': i }} />)}
       </div>
-      <div className="quote-mystery-lid"><span /></div>
-      <div className="quote-mystery-body">
-        <div className="quote-mystery-stamp">拾</div>
-        <div className="quote-mystery-label">拾句盲盒</div>
-        <div className="quote-mystery-meta">{entry.date}</div>
+      <div className="quote-mystery-pack" aria-hidden="true">
+        <div className="quote-mystery-lid"><span /></div>
+        <div className="quote-mystery-body">
+          <div className="quote-mystery-stamp">拾</div>
+          <div className="quote-mystery-label">拾句盲盒</div>
+          <div className="quote-mystery-meta">{entry.date}</div>
+        </div>
+        <div className="quote-mystery-tear"><span>OPEN</span></div>
+        <div className="quote-mystery-flap" />
       </div>
-      <div className="quote-mystery-flap" />
       <div className="quote-prize-card text-particle-host">
         <TextParticleAura theme={theme} variant="quote" density="soft" />
         <div className="quote-prize-kicker">已 拾 之 句</div>
@@ -471,7 +474,7 @@ function PoemBook({ theme, entries, onOpen, bookLabel = '诗册' }) {
       </div>
 
       <div style={{ perspective: 1500 }} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-        <div key={`${entry.id}-${page}-${dir}`} className={`book-page-shell book-page-shell-${dir}`} style={{
+        <div key={`${entry.id}-${page}-${dir}`} className={`book-page-shell book-page-shell-${dir}${enPoem ? ' book-page-shell-en' : ''}`} style={{
           '--book-paper': theme.paper,
           '--theme-text': theme.text,
           position: 'relative',
@@ -498,7 +501,7 @@ function PoemBook({ theme, entries, onOpen, bookLabel = '诗册' }) {
               </div>
             )}
           </div>
-          {illustration}
+          {!enPoem && illustration}
           {poemPane}
         </div>
       </div>
@@ -865,7 +868,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
         ? `同步中 · ${syncState.pending} 项`
         : '已同步';
   const themeGroups = [
-    { label: '', keys: ['celadon', 'inkPlum', 'mossGarden', 'seaSalt', 'study', 'morningPaper', 'dusk'] },
+    { label: '', keys: ['celadon', 'inkPlum', 'mossGarden', 'seaSalt', 'mintNote', 'study', 'morningPaper', 'dusk'] },
   ];
   const themeRecommendations = {
     celadon: '青釉浅色信纸 · 楷体',
@@ -873,6 +876,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
     mossGarden: '苔庭信纸 · 楷体',
     dusk: '低对比浅色信纸 · 楷体',
     seaSalt: '生成图海盐纸 · 楷体',
+    mintNote: '浅青纸笺 · 松绿控件 · 楷体',
     study: '旧书房案头微光 · 楷体',
     morningPaper: '新青年式报纸版 · 宋体',
   };
@@ -929,7 +933,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
                     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
                   }}>
                     <div className={`theme-card-preview theme-preview-${key}`} style={{
-                      width: '100%', borderRadius: key === 'seaSalt' ? 18 : 12,
+                      width: '100%', borderRadius: (key === 'seaSalt' || key === 'mintNote') ? 18 : 12,
                       background: tokens.paper,
                       border: active ? `1.5px solid ${theme.text}` : `0.5px solid ${theme.line}`,
                       padding: 8, display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 5,
@@ -982,9 +986,6 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
             <SettingsRow theme={theme} label="每篇日记的诗体"
               detail={poemStyleDetail}
               onClick={togglePoemStyle} />
-            <SettingsRow theme={theme} label="中英文诗在哪里"
-              detail="查看说明"
-              onClick={openGuide} />
             <SettingsRow theme={theme} label="写字时的元素粒子" toggle on={writeFx} onToggle={() => tog('d-writingParticles', !writeFx, setWriteFx_)} detail="花·雨·雪·风·火·月" />
             <SettingsRow theme={theme} label="保存被否决的诗" toggle on={saveRej} onToggle={() => tog('d-saveRej', !saveRej, setSaveRej_)} isLast />
           </SettingsSection>

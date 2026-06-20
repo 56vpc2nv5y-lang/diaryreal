@@ -24,7 +24,7 @@ function friendlyAiError(error, action = 'AI 生成') {
 }
 const DECOR_THEME_KEYS = new Set([
   'celadon', 'inkPlum', 'mossGarden', 'study', 'dusk',
-  'morningPaper', 'seaSalt', 'gardenia', 'redLacquer', 'rainWindow',
+  'morningPaper', 'seaSalt', 'mintNote', 'gardenia', 'redLacquer', 'rainWindow',
 ]);
 
 function ThemeDecor({ theme }) {
@@ -95,6 +95,7 @@ function ThemeMotif({ theme, variant = 'card' }) {
     dusk: <><path d="M17 6a18 18 0 1 0 17 29A15 15 0 1 1 17 6z"/><path d="M34 38c10-7 20-7 30 0"/><circle cx="53" cy="10" r="1.5"/></>,
     morningPaper: <><path d="M6 5h58v38H6zM12 13h46M12 17h46"/><path d="M17 29h36M35 20v20"/><circle cx="35" cy="30" r="8"/></>,
     seaSalt: <><path d="M2 36c12-8 22 7 34-1s21 5 32-1M4 43c12-7 22 6 34-1s21 4 30-1M28 12c6-6 12-6 18 0 6-6 12-6 18 0"/></>,
+    mintNote: <><path d="M2 35c12-7 22 5 34-2s21 4 32-2M5 43c12-6 22 4 34-1s21 3 29-1"/><path d="M18 12h34M18 19h34M18 26h25"/></>,
     gardenia: <><path d="M36 22c10-14 28-9 28 6 0 13-16 19-28 5-12 14-28 8-28-5 0-15 18-20 28-6z"/><circle cx="36" cy="28" r="5"/><path d="M31 39c-7 5-14 5-22 0M42 39c7 5 14 5 22 0"/></>,
     redLacquer: <><path d="M12 8h46v33H12zM18 15h34M18 22h34M18 29h24"/><path d="M8 5h54M8 44h54M28 8v33"/><circle cx="50" cy="32" r="5"/></>,
     rainWindow: <><path d="M9 6h52v36H9zM35 6v36M9 22h52"/><path d="M16 13c2 6 2 11 0 17M27 10c2 7 2 14 0 24M45 12c2 6 2 13 0 22M56 15c2 5 2 10 0 15"/></>,
@@ -118,6 +119,7 @@ function ThemeHeaderMark({ theme }) {
     dusk: ['暮云', '微光留白'],
     morningPaper: ['晨报', '新青年式'],
     seaSalt: ['海盐', '海风轻拂'],
+    mintNote: ['青笺', '松绿纸纹'],
     gardenia: ['栀子', '淡金花影'],
     redLacquer: ['朱栏', '旧纸红印'],
     rainWindow: ['窗雨', '灰绿信纸'],

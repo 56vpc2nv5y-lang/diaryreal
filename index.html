@@ -9,9 +9,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="诗签">
 <meta name="theme-color" content="#E2EDE5">
-<link rel="manifest" href="manifest.webmanifest?v=2026.06.20-r71">
-<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=2026.06.20-r71">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=2026.06.20-r71">
+<link rel="manifest" href="manifest.webmanifest?v=2026.06.20-r73">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/icons/favicon-64.png?v=2026.06.20-r73">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png?v=2026.06.20-r73">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500&family=ZCOOL+XiaoWei&display=swap">
@@ -73,6 +73,16 @@
     opacity: 0; transition: opacity .5s ease;
   }
   #boot-splash .boot-slow.show { opacity: 1; }
+  #boot-splash .boot-slow button {
+    margin-left: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid #c8b08366;
+    background: #c8b08322;
+    color: #f3ead6;
+    font: inherit;
+    cursor: pointer;
+  }
   @keyframes boot-pulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: .82; } }
   @keyframes boot-bounce { 0%,100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(-6px); opacity: 1; } }
   @media (max-width: 430px) { #boot-splash { background: #1a1510; } }
@@ -197,6 +207,8 @@
 
   .theme-card-art-seaSalt { color: rgba(77,130,166,.34); }
   .theme-card-art-seaSalt .art-line { display: block; stroke-width: 1.7; }
+  .theme-card-art-mintNote { color: rgba(55,120,104,.26); }
+  .theme-card-art-mintNote .art-line { display: block; stroke-width: 1.45; }
 
   .theme-card-art-obsidianDawn { color: rgba(185,139,69,.40); }
   .theme-card-art-obsidianDawn .art-sun,
@@ -318,6 +330,18 @@
   .theme-decor-seaSalt .mark-b {
     display: block; left: -22px; bottom: 72px; width: 120px; height: 42px;
     border-top: 2px solid rgba(77,130,166,.34); border-radius: 50%;
+  }
+
+  .theme-decor-mintNote { color: rgba(50,112,98,.40); }
+  .theme-decor-mintNote .decor-seaSalt { display: block; stroke-width: 1.45; opacity: .66; }
+  .theme-decor-mintNote .mark-a {
+    display: block; top: 52px; right: 15px; color: rgba(38,94,85,.62);
+    font-size: 10px; line-height: 1.55; letter-spacing: 3px; writing-mode: vertical-rl;
+  }
+  .theme-decor-mintNote .mark-a::before { content: 'QING JIAN'; }
+  .theme-decor-mintNote .mark-b {
+    display: block; left: -18px; bottom: 76px; width: 112px; height: 40px;
+    border-top: 2px solid rgba(67,130,116,.28); border-radius: 50%;
   }
 
   .theme-decor-gardenia { color: rgba(88,111,69,.34); }
@@ -739,10 +763,11 @@
   }
   .theme-poem-hero-sonnet {
     background:
-      linear-gradient(180deg, rgba(255,247,223,.18), rgba(108,76,38,.10)),
-      url("assets/themes/generated/magic-parchment-r71.png") center / cover no-repeat,
-      linear-gradient(180deg, rgba(255,252,241,.74), rgba(244,235,213,.86)) !important;
-    box-shadow: 0 22px 56px rgba(73,55,32,.15) !important;
+      radial-gradient(ellipse at 50% 8%, rgba(255,248,206,.34), transparent 34%),
+      linear-gradient(180deg, rgba(52,39,26,.08), rgba(108,76,38,.12)),
+      url("assets/themes/generated/magic-parchment-r72.png") center / cover no-repeat,
+      linear-gradient(180deg, rgba(255,252,241,.80), rgba(244,235,213,.90)) !important;
+    box-shadow: 0 24px 64px rgba(73,55,32,.18), inset 0 0 0 1px rgba(255,247,218,.34) !important;
   }
   .theme-sign-card .theme-card-art,
   .theme-sign-card .theme-card-motif {
@@ -751,21 +776,24 @@
   .poem-body-en {
     box-sizing: border-box;
     position: relative;
-    width: min(820px, 100%);
+    width: min(720px, 100%);
     margin: 0 auto;
-    padding: clamp(28px, 4.8vw, 54px) clamp(25px, 5.6vw, 64px);
-    border-radius: 8px;
-    border: 1px solid rgba(121,88,46,.28);
+    padding: clamp(30px, 5vw, 54px) clamp(28px, 5.4vw, 58px);
+    border-radius: 24px 18px 28px 20px;
+    border: 1px solid rgba(117,81,38,.34);
     background:
-      linear-gradient(100deg, rgba(255,255,255,.16), transparent 25%, transparent 75%, rgba(126,86,34,.08)),
-      url("assets/themes/generated/magic-parchment-r71.png") center / cover no-repeat,
+      radial-gradient(ellipse at 16% 16%, rgba(255,255,255,.46), transparent 30%),
+      radial-gradient(ellipse at 92% 88%, rgba(91,66,39,.18), transparent 36%),
+      linear-gradient(100deg, rgba(255,255,255,.20), transparent 25%, transparent 75%, rgba(126,86,34,.12)),
+      url("assets/themes/generated/magic-parchment-r72.png") center / cover no-repeat,
       linear-gradient(145deg, #fffaf0 0%, #f0dfbd 58%, #fff3d7 100%);
     box-shadow:
-      inset 0 0 0 1px rgba(255,255,255,.52),
-      inset 24px 0 30px rgba(98,62,24,.075),
-      inset -24px 0 30px rgba(98,62,24,.08),
-      inset 0 16px 34px rgba(255,252,218,.34),
-      0 28px 62px rgba(65,45,25,.16);
+      inset 0 0 0 1px rgba(255,255,255,.54),
+      inset 28px 0 34px rgba(78,50,27,.09),
+      inset -30px 0 38px rgba(78,50,27,.13),
+      inset 0 18px 34px rgba(255,252,218,.38),
+      inset 0 -20px 34px rgba(72,47,24,.09),
+      0 30px 68px rgba(65,45,25,.18);
     color: #20393d !important;
     transform-origin: top center;
     animation: parchment-unfurl 1.08s cubic-bezier(.16,1,.3,1) both;
@@ -779,27 +807,33 @@
     pointer-events: none;
   }
   .poem-body-en::before {
-    inset: 10px;
-    border-radius: 5px;
-    border: 1px solid rgba(128,91,43,.14);
+    inset: 12px;
+    border-radius: 18px 13px 21px 15px;
+    border: 1px solid rgba(128,91,43,.16);
     background:
-      linear-gradient(105deg, transparent 0 38%, rgba(255,244,181,.18) 48%, transparent 58% 100%),
+      linear-gradient(105deg, transparent 0 36%, rgba(255,244,181,.22) 47%, transparent 58% 100%),
       radial-gradient(circle at 16% 18%, rgba(222,176,71,.30) 0 1px, transparent 2px),
       radial-gradient(circle at 74% 12%, rgba(222,176,71,.22) 0 1px, transparent 2px),
-      radial-gradient(circle at 86% 78%, rgba(222,176,71,.24) 0 1px, transparent 2px);
-    background-size: 100% 100%, 92px 74px, 118px 86px, 104px 94px;
-    opacity: .30;
+      radial-gradient(circle at 86% 78%, rgba(222,176,71,.24) 0 1px, transparent 2px),
+      linear-gradient(90deg, rgba(76,58,38,.10), transparent 13%, transparent 87%, rgba(76,58,38,.11));
+    background-size: 100% 100%, 92px 74px, 118px 86px, 104px 94px, 100% 100%;
+    opacity: .42;
     z-index: 0;
     animation: magic-candle-pulse 6.8s ease-in-out infinite;
   }
   .poem-body-en::after {
-    left: 14px;
-    right: 14px;
-    bottom: -10px;
-    height: 20px;
-    border-radius: 50%;
-    background: radial-gradient(ellipse at center, rgba(70,45,24,.18), transparent 68%);
-    filter: blur(2px);
+    right: -6px;
+    bottom: -4px;
+    width: 84px;
+    height: 84px;
+    border-radius: 9px 0 28px 0;
+    background:
+      linear-gradient(135deg, transparent 48%, rgba(96,60,25,.16) 49%, rgba(255,240,194,.52) 68%, rgba(126,83,38,.22)),
+      radial-gradient(circle at 70% 72%, rgba(56,35,18,.18), transparent 54%);
+    transform: rotate(2deg);
+    filter: blur(.1px);
+    opacity: .76;
+    z-index: 1;
   }
   .poem-body-en .text-particle-aura {
     inset: -26px -18px;
@@ -808,12 +842,12 @@
   }
   .poem-body-en .text-particle-aura i {
     color: #c99a35;
-    text-shadow: 0 0 12px rgba(222, 174, 75, .48), 0 0 26px rgba(83, 58, 26, .18);
+    text-shadow: 0 0 14px rgba(222, 174, 75, .58), 0 0 30px rgba(83, 58, 26, .22);
   }
   .poem-body-en-text {
     position: relative;
     z-index: 3;
-    width: min(610px, 100%);
+    width: min(560px, 100%);
     margin: 0 auto;
     padding: 2px clamp(0px, 1.2vw, 12px);
   }
@@ -831,10 +865,11 @@
     inset: 15px;
     border-radius: 6px;
     background:
-      radial-gradient(circle at 8% 50%, rgba(198,151,66,.18), transparent 22%),
-      radial-gradient(circle at 92% 48%, rgba(198,151,66,.16), transparent 24%),
-      linear-gradient(90deg, rgba(61,83,86,.08), transparent 16%, transparent 84%, rgba(61,83,86,.08));
-    opacity: .75;
+      radial-gradient(circle at 8% 50%, rgba(198,151,66,.20), transparent 22%),
+      radial-gradient(circle at 92% 48%, rgba(198,151,66,.18), transparent 24%),
+      radial-gradient(circle at 50% 8%, rgba(255,231,151,.18), transparent 28%),
+      linear-gradient(90deg, rgba(61,83,86,.09), transparent 16%, transparent 84%, rgba(61,83,86,.10));
+    opacity: .88;
   }
   .magic-star-map {
     position: absolute;
@@ -843,7 +878,7 @@
     border-top: 1px solid rgba(188,145,61,.30);
     border-right: 1px solid rgba(188,145,61,.16);
     transform: rotate(-13deg);
-    opacity: .54;
+    opacity: .66;
     animation: magic-star-breathe 8.4s ease-in-out infinite;
   }
   .magic-star-map::before,
@@ -884,7 +919,7 @@
     top: 18%;
     width: 32px;
     height: 64%;
-    opacity: .20;
+    opacity: .26;
     background:
       radial-gradient(ellipse at center, transparent 48%, rgba(98,73,39,.52) 50% 52%, transparent 54%),
       repeating-linear-gradient(180deg, transparent 0 18px, rgba(98,73,39,.38) 19px 20px, transparent 21px 34px);
@@ -901,14 +936,14 @@
     position: absolute;
     left: var(--magic-x);
     top: var(--magic-y);
-    color: rgba(151,96,42,.42);
+    color: rgba(151,96,42,.50);
     font-family: Georgia, "Times New Roman", serif;
     font-size: var(--magic-size);
     font-style: italic;
     font-weight: 600;
     line-height: 1;
     opacity: 0;
-    text-shadow: 0 0 13px rgba(230,181,78,.52);
+    text-shadow: 0 0 14px rgba(230,181,78,.62), 0 0 28px rgba(126,84,34,.16);
     transform: translate3d(0, 16px, 0) rotate(-9deg);
     animation: magic-glyph-drift 8.2s ease-in-out infinite;
     animation-delay: var(--magic-delay);
@@ -918,13 +953,13 @@
     transform: translateY(7px);
     position: relative;
     z-index: 3;
-    color: #20393d !important;
+    color: #1f3738 !important;
     font-family: Georgia, "Times New Roman", serif;
-    font-size: clamp(15px, 1.8vw, 19px);
-    line-height: 1.74;
+    font-size: clamp(15px, 1.58vw, 18px);
+    line-height: 1.78;
     letter-spacing: .01em;
     text-align: left;
-    text-shadow: 0 0 13px rgba(214,169,72,.12), 0 1px 0 rgba(255,255,255,.50);
+    text-shadow: 0 0 13px rgba(214,169,72,.16), 0 1px 0 rgba(255,255,255,.54);
     animation: ink-float-in .92s ease-out forwards;
   }
   .poem-body-en .poem-body-en-line::after {
@@ -945,6 +980,24 @@
   .poem-body-en .poem-body-en-line::first-letter {
     color: #8f5a29;
     text-shadow: 0 0 14px rgba(218,176,76,.22);
+  }
+  @media (max-width: 520px) {
+    .poem-body-en {
+      width: min(100%, calc(100vw - 28px));
+      padding: 26px 18px 30px;
+      border-radius: 18px 14px 22px 16px;
+    }
+    .poem-body-en::before {
+      inset: 8px;
+    }
+    .poem-body-en-text {
+      width: 100%;
+      padding: 0;
+    }
+    .poem-body-en .poem-body-en-line {
+      font-size: 14.5px;
+      line-height: 1.72;
+    }
   }
   .text-particle-host {
     position: relative;
@@ -1151,7 +1204,7 @@
   .quote-mystery-box {
     appearance: none;
     width: 100%;
-    min-height: 278px;
+    min-height: 292px;
     border: none;
     background: transparent;
     color: var(--quote-text);
@@ -1159,7 +1212,7 @@
     text-align: center;
     cursor: pointer;
     position: relative;
-    perspective: 1100px;
+    perspective: 1200px;
     padding: 0;
     transform: translateZ(0);
     transition: transform .28s ease, filter .28s ease;
@@ -1190,6 +1243,37 @@
     pointer-events: none;
     transition: opacity .42s ease, transform .42s ease;
   }
+  .quote-mystery-pack {
+    position: absolute;
+    inset: 0 0 26px;
+    z-index: 3;
+    transform-style: preserve-3d;
+    transition: transform .78s cubic-bezier(.16,1,.3,1), opacity .48s ease, filter .48s ease;
+  }
+  .quote-mystery-pack::before,
+  .quote-mystery-pack::after {
+    content: "";
+    position: absolute;
+    top: 82px;
+    bottom: 44px;
+    width: 24px;
+    border: 1px solid var(--quote-line);
+    background:
+      linear-gradient(90deg, rgba(255,255,255,.44), rgba(64,88,80,.06)),
+      color-mix(in srgb, var(--quote-surface) 86%, white);
+    opacity: .92;
+    z-index: 1;
+  }
+  .quote-mystery-pack::before {
+    left: 7%;
+    border-radius: 10px 0 0 18px;
+    transform: skewY(-5deg);
+  }
+  .quote-mystery-pack::after {
+    right: 7%;
+    border-radius: 0 10px 18px 0;
+    transform: skewY(5deg);
+  }
   .quote-mystery-sparks {
     position: absolute;
     inset: 10px 0 18px;
@@ -1210,18 +1294,18 @@
   }
   .quote-mystery-lid {
     position: absolute;
-    left: 5%;
-    right: 5%;
-    top: 34px;
-    height: 60px;
-    border-radius: 14px 14px 8px 8px;
+    left: 6%;
+    right: 6%;
+    top: 28px;
+    height: 70px;
+    border-radius: 18px 18px 10px 10px;
     background:
       linear-gradient(180deg, rgba(255,255,255,.66), rgba(255,255,255,.18)),
       linear-gradient(90deg, transparent 0 36%, color-mix(in srgb, var(--quote-seal) 16%, transparent) 36% 64%, transparent 64% 100%),
       repeating-linear-gradient(90deg, rgba(98, 118, 112, .075) 0 1px, transparent 1px 11px),
       color-mix(in srgb, var(--quote-paper) 88%, white);
     border: 1px solid var(--quote-line);
-    box-shadow: inset 0 -12px 22px rgba(59, 79, 72, .10), 0 12px 24px rgba(43, 74, 70, .12);
+    box-shadow: inset 0 -14px 22px rgba(59, 79, 72, .11), 0 14px 26px rgba(43, 74, 70, .12);
     transform-origin: 50% 100%;
     transition: transform .82s cubic-bezier(.16,1,.3,1), top .82s cubic-bezier(.16,1,.3,1), opacity .42s ease;
     z-index: 4;
@@ -1237,9 +1321,9 @@
   .quote-mystery-lid span {
     position: absolute;
     left: 50%;
-    top: -9px;
-    width: 58px;
-    height: 20px;
+    top: -10px;
+    width: 64px;
+    height: 22px;
     border-radius: 50%;
     transform: translateX(-50%);
     border: 1px solid color-mix(in srgb, var(--quote-accent) 52%, transparent);
@@ -1247,11 +1331,11 @@
   }
   .quote-mystery-body {
     position: absolute;
-    left: 11%;
-    right: 11%;
-    top: 86px;
-    bottom: 42px;
-    border-radius: 8px 8px 22px 22px;
+    left: 12%;
+    right: 12%;
+    top: 92px;
+    bottom: 38px;
+    border-radius: 10px 10px 24px 24px;
     background:
       linear-gradient(90deg, rgba(255,255,255,.54), transparent 22%, transparent 78%, rgba(255,255,255,.28)),
       linear-gradient(90deg, transparent 0 43%, color-mix(in srgb, var(--quote-seal) 20%, transparent) 43% 57%, transparent 57% 100%),
@@ -1322,10 +1406,10 @@
   }
   .quote-mystery-flap {
     position: absolute;
-    left: 14%;
-    right: 14%;
-    top: 82px;
-    height: 48px;
+    left: 15%;
+    right: 15%;
+    top: 90px;
+    height: 54px;
     background:
       linear-gradient(180deg, rgba(255,255,255,.36), transparent),
       color-mix(in srgb, var(--quote-paper) 90%, white);
@@ -1334,6 +1418,34 @@
     transform-origin: 50% 0%;
     transition: transform .66s cubic-bezier(.16,1,.3,1), opacity .42s ease;
     z-index: 3;
+  }
+  .quote-mystery-tear {
+    position: absolute;
+    left: 16%;
+    right: 16%;
+    top: 128px;
+    height: 34px;
+    border-radius: 999px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: color-mix(in srgb, var(--quote-seal) 84%, white);
+    font-size: 8px;
+    letter-spacing: 2.8px;
+    font-weight: 700;
+    background:
+      linear-gradient(90deg, transparent 0 12%, rgba(255,255,255,.64) 12% 88%, transparent 88%),
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--quote-seal) 24%, transparent) 0 2px, transparent 2px 10px);
+    border-top: 1px dashed color-mix(in srgb, var(--quote-seal) 36%, transparent);
+    border-bottom: 1px dashed color-mix(in srgb, var(--quote-seal) 30%, transparent);
+    opacity: .92;
+    transform-origin: 0 50%;
+    transition: transform .64s cubic-bezier(.16,1,.3,1), opacity .35s ease;
+  }
+  .quote-mystery-tear span {
+    transform: translateY(-1px);
+    opacity: .70;
   }
   .quote-prize-card {
     position: absolute;
@@ -1394,6 +1506,11 @@
     opacity: 1;
     transform: scale(1.04);
   }
+  .quote-mystery-box-open .quote-mystery-pack {
+    transform: translateY(48px) rotateX(-10deg) scale(.84);
+    opacity: .28;
+    filter: blur(.2px);
+  }
   .quote-mystery-box-open .quote-mystery-sparks {
     opacity: 1;
   }
@@ -1415,9 +1532,13 @@
     transform: translateY(-16px) rotateX(-96deg) scaleY(1.12);
     opacity: .16;
   }
+  .quote-mystery-box-open .quote-mystery-tear {
+    transform: translateX(-36%) rotate(-8deg) scaleX(.52);
+    opacity: .20;
+  }
   .quote-mystery-box-open .quote-prize-card {
     opacity: 1;
-    transform: translateY(-8px) scale(1) rotateX(0deg);
+    transform: translateY(-12px) scale(1) rotateX(0deg);
     z-index: 5;
   }
   .quote-mystery-box-open .quote-mystery-hint {
@@ -1705,6 +1826,7 @@
   .theme-preview-dusk::before { content: 'DUSK'; }
   .theme-preview-morningPaper::before { content: 'MORNING PAPER'; }
   .theme-preview-seaSalt::before { content: 'SEA SALT'; }
+  .theme-preview-mintNote::before { content: 'QING JIAN'; }
   @media (max-width: 520px) {
     .theme-picker-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1950,15 +2072,25 @@
     }
     .theme-preview-study {
       border-radius: 9px !important;
-      background-image: repeating-linear-gradient(0deg, rgba(103,77,51,.06) 0, rgba(103,77,51,.06) 1px, transparent 1px, transparent 7px) !important;
+      background-image:
+        linear-gradient(160deg, rgba(255,248,231,.70), rgba(236,213,176,.44)),
+        url("assets/themes/generated/quiet-newsprint-r72.png") !important;
+      background-position: center !important;
+      background-size: cover !important;
     }
     .theme-preview-dusk {
-      border-radius: 22px !important;
-      background-image: radial-gradient(ellipse at 90% 15%, rgba(168,82,91,.20), transparent 48%) !important;
+      border-radius: 16px !important;
+      background-image:
+        linear-gradient(160deg, rgba(255,252,247,.58), rgba(218,207,226,.42)),
+        radial-gradient(ellipse at 90% 15%, rgba(168,82,91,.16), transparent 48%) !important;
     }
     .theme-preview-morningPaper {
       border-radius: 4px !important;
-      background-image: repeating-linear-gradient(0deg, rgba(60,54,45,.10) 0, rgba(60,54,45,.10) 1px, transparent 1px, transparent 7px) !important;
+      background-image:
+        linear-gradient(180deg, rgba(255,249,236,.62), rgba(225,201,159,.34)),
+        url("assets/themes/generated/quiet-newsprint-r72.png") !important;
+      background-position: center !important;
+      background-size: cover !important;
     }
     .theme-preview-seaSalt {
       border-radius: 18px !important;
@@ -1966,6 +2098,14 @@
         radial-gradient(ellipse 78% 20% at 18% 92%, rgba(128,207,225,.38) 0 58%, transparent 60%),
         radial-gradient(ellipse 82% 22% at 86% 101%, rgba(66,157,185,.24) 0 58%, transparent 60%),
         linear-gradient(180deg, #dff3f6, #f7fbf8) !important;
+      background-position: center !important;
+      background-size: cover !important;
+    }
+    .theme-preview-mintNote {
+      border-radius: 18px !important;
+      background-image:
+        linear-gradient(180deg, rgba(247,251,246,.44), rgba(215,232,224,.20)),
+        url("assets/themes/generated/soft-mint-paper-r72.png") !important;
       background-position: center !important;
       background-size: cover !important;
     }
@@ -4101,6 +4241,17 @@
         linear-gradient(90deg, rgba(0,0,0,.035), transparent 7%, transparent 93%, rgba(0,0,0,.055)),
         repeating-linear-gradient(0deg, rgba(120,92,55,.028) 0 1px, transparent 1px 7px) !important;
     }
+    .book-page-shell-en {
+      border-radius: 24px !important;
+      overflow: visible !important;
+      background-image:
+        radial-gradient(ellipse at 50% 8%, rgba(255,248,206,.24), transparent 32%),
+        url("assets/themes/generated/magic-parchment-r72.png"),
+        linear-gradient(180deg, rgba(255,252,241,.82), rgba(244,235,213,.92)) !important;
+      background-position: center !important;
+      background-size: cover !important;
+      box-shadow: 0 26px 66px rgba(73,55,32,.17) !important;
+    }
     .book-page-shell-next {
       animation: book-settle-next 1.04s cubic-bezier(.16,1,.3,1) both !important;
     }
@@ -4118,6 +4269,16 @@
         var(--book-paper, #f7f1df) !important;
       box-shadow: 0 24px 45px rgba(0,0,0,.18), inset 12px 0 20px rgba(255,255,255,.34) !important;
       will-change: transform, opacity, filter;
+    }
+    .book-page-shell-en .book-turn-leaf {
+      width: 100% !important;
+      border-radius: 24px !important;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.76), rgba(255,255,255,.22) 38%, rgba(0,0,0,.11) 78%, rgba(0,0,0,.18)),
+        radial-gradient(ellipse at 16% 16%, rgba(255,255,255,.38), transparent 30%),
+        url("assets/themes/generated/magic-parchment-r72.png") center / cover no-repeat,
+        var(--book-paper, #f7f1df) !important;
+      box-shadow: 0 26px 54px rgba(50,35,20,.20), inset 24px 0 28px rgba(255,255,255,.24), inset -28px 0 32px rgba(74,48,24,.13) !important;
     }
     .book-turn-leaf::before,
     .book-turn-leaf::after {
@@ -4175,6 +4336,11 @@
     .book-page-shell-prev .book-turn-leaf {
       animation: page-leaf-prev 1.04s cubic-bezier(.16,1,.3,1) both !important;
     }
+    .book-page-shell-en.book-page-shell-next .book-turn-leaf,
+    .book-page-shell-en.book-page-shell-prev .book-turn-leaf {
+      animation-duration: 1.18s !important;
+      animation-timing-function: cubic-bezier(.18,.82,.18,1) !important;
+    }
     .book-page-shell-next .book-curl-shadow {
       animation: book-curl-shadow-next 1.04s cubic-bezier(.16,1,.3,1) both !important;
     }
@@ -4183,17 +4349,17 @@
     }
     @keyframes page-leaf-next {
       0% { transform: perspective(1800px) rotateY(0deg) translateX(0) skewY(0deg) scaleX(1); opacity: .98; filter: brightness(1); }
-      24% { transform: perspective(1800px) rotateY(-36deg) translateX(-4%) skewY(-1deg) scaleX(.985); opacity: .98; filter: brightness(1.03); }
-      52% { transform: perspective(1800px) rotateY(-108deg) translateX(-30%) skewY(-2.2deg) scaleX(.90); opacity: .86; filter: brightness(.96); }
-      78% { transform: perspective(1800px) rotateY(-156deg) translateX(-58%) skewY(-.8deg) scaleX(.78); opacity: .34; filter: brightness(.88); }
-      100% { transform: perspective(1800px) rotateY(-182deg) translateX(-76%) skewY(0deg) scaleX(.72); opacity: 0; filter: brightness(.82); }
+      18% { transform: perspective(1800px) rotateY(-24deg) translateX(-2%) skewY(-.4deg) scaleX(.995); opacity: .99; filter: brightness(1.04); }
+      45% { transform: perspective(1800px) rotateY(-92deg) translateX(-20%) skewY(-1.8deg) scaleX(.93); opacity: .90; filter: brightness(.98); }
+      72% { transform: perspective(1800px) rotateY(-146deg) translateX(-48%) skewY(-1deg) scaleX(.82); opacity: .42; filter: brightness(.90); }
+      100% { transform: perspective(1800px) rotateY(-181deg) translateX(-70%) skewY(0deg) scaleX(.76); opacity: 0; filter: brightness(.84); }
     }
     @keyframes page-leaf-prev {
       0% { transform: perspective(1800px) rotateY(0deg) translateX(0) skewY(0deg) scaleX(1); opacity: .98; filter: brightness(1); }
-      24% { transform: perspective(1800px) rotateY(36deg) translateX(4%) skewY(1deg) scaleX(.985); opacity: .98; filter: brightness(1.03); }
-      52% { transform: perspective(1800px) rotateY(108deg) translateX(30%) skewY(2.2deg) scaleX(.90); opacity: .86; filter: brightness(.96); }
-      78% { transform: perspective(1800px) rotateY(156deg) translateX(58%) skewY(.8deg) scaleX(.78); opacity: .34; filter: brightness(.88); }
-      100% { transform: perspective(1800px) rotateY(182deg) translateX(76%) skewY(0deg) scaleX(.72); opacity: 0; filter: brightness(.82); }
+      18% { transform: perspective(1800px) rotateY(24deg) translateX(2%) skewY(.4deg) scaleX(.995); opacity: .99; filter: brightness(1.04); }
+      45% { transform: perspective(1800px) rotateY(92deg) translateX(20%) skewY(1.8deg) scaleX(.93); opacity: .90; filter: brightness(.98); }
+      72% { transform: perspective(1800px) rotateY(146deg) translateX(48%) skewY(1deg) scaleX(.82); opacity: .42; filter: brightness(.90); }
+      100% { transform: perspective(1800px) rotateY(181deg) translateX(70%) skewY(0deg) scaleX(.76); opacity: 0; filter: brightness(.84); }
     }
     @keyframes book-settle-next {
       0% { transform: perspective(1800px) rotateY(-3deg) translateX(5px); }
@@ -4231,7 +4397,7 @@
     <div class="boot-seal">签</div>
     <div class="boot-title">诗 签</div>
     <div class="boot-dots"><span></span><span></span><span></span></div>
-    <div id="boot-slow" class="boot-slow">首次加载需下载字体与脚本，请稍候…<br>若长时间无响应，请检查网络后刷新</div>
+    <div id="boot-slow" class="boot-slow">加载稍慢…</div>
   </div>
 </div>
 
@@ -4241,7 +4407,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <!-- Firebase config (edit firebase-config.js) -->
-<script src="firebase-config.js?v=2026.06.20-r71"></script>
+<script src="firebase-config.js?v=2026.06.20-r73"></script>
 
 <!-- React + Babel -->
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -4249,26 +4415,39 @@
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
 <!-- Shared data (THEMES, HEXAGRAMS, TAGS) -->
-<script src="data.js?v=2026.06.20-r71"></script>
-<script src="themes-extra.js?v=2026.06.20-r71"></script>
-<script src="plan.js?v=2026.06.20-r71"></script>
+<script src="data.js?v=2026.06.20-r73"></script>
+<script src="themes-extra.js?v=2026.06.20-r73"></script>
+<script src="plan.js?v=2026.06.20-r73"></script>
 
 <!-- UI components (load order matters) -->
-<script type="text/babel" src="primitives.jsx?v=2026.06.20-r71"></script>
-<script type="text/babel" src="screens-main.jsx?v=2026.06.20-r71"></script>
-<script type="text/babel" src="screens-other.jsx?v=2026.06.20-r71"></script>
-<script type="text/babel" src="enhancements.jsx?v=2026.06.20-r71"></script>
+<script type="text/babel" src="primitives.jsx?v=2026.06.20-r73"></script>
+<script type="text/babel" src="screens-main.jsx?v=2026.06.20-r73"></script>
+<script type="text/babel" src="screens-other.jsx?v=2026.06.20-r73"></script>
+<script type="text/babel" src="enhancements.jsx?v=2026.06.20-r73"></script>
 
 <!-- Real app -->
-<script type="text/babel" src="app-real.jsx?v=2026.06.20-r71"></script>
+<script type="text/babel" src="app-real.jsx?v=2026.06.20-r73"></script>
 
 <script>
-  // Reveal the "slow load" hint if React still hasn't replaced the splash after 9s
-  // (e.g. CDN for React/Babel is slow or blocked), instead of an unexplained dark screen.
+  // Reveal a short hint if React still hasn't replaced the splash.
+  var bootFailed = false;
+  window.addEventListener('error', function () {
+    bootFailed = true;
+  });
   setTimeout(() => {
     var slow = document.getElementById('boot-slow');
     if (slow && document.getElementById('boot-splash')) slow.classList.add('show');
-  }, 9000);
+  }, 6500);
+
+  setTimeout(() => {
+    var slow = document.getElementById('boot-slow');
+    if (!slow || !document.getElementById('boot-splash')) return;
+    slow.classList.add('show');
+    slow.innerHTML = (bootFailed ? '加载出错' : '加载未完成') + '<button type="button" id="boot-retry">重试</button>';
+    document.getElementById('boot-retry')?.addEventListener('click', function () {
+      location.reload();
+    });
+  }, 16000);
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
@@ -4284,4 +4463,5 @@
 
 </body>
 </html>
+
 

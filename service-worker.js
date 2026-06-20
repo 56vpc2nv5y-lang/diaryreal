@@ -1,6 +1,6 @@
 ﻿// Bump this on every deploy that changes app code — the fetch handler matches with
 // ignoreSearch:true, so the ?v= query does NOT bust this cache; only CACHE_NAME does.
-const CACHE_NAME = 'poem-diary-r71';
+const CACHE_NAME = 'poem-diary-r73';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -21,9 +21,9 @@ const APP_SHELL = [
   '/assets/themes/generated/moss-garden-bg.webp',
   '/assets/themes/generated/sea-salt-bg.webp',
   '/assets/themes/generated/sea-salt-paper-r71.png',
-  '/assets/themes/generated/morning-paper-r71.png',
-  '/assets/themes/generated/study-desk-paper-r71.png',
-  '/assets/themes/generated/magic-parchment-r71.png',
+  '/assets/themes/generated/quiet-newsprint-r72.png',
+  '/assets/themes/generated/soft-mint-paper-r72.png',
+  '/assets/themes/generated/magic-parchment-r72.png',
   'https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js',
   'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js',
@@ -97,3 +97,4 @@ self.addEventListener('fetch', event => {
     })
   );
 });
+

@@ -259,8 +259,6 @@
     deEmphasizeAiReasons();
     enhanceReadingHierarchy();
     enhanceCollections();
-    groupThemeCards();
-    showThemeRecommendation();
     installFocusMode();
   };
 
