@@ -1,6 +1,6 @@
 // app-real.jsx - Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.20-r76';
+const APP_BUILD = '2026.06.21-r77';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -1003,7 +1003,11 @@ function WritingParticles({ textareaRef, text, theme, enabled }) {
 }
 
 // Compose screen
-const MOODS_REAL = ['晴','雨','花','月','星','风','静','倦','喜','远','书','茶','云','海','灯'];
+const MOODS_REAL = Array.from(new Set([
+  ...(window.MOOD_EMOJIS || []),
+  '☕','🌙','🏃','🌿','💐','🌊','📖','🌫','🌳','🎯','✨','🌸',
+  '😴','🥲','🤍','🌧','🍃','🍷','📷','🎵','💌','🪷','🍂','⛅'
+]));
 
 function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', forceDraft = false, syncState, onChangePaper, onBack, onSaved }) {
   const editing = !!entry?.id;
