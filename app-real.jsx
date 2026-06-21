@@ -1,6 +1,6 @@
 // app-real.jsx - Real diary app: Firebase auth + Firestore + DeepSeek
 
-const APP_BUILD = '2026.06.21-r77';
+const APP_BUILD = '2026.06.21-r79';
 
 const SYNC_EVENT = 'poem-diary-sync';
 const syncTracker = {
@@ -172,6 +172,72 @@ function normalizeEntry(data, id) {
     notes: Array.isArray(data?.notes) ? data.notes.filter(n => n && typeof n.text === 'string') : [],
     inlineNotes: Array.isArray(data?.inlineNotes) ? data.inlineNotes.filter(n => n && typeof n.text === 'string') : [],
     photos: Array.isArray(data?.photos) ? data.photos.filter(p => typeof p === 'string') : [],
+    stickers: normalizeStickers(data?.stickers),
+    scene: normalizeScene(data?.scene),
+  };
+}
+
+function stickerCatalog() {
+  return Array.isArray(window.STICKERS) ? window.STICKERS : [];
+}
+
+function normalizeStickers(value) {
+  const list = Array.isArray(value) ? value : [];
+  const catalog = stickerCatalog();
+  const byId = new Map(catalog.map(sticker => [sticker.id, sticker]));
+  const bySrc = new Map(catalog.map(sticker => [sticker.src, sticker]));
+  return list.map(item => {
+    const raw = typeof item === 'string' ? { id: item } : item;
+    if (!raw || typeof raw !== 'object') return null;
+    const known = (raw.id && byId.get(raw.id)) || (raw.src && bySrc.get(raw.src));
+    const sticker = known ? { ...known } : {
+      id: String(raw.id || raw.src || ''),
+      label: String(raw.label || '表情包'),
+      src: typeof raw.src === 'string' ? raw.src : '',
+      thumb: typeof raw.thumb === 'string' ? raw.thumb : '',
+      pack: typeof raw.pack === 'string' ? raw.pack : '',
+      packLabel: typeof raw.packLabel === 'string' ? raw.packLabel : '',
+    };
+    if (!sticker.id || !sticker.src) return null;
+    return {
+      id: sticker.id,
+      label: sticker.label || '表情包',
+      src: sticker.src,
+      thumb: sticker.thumb || sticker.src,
+      pack: sticker.pack || '',
+      packLabel: sticker.packLabel || '',
+    };
+  }).filter(Boolean).slice(0, 12);
+}
+
+function sceneCatalog() {
+  return Array.isArray(window.SCENE_PRESETS) ? window.SCENE_PRESETS : [];
+}
+
+function normalizeScene(value) {
+  if (!value) return null;
+  const raw = typeof value === 'string' ? { id: value } : value;
+  if (!raw || typeof raw !== 'object') return null;
+  const catalog = sceneCatalog();
+  const byId = new Map(catalog.map(scene => [scene.id, scene]));
+  const bySrc = new Map(catalog.map(scene => [scene.src, scene]));
+  const known = (raw.id && byId.get(raw.id)) || (raw.src && bySrc.get(raw.src));
+  const scene = known ? { ...known } : {
+    id: String(raw.id || raw.src || ''),
+    label: String(raw.label || '场景'),
+    group: String(raw.group || ''),
+    note: String(raw.note || ''),
+    src: typeof raw.src === 'string' ? raw.src : '',
+    thumb: typeof raw.thumb === 'string' ? raw.thumb : '',
+  };
+  if (!scene.id || !scene.src) return null;
+  return {
+    id: scene.id,
+    label: scene.label || '场景',
+    group: scene.group || '',
+    note: scene.note || '',
+    src: scene.src,
+    thumb: scene.thumb || scene.src,
   };
 }
 
@@ -215,14 +281,14 @@ async function dbClearAllData() {
 }
 
 async function dbImportEntries(entries) {
-  const normalized = entries.map(entry => normalizeEntry(entry || {}, entry?.id)).filter(entry => entry.body.trim());
+  const normalized = entries.map(entry => normalizeEntry(entry || {}, entry?.id)).filter(entry => entry.body.trim() || entry.stickers.length || entry.scene);
   for (const entry of normalized) {
     const bytes = new Blob([JSON.stringify(entry)]).size;
     if (bytes > 900 * 1024) throw new Error(`日记“${entry.poem?.title || entry.date}”过大，无法写入 Firestore`);
   }
   for (const entry of normalized) {
     const { id, ...data } = entry;
-    if (!data.body?.trim()) continue;
+    if (!data.body?.trim() && !(data.stickers && data.stickers.length) && !data.scene) continue;
     if (id) await dbSaveEntry({ id, ...data });
     else await dbSaveEntry(data);
   }
@@ -467,7 +533,9 @@ function readLocalDrafts(entries = []) {
       const raw = localStorage.getItem(key);
       if (!raw) continue;
       const draft = JSON.parse(raw);
-      const hasText = String(draft?.title || '').trim() || String(draft?.body || '').trim();
+      const draftStickers = normalizeStickers(draft?.stickers);
+      const draftScene = normalizeScene(draft?.scene);
+      const hasText = String(draft?.title || '').trim() || String(draft?.body || '').trim() || draftStickers.length || draftScene;
       if (!hasText) continue;
       const targetId = key.slice('diary-draft:'.length);
       const isEditDraft = targetId && targetId !== 'new' && entryIds.has(targetId);
@@ -480,7 +548,7 @@ function readLocalDrafts(entries = []) {
         key,
         targetId: isEditDraft ? targetId : '',
         kind: 'text',
-        title: String(draft.title || draft.body || '未命名草稿').slice(0, 42),
+        title: String(draft.title || draft.body || (draftScene ? `场景：${draftScene.label}` : draftStickers.length ? `${draftStickers.length} 枚表情` : '未命名草稿')).slice(0, 42),
         time,
         savedAt: savedAt?.getTime() || 0,
       });
@@ -1008,6 +1076,7 @@ const MOODS_REAL = Array.from(new Set([
   '☕','🌙','🏃','🌿','💐','🌊','📖','🌫','🌳','🎯','✨','🌸',
   '😴','🥲','🤍','🌧','🍃','🍷','📷','🎵','💌','🪷','🍂','⛅'
 ]));
+const STICKER_LIMIT = 12;
 
 function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', forceDraft = false, syncState, onChangePaper, onBack, onSaved }) {
   const editing = !!entry?.id;
@@ -1022,6 +1091,12 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
   const [poem, setPoem] = React.useState(entry?.poem || null);
   const [saving, setSaving] = React.useState(false);
   const [paperOpen, setPaperOpen] = React.useState(false);
+  const [sceneOpen, setSceneOpen] = React.useState(false);
+  const [sceneGroup, setSceneGroup] = React.useState('全部');
+  const [scene, setScene] = React.useState(() => normalizeScene(entry?.scene));
+  const [stickerOpen, setStickerOpen] = React.useState(false);
+  const [stickerPackId, setStickerPackId] = React.useState((window.STICKER_PACKS || [])[0]?.id || 'dog');
+  const [stickers, setStickers] = React.useState(() => normalizeStickers(entry?.stickers));
   const [err, setErr] = React.useState('');
   const [draftSavedAt, setDraftSavedAt] = React.useState('');
   const draftReady = React.useRef(false);
@@ -1050,11 +1125,14 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
       const raw = localStorage.getItem(draftKey);
       if (raw) {
         const draft = JSON.parse(raw);
-        const differs = draft.title !== (entry?.title || '') || draft.body !== (entry?.body || '');
-        if ((forceDraft || differs) && (draft.title?.trim() || draft.body?.trim()) && (forceDraft || window.confirm('发现一份未完成的本地草稿，要继续写吗？'))) {
+        const draftScene = normalizeScene(draft.scene);
+        const differs = draft.title !== (entry?.title || '') || draft.body !== (entry?.body || '') || draftScene?.id !== normalizeScene(entry?.scene)?.id;
+        if ((forceDraft || differs) && (draft.title?.trim() || draft.body?.trim() || normalizeStickers(draft.stickers).length || draftScene) && (forceDraft || window.confirm('发现一份未完成的本地草稿，要继续写吗？'))) {
           setTitle(draft.title || '');
           setBody(draft.body || '');
           setMood(draft.mood || '');
+          setScene(draftScene);
+          setStickers(normalizeStickers(draft.stickers));
           setFlag(!!draft.flag);
           setPlace(draft.place || entry?.place || '未记录地点');
           if (window.PAPER_LIBRARY.some(item => item.id === draft.paper)) setActivePaper(draft.paper);
@@ -1070,19 +1148,19 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
   React.useEffect(() => {
     if (!draftReady.current) return;
     const timer = setTimeout(() => {
-      const hasContent = title.trim() || body.trim();
+      const hasContent = title.trim() || body.trim() || stickers.length || scene;
       if (!hasContent && !editing) {
         localStorage.removeItem(draftKey);
         setDraftSavedAt('');
         return;
       }
       localStorage.setItem(draftKey, JSON.stringify({
-        title, body, mood, flag, place, paper: activePaper, savedAt: new Date().toISOString(),
+        title, body, mood, scene: normalizeScene(scene), stickers, flag, place, paper: activePaper, savedAt: new Date().toISOString(),
       }));
       setDraftSavedAt(new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false }));
     }, 650);
     return () => clearTimeout(timer);
-  }, [title, body, mood, flag, place, activePaper, draftKey, editing]);
+  }, [title, body, mood, scene, stickers, flag, place, activePaper, draftKey, editing]);
 
   const info = nowInfo();
   const entryInfo = editing ? {
@@ -1117,7 +1195,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
         ...(entry || {}),
         ...(editing ? { id: entry.id } : {}),
         date: entryInfo.date, weekday: entryInfo.weekday, time: entryInfo.time,
-        place, title: title.trim(), body: body.trim(), mood, flag, paper: activePaper,
+        place, title: title.trim(), body: body.trim(), mood, scene: normalizeScene(scene), stickers: normalizeStickers(stickers), flag, paper: activePaper,
         tags: entry?.tags || [],
         poem: generatedPatch.poem || poem || entry?.poem || null,
         activePoemStyle: generated ? generatedPatch.activePoemStyle : (entry?.activePoemStyle || poem?.style || entry?.poem?.style || null),
@@ -1143,7 +1221,7 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [body, saving, focusMode, title, mood, flag, place, activePaper]);
+  }, [body, saving, focusMode, title, mood, scene, flag, place, activePaper]);
 
   const displayPoem = poemFromAiResult(poem) || poem || { title: '未题', form: '五绝', lines: ['', '', '', ''] };
   const fakeEntry = { body, poem: displayPoem, sign: signFromAiResult(poem) };
@@ -1154,7 +1232,20 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
     return <Shake theme={theme} state="done" entry={fakeEntry}
       onRegen={doShake} onAccept={() => doSave(poem)} saving={saving} error={err}/>;
 
-  const filled = body.trim().length > 0;
+  const filled = body.trim().length > 0 || stickers.length > 0 || !!scene;
+  const scenes = sceneCatalog();
+  const sceneGroups = ['全部', ...Array.from(new Set(scenes.map(item => item.group).filter(Boolean)))];
+  const activeScenes = sceneGroup === '全部' ? scenes : scenes.filter(item => item.group === sceneGroup);
+  const packs = Array.isArray(window.STICKER_PACKS) ? window.STICKER_PACKS : [];
+  const activeStickerPack = packs.find(pack => pack.id === stickerPackId) || packs[0] || { stickers: [] };
+  const StickerStripView = window.StickerStrip || (() => null);
+  const addSticker = sticker => {
+    setStickers(current => {
+      if (!sticker || current.length >= STICKER_LIMIT) return current;
+      return normalizeStickers([...current, sticker]);
+    });
+  };
+  const removeSticker = index => setStickers(current => current.filter((_, i) => i !== index));
   const ps = paperBg(activePaper, theme);
   const selectedPaper = window.PAPER_LIBRARY.find(item => item.id === activePaper) || window.PAPER_LIBRARY[0];
   const customPaper = activePaper.startsWith('art-');
@@ -1256,6 +1347,64 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
           <WritingParticles textareaRef={bodyRef} text={body} theme={theme} enabled={particlesOn && !focusMode} />
         </div>
 
+        {scene && (
+          <div className="compose-scene-preview" style={{
+            padding: `0 ${customPaper ? 52 : 28}px 10px`,
+            flexShrink: 0,
+          }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '82px minmax(0, 1fr) auto',
+              alignItems: 'center',
+              gap: 10,
+              minHeight: 70,
+              padding: 8,
+              borderRadius: 18,
+              border: `0.5px solid ${customPaper ? 'rgba(81,74,67,.16)' : theme.line}`,
+              background: customPaper ? 'rgba(255,253,247,.66)' : theme.surface,
+              boxShadow: customPaper ? '0 6px 18px rgba(67,55,43,.08)' : 'none',
+            }}>
+              <img src={scene.thumb || scene.src} alt={scene.label} loading="lazy" style={{
+                width: 82,
+                height: 54,
+                borderRadius: 12,
+                objectFit: 'cover',
+                display: 'block',
+              }}/>
+              <div style={{ minWidth: 0 }}>
+                <div className="serif" style={{ fontSize: 14, color: paperInk, letterSpacing: 1.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{scene.label}</div>
+                <div style={{ marginTop: 3, fontSize: 10.5, color: paperMuted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{scene.group || '场景'} · 将用于古诗册左页</div>
+              </div>
+              <button type="button" onClick={() => setScene(null)} aria-label="移除场景" style={{
+                width: 30,
+                height: 30,
+                borderRadius: 15,
+                border: `0.5px solid ${customPaper ? 'rgba(81,74,67,.16)' : theme.line}`,
+                background: customPaper ? 'rgba(255,253,247,.78)' : theme.paper,
+                color: paperSoft,
+                display: 'grid',
+                placeItems: 'center',
+                cursor: 'pointer',
+              }}>
+                <IconClose color={paperSoft} size={15}/>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {stickers.length > 0 && (
+          <div className="compose-sticker-preview" style={{
+            padding: `0 ${customPaper ? 52 : 28}px 10px`,
+            maxHeight: 142, overflowY: 'auto', flexShrink: 0,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+              <span style={{ fontSize: 10.5, color: paperMuted, letterSpacing: 1.5 }}>已 插 入 表 情</span>
+              <span style={{ fontSize: 10.5, color: paperMuted }}>{stickers.length}/{STICKER_LIMIT}</span>
+            </div>
+            <StickerStripView stickers={stickers} theme={theme} removable onRemove={removeSticker} compact maxHeight="104px" />
+          </div>
+        )}
+
         {err && <div className="compose-error" style={{ padding: '4px 28px', color: theme.seal, fontSize: 12 }}>{err}</div>}
 
         {/* bottom bar */}
@@ -1279,6 +1428,30 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
               backdropFilter: customPaper ? 'blur(14px)' : 'none',
             }}>
               <FlagDot theme={theme} size={10}/>里程碑
+            </button>
+            <button type="button" onClick={() => setSceneOpen(true)} disabled={!scenes.length} style={{
+              height: 34, maxWidth: 132, padding: '0 12px', borderRadius: 17, border: 'none',
+              background: scene ? theme.accent + '22' : paperControl,
+              color: scene ? theme.accent : paperSoft,
+              display: 'flex', alignItems: 'center', gap: 5, fontSize: 12,
+              fontFamily: 'inherit', cursor: scenes.length ? 'pointer' : 'default',
+              border: customPaper ? '0.5px solid rgba(81,74,67,.10)' : 'none',
+              boxShadow: floatingControlShadow,
+              backdropFilter: customPaper ? 'blur(14px)' : 'none',
+            }}>
+              <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>场景{scene ? ` · ${scene.label}` : ''}</span>
+            </button>
+            <button type="button" onClick={() => setStickerOpen(true)} disabled={!packs.length} style={{
+              height: 34, padding: '0 12px', borderRadius: 17, border: 'none',
+              background: stickers.length ? theme.accent + '22' : paperControl,
+              color: stickers.length ? theme.accent : paperSoft,
+              display: 'flex', alignItems: 'center', gap: 5, fontSize: 12,
+              fontFamily: 'inherit', cursor: packs.length ? 'pointer' : 'default',
+              border: customPaper ? '0.5px solid rgba(81,74,67,.10)' : 'none',
+              boxShadow: floatingControlShadow,
+              backdropFilter: customPaper ? 'blur(14px)' : 'none',
+            }}>
+              表情包{stickers.length ? ` ${stickers.length}` : ''}
             </button>
             <div style={{ flex: 1 }}/>
             <span style={{ fontSize: 10.5, color: syncState?.error ? theme.seal : paperMuted }}>
@@ -1330,6 +1503,128 @@ function ComposeReal({ theme, paper, entry, draftKey: openedDraftKey = '', force
                 );
               })}
             </div>
+          </div>
+        </div>
+      )}
+      {sceneOpen && (
+        <div onClick={() => setSceneOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 84, background: 'rgba(20,25,22,.36)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <div className="scene-picker-sheet" onClick={event => event.stopPropagation()} style={{ width: '100%', maxWidth: W, maxHeight: '78vh', background: theme.bg, borderRadius: '24px 24px 0 0', padding: '20px 16px 30px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 6px 12px' }}>
+              <div>
+                <div className="serif" style={{ fontSize: 19, color: theme.text, letterSpacing: 3 }}>选择场景</div>
+                <div style={{ fontSize: 11, color: theme.textMute, marginTop: 4 }}>已整理 {scenes.length} 张 · 会同步到古诗册左页</div>
+              </div>
+              <button type="button" aria-label="关闭场景选择器" onClick={() => setSceneOpen(false)} style={{ border: 'none', background: 'transparent', padding: 6, cursor: 'pointer' }}>
+                <IconClose color={theme.textSoft} size={18}/>
+              </button>
+            </div>
+            <div className="no-scroll" style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 4px 12px' }}>
+              {sceneGroups.map(group => (
+                <button key={group} type="button" onClick={() => setSceneGroup(group)} style={{
+                  height: 34,
+                  padding: '0 14px',
+                  borderRadius: 17,
+                  border: `1px solid ${group === sceneGroup ? theme.accent : theme.line}`,
+                  background: group === sceneGroup ? `${theme.accent}18` : theme.surface,
+                  color: group === sceneGroup ? theme.accent : theme.textSoft,
+                  fontFamily: 'inherit',
+                  cursor: 'pointer',
+                  fontSize: 12.5,
+                  whiteSpace: 'nowrap',
+                }}>{group}</button>
+              ))}
+            </div>
+            <div className="no-scroll" style={{
+              overflowY: 'auto',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+              gap: 10,
+              padding: '2px 4px 14px',
+            }}>
+              {activeScenes.map(item => {
+                const active = scene?.id === item.id;
+                return (
+                  <button key={item.id} type="button" onClick={() => { setScene(normalizeScene(item)); setSceneOpen(false); }} title={item.note || item.label} style={{
+                    minHeight: 104,
+                    borderRadius: 16,
+                    border: `1px solid ${active ? theme.accent : theme.line}`,
+                    background: active ? `${theme.accent}12` : theme.paper,
+                    padding: 6,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'stretch',
+                    justifyContent: 'flex-start',
+                    gap: 6,
+                    fontFamily: 'inherit',
+                    cursor: 'pointer',
+                  }}>
+                    <img src={item.thumb || item.src} alt={item.label} loading="lazy" style={{ width: '100%', aspectRatio: '4 / 3', objectFit: 'cover', borderRadius: 12, display: 'block', background: theme.surface }}/>
+                    <span style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: active ? theme.accent : theme.textSoft, fontSize: 10.5, textAlign: 'center' }}>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {scene && (
+              <div style={{ borderTop: `0.5px solid ${theme.line}`, padding: '10px 4px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                <div style={{ minWidth: 0, fontSize: 11, color: theme.textMute, letterSpacing: 1.5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>已选 · {scene.label}</div>
+                <button type="button" onClick={() => setScene(null)} style={{ border: 'none', background: 'transparent', color: theme.seal, fontSize: 11, fontFamily: 'inherit', cursor: 'pointer', flexShrink: 0 }}>清除</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {stickerOpen && (
+        <div onClick={() => setStickerOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(20,25,22,.36)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
+          <div className="sticker-picker-sheet" onClick={event => event.stopPropagation()} style={{ width: '100%', maxWidth: W, maxHeight: '76vh', background: theme.bg, borderRadius: '24px 24px 0 0', padding: '20px 16px 30px', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 6px 12px' }}>
+              <div>
+                <div className="serif" style={{ fontSize: 19, color: theme.text, letterSpacing: 3 }}>插入表情包</div>
+                <div style={{ fontSize: 11, color: theme.textMute, marginTop: 4 }}>已整理 {packs.reduce((sum, pack) => sum + pack.stickers.length, 0)} 张 · 最多插入 {STICKER_LIMIT} 张</div>
+              </div>
+              <button type="button" aria-label="关闭表情包选择器" onClick={() => setStickerOpen(false)} style={{ border: 'none', background: 'transparent', padding: 6, cursor: 'pointer' }}>
+                <IconClose color={theme.textSoft} size={18}/>
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: 8, padding: '0 4px 12px' }}>
+              {packs.map(pack => (
+                <button key={pack.id} type="button" onClick={() => setStickerPackId(pack.id)} style={{
+                  height: 34, padding: '0 14px', borderRadius: 17,
+                  border: `1px solid ${pack.id === activeStickerPack.id ? theme.accent : theme.line}`,
+                  background: pack.id === activeStickerPack.id ? `${theme.accent}18` : theme.surface,
+                  color: pack.id === activeStickerPack.id ? theme.accent : theme.textSoft,
+                  fontFamily: 'inherit', cursor: 'pointer', fontSize: 12.5,
+                }}>{pack.label}</button>
+              ))}
+            </div>
+            <div className="no-scroll" style={{
+              overflowY: 'auto', display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
+              gap: 9, padding: '2px 4px 14px',
+            }}>
+              {(activeStickerPack.stickers || []).map(sticker => {
+                const disabled = stickers.length >= STICKER_LIMIT;
+                return (
+                  <button key={sticker.id} type="button" onClick={() => addSticker(sticker)} disabled={disabled} title={sticker.label} style={{
+                    minHeight: 88, borderRadius: 16, border: `0.5px solid ${theme.line}`,
+                    background: theme.paper, padding: '7px 5px 6px',
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    gap: 3, fontFamily: 'inherit', cursor: disabled ? 'default' : 'pointer',
+                    opacity: disabled ? .5 : 1,
+                  }}>
+                    <img src={sticker.thumb || sticker.src} alt={sticker.label} loading="lazy" style={{ width: 58, height: 58, objectFit: 'contain', display: 'block' }}/>
+                    <span style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: theme.textSoft, fontSize: 10.5 }}>{sticker.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {stickers.length > 0 && (
+              <div style={{ borderTop: `0.5px solid ${theme.line}`, padding: '10px 4px 0' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 7 }}>
+                  <span style={{ fontSize: 11, color: theme.textMute, letterSpacing: 1.5 }}>本篇已选</span>
+                  <button type="button" onClick={() => setStickers([])} style={{ border: 'none', background: 'transparent', color: theme.seal, fontSize: 11, fontFamily: 'inherit', cursor: 'pointer' }}>清空</button>
+                </div>
+                <StickerStripView stickers={stickers} theme={theme} removable onRemove={removeSticker} compact maxHeight="92px" />
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -340,6 +340,59 @@ function BookIllustration({ theme, scene }) {
   );
 }
 
+function getEntryScenePreset(entry) {
+  const raw = entry?.scene;
+  if (!raw) return null;
+  const scenes = Array.isArray(window.SCENE_PRESETS) ? window.SCENE_PRESETS : [];
+  const scene = typeof raw === 'string'
+    ? scenes.find(item => item.id === raw)
+    : scenes.find(item => item.id === raw.id || item.src === raw.src) || raw;
+  if (!scene || !scene.src) return null;
+  return {
+    id: scene.id || scene.src,
+    label: scene.label || '场景',
+    group: scene.group || '',
+    note: scene.note || '',
+    src: scene.src,
+    thumb: scene.thumb || scene.src,
+  };
+}
+
+function BookSceneImage({ theme, scene }) {
+  return (
+    <div className="book-scene-image" style={{
+      position: 'absolute',
+      inset: 0,
+      overflow: 'hidden',
+      background: theme.surface,
+    }}>
+      <img src={scene.src} alt={scene.label} loading="lazy" style={{
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        display: 'block',
+      }}/>
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: `linear-gradient(90deg, rgba(255,253,247,.06), ${theme.paper}18 70%, ${theme.paper}34), linear-gradient(0deg, rgba(20,18,14,.28), rgba(20,18,14,0) 46%)`,
+        pointerEvents: 'none',
+      }}/>
+      <div style={{
+        position: 'absolute',
+        left: 16,
+        right: 16,
+        bottom: 16,
+        color: '#fffaf0',
+        textShadow: '0 1px 10px rgba(20,18,14,.5)',
+      }}>
+        <div className="serif" style={{ fontSize: 20, letterSpacing: 2, lineHeight: 1.2 }}>{scene.label}</div>
+        <div style={{ marginTop: 5, fontSize: 10.5, letterSpacing: 1.5, opacity: .86 }}>{scene.group || 'DIARY SCENE'}</div>
+      </div>
+    </div>
+  );
+}
+
 function PoemBook({ theme, entries, onOpen, bookLabel = '诗册' }) {
   const [page, setPage] = React.useState(0);
   const [dir, setDir] = React.useState('next');
@@ -397,6 +450,7 @@ function PoemBook({ theme, entries, onOpen, bookLabel = '诗册' }) {
   const enPoem = entry.poem?.style === 'en-sonnet' || entry.sign?.style === 'en-sonnet' || (entry.poem?.lines || []).length > 4;
   const motif = entry.sign?.motif || entry.poem?.title || (enPoem ? 'today' : '今日');
   const scene = pickBookScene(entry);
+  const selectedScene = !enPoem ? getEntryScenePreset(entry) : null;
   const canPrev = page > 0;
   const canNext = page < entries.length - 1;
 
@@ -428,20 +482,26 @@ function PoemBook({ theme, entries, onOpen, bookLabel = '诗册' }) {
   const illustration = (
     <div style={{
       position: 'relative',
-      padding: enPoem ? '18px 16px 14px' : '26px 16px 20px',
-      background: `linear-gradient(150deg, ${theme.surface}, ${theme.paper})`,
+      padding: selectedScene ? 0 : (enPoem ? '18px 16px 14px' : '26px 16px 20px'),
+      background: selectedScene ? theme.surface : `linear-gradient(150deg, ${theme.surface}, ${theme.paper})`,
       borderRight: enPoem ? 'none' : `0.5px solid ${theme.line}`,
       borderBottom: enPoem ? `0.5px solid ${theme.line}` : 'none',
       overflow: 'hidden',
     }}>
-      <div style={{ position: 'absolute', inset: enPoem ? 12 : 22, border: `1px solid ${theme.line}`, opacity: .4 }} />
-      <BookIllustration theme={theme} scene={scene} />
-      {enPoem
-        ? <div className="serif" style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginTop: 8, color: theme.textSoft, fontSize: 12.5, fontStyle: 'italic', letterSpacing: .4, lineHeight: 1.5 }}>{motif}</div>
-        : <div className="serif" style={{ position: 'relative', zIndex: 1, writingMode: 'vertical-rl', textOrientation: 'upright', margin: '8px auto 0', height: 112, color: theme.textSoft, fontSize: 17, letterSpacing: 8 }}>{motif}</div>}
-      <div style={{ position: 'absolute', left: 14, bottom: 12, fontSize: 9.5, color: theme.textMute, letterSpacing: 1.5 }}>
-        {enPoem ? 'illustration · by motif' : '插画 · 据意象绘'}
-      </div>
+      {selectedScene ? (
+        <BookSceneImage theme={theme} scene={selectedScene} />
+      ) : (
+        <>
+          <div style={{ position: 'absolute', inset: enPoem ? 12 : 22, border: `1px solid ${theme.line}`, opacity: .4 }} />
+          <BookIllustration theme={theme} scene={scene} />
+          {enPoem
+            ? <div className="serif" style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginTop: 8, color: theme.textSoft, fontSize: 12.5, fontStyle: 'italic', letterSpacing: .4, lineHeight: 1.5 }}>{motif}</div>
+            : <div className="serif" style={{ position: 'relative', zIndex: 1, writingMode: 'vertical-rl', textOrientation: 'upright', margin: '8px auto 0', height: 112, color: theme.textSoft, fontSize: 17, letterSpacing: 8 }}>{motif}</div>}
+          <div style={{ position: 'absolute', left: 14, bottom: 12, fontSize: 9.5, color: theme.textMute, letterSpacing: 1.5 }}>
+            {enPoem ? 'illustration · by motif' : '插画 · 据意象绘'}
+          </div>
+        </>
+      )}
     </div>
   );
 
@@ -782,8 +842,13 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
       const poem = variantBlocks.length
         ? variantBlocks.join('')
         : e.poem && Array.isArray(e.poem.lines) ? `\n\n**〈${esc(e.poem.title)}〉** ${esc(e.poem.form)}\n\n${e.poem.lines.map(esc).join('\n')}` : '';
+      const stickers = (e.stickers || []).length
+        ? `\n\n**表情包**\n\n${e.stickers.map(sticker => `- ${esc(sticker.label || '表情包')}：${esc(sticker.src)}`).join('\n')}`
+        : '';
+      const scene = getEntryScenePreset(e);
+      const sceneBlock = scene ? `\n\n**场景**\n\n- ${esc(scene.label)}：${esc(scene.src)}` : '';
       const tags = (e.tags || []).length ? `\n\n${e.tags.map(t => '#' + esc(t)).join(' ')}` : '';
-      return `${head}\n\n${body}${sign}${poem}${tags}`;
+      return `${head}\n\n${body}${sceneBlock}${stickers}${sign}${poem}${tags}`;
     });
     return `# 诗签 · 日记导出\n\n导出时间：${new Date().toLocaleString('zh-CN')} · 共 ${blocks.length} 篇\n\n---\n\n${blocks.join('\n\n---\n\n')}\n`;
   };
@@ -843,7 +908,7 @@ function Settings({ theme, currentThemeKey, onChangeTheme, entriesCount = 0, ent
           weekday: `周${'日一二三四五六'[d.getDay()]}`,
           time: `${p(d.getHours())}:${p(d.getMinutes())}`,
           place: '导入', title: file.name.replace(/\.[^.]+$/, ''), body: text.trim(), mood: '', flag: false,
-          tags: ['导入'], poem: null, notes: [], inlineNotes: [], photos: [],
+          tags: ['导入'], poem: null, notes: [], inlineNotes: [], photos: [], stickers: [],
         }], hexagrams: [] };
       }
       await onImportData(data);

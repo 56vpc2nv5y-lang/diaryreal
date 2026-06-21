@@ -236,6 +236,7 @@ function PastRow({ entry, theme, onClick, isLast, dense }) {
           <IconPin color={theme.textMute} size={10} />
           <span>{safePlace.split(' · ')[1] || safePlace}</span>
           {entry.photos && <span style={{ marginLeft: 4 }}>· 图 {entry.photos.length}</span>}
+          {entry.stickers && entry.stickers.length > 0 && <span style={{ marginLeft: 4 }}>· 表情 {entry.stickers.length}</span>}
         </div>
       </div>
     </div>);
@@ -1005,6 +1006,42 @@ function renderBodyWithAnchors(body, inlineNotes, theme, selectedId, onSelect) {
   return out;
 }
 
+function StickerStrip({ stickers = [], theme, removable = false, onRemove, compact = false, maxHeight = 'none' }) {
+  const list = (stickers || []).filter(sticker => sticker && (sticker.src || sticker.thumb));
+  if (!list.length) return null;
+  const tile = compact ? 70 : 104;
+  const img = compact ? 62 : 94;
+  return (
+    <div className="diary-sticker-strip" style={{
+      display: 'flex', flexWrap: 'wrap', gap: compact ? 7 : 10,
+      maxHeight, overflowY: maxHeight === 'none' ? 'visible' : 'auto',
+      padding: compact ? '2px 0' : '4px 0',
+    }}>
+      {list.map((sticker, index) => (
+        <div key={`${sticker.id || sticker.src}-${index}`} style={{
+          width: tile, minHeight: tile, borderRadius: compact ? 14 : 18,
+          background: theme.surface, border: `0.5px solid ${theme.line}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          position: 'relative', flexShrink: 0, overflow: 'hidden',
+          boxShadow: `0 6px 18px ${theme.text}0d`,
+        }}>
+          <img src={sticker.thumb || sticker.src} alt={sticker.label || '表情包'} loading="lazy" style={{
+            width: img, height: img, objectFit: 'contain', display: 'block',
+          }}/>
+          {removable && (
+            <button type="button" aria-label={`移除${sticker.label || '表情包'}`} onClick={() => onRemove?.(index)} style={{
+              position: 'absolute', top: 4, right: 4, width: 20, height: 20,
+              borderRadius: 10, border: `0.5px solid ${theme.line}`,
+              background: theme.paper, color: theme.textSoft, lineHeight: '18px',
+              padding: 0, fontSize: 13, cursor: 'pointer',
+            }}>×</button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 async function createPoemCardBlob(entry, theme) {
   try { await document.fonts?.ready; } catch {}
   const canvas = document.createElement('canvas');
@@ -1547,6 +1584,11 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
         <div className="diary-writing" style={{ fontFamily: theme.fontWriting || theme.fontSerif, fontSize: 16, lineHeight: theme.writingLineHeight || 2.0, color: theme.text, letterSpacing: theme.writingSpacing ?? 0.4 }}>
           {renderBodyWithAnchors(e.body, e.inlineNotes, theme)}
         </div>
+        {e.stickers && e.stickers.length > 0 && (
+          <div style={{ marginTop: 18 }}>
+            <StickerStrip stickers={e.stickers} theme={theme} />
+          </div>
+        )}
         {/* tags */}
         {e.tags && e.tags.length > 0 && (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 14 }}>
@@ -1818,4 +1860,4 @@ function Detail({ theme, entry, onBack, showPoem = true, onEdit, onToggleFlag, o
 
 }
 
-Object.assign(window, { Home, Search, Compose, QuickCapture, QuickMenu, Shake, Detail, TodayCard, PastRow, renderBodyWithAnchors });
+Object.assign(window, { Home, Search, Compose, QuickCapture, QuickMenu, Shake, Detail, TodayCard, PastRow, renderBodyWithAnchors, StickerStrip });

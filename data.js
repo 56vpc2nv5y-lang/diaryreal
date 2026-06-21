@@ -274,3 +274,121 @@ window.MOOD_EMOJIS = [
   '☀️','☁️','🌈','🔥','💧','🍵','🍰','🕯️','🛋️','🚶','🚲','✈️',
   '🙂','😌','🥰','😂','😭','😮‍💨','😵‍💫','😤','😡','🤯','❤️‍🩹','💪'
 ];
+
+const stickerPath = (group, name) => ({
+  src: `image/stickers/${group}/${name}.png`,
+  thumb: `image/stickers/thumbs/${group}/${name}.webp`,
+});
+
+window.STICKER_PACKS = [
+  {
+    id: 'dog',
+    label: '白色小狗',
+    stickers: [
+      { id: 'dog-goodnight', label: '晚安', ...stickerPath('dog', 'dog-goodnight') },
+      { id: 'dog-hug', label: '抱抱', ...stickerPath('dog', 'dog-hug') },
+      { id: 'dog-shock', label: '震惊', ...stickerPath('dog', 'dog-shock') },
+      { id: 'dog-wronged', label: '委屈', ...stickerPath('dog', 'dog-wronged') },
+      { id: 'dog-eat-watermelon', label: '吃瓜', ...stickerPath('dog', 'dog-eat-watermelon') },
+      { id: 'dog-love', label: '爱你', ...stickerPath('dog', 'dog-love') },
+      { id: 'dog-overtime', label: '加班', ...stickerPath('dog', 'dog-overtime') },
+      { id: 'dog-sleepy', label: '困了', ...stickerPath('dog', 'dog-sleepy') },
+      { id: 'dog-angry', label: '生气', ...stickerPath('dog', 'dog-angry') },
+      { id: 'dog-angry-puff', label: '炸毛', ...stickerPath('dog', 'dog-angry-puff') },
+      { id: 'dog-laugh', label: '哈哈哈', ...stickerPath('dog', 'dog-laugh') },
+      { id: 'dog-hello-portrait', label: '招手', ...stickerPath('dog', 'dog-hello-portrait') },
+      { id: 'dog-wave', label: '你好', ...stickerPath('dog', 'dog-wave') },
+      { id: 'dog-sorry', label: '对不起', ...stickerPath('dog', 'dog-sorry') },
+      { id: 'dog-broken', label: '破防', ...stickerPath('dog', 'dog-broken') },
+      { id: 'dog-morning-coffee', label: '早安', ...stickerPath('dog', 'dog-morning-coffee') },
+      { id: 'dog-cheer', label: '加油', ...stickerPath('dog', 'dog-cheer') },
+      { id: 'dog-speechless', label: '无语', ...stickerPath('dog', 'dog-speechless') },
+      { id: 'dog-cry', label: '爆哭', ...stickerPath('dog', 'dog-cry') },
+      { id: 'dog-hooray', label: '好耶', ...stickerPath('dog', 'dog-hooray') },
+      { id: 'dog-tea', label: '辛苦了', ...stickerPath('dog', 'dog-tea') },
+      { id: 'dog-shocked-alt', label: '惊到了', ...stickerPath('dog', 'dog-shocked-alt') },
+      { id: 'dog-busy', label: '忙', ...stickerPath('dog', 'dog-busy') },
+      { id: 'dog-party', label: '开心', ...stickerPath('dog', 'dog-party') },
+      { id: 'dog-birthday', label: '生日', ...stickerPath('dog', 'dog-birthday') },
+      { id: 'dog-new-year', label: '新年', ...stickerPath('dog', 'dog-new-year') },
+      { id: 'dog-sick', label: '生病', ...stickerPath('dog', 'dog-sick') },
+      { id: 'dog-travel', label: '旅行', ...stickerPath('dog', 'dog-travel') },
+    ],
+  },
+  {
+    id: 'girl',
+    label: '马尾女孩',
+    stickers: [
+      { id: 'girl-laugh', label: '哈哈哈', ...stickerPath('girl', 'girl-laugh') },
+      { id: 'girl-speechless', label: '无语', ...stickerPath('girl', 'girl-speechless') },
+      { id: 'girl-cheer', label: '加油', ...stickerPath('girl', 'girl-cheer') },
+      { id: 'girl-hug', label: '抱抱', ...stickerPath('girl', 'girl-hug') },
+      { id: 'girl-morning', label: '早安', ...stickerPath('girl', 'girl-morning') },
+      { id: 'girl-coffee-smile', label: '咖啡', ...stickerPath('girl', 'girl-coffee-smile') },
+      { id: 'girl-goodnight', label: '晚安', ...stickerPath('girl', 'girl-goodnight') },
+      { id: 'girl-shock', label: '震惊', ...stickerPath('girl', 'girl-shock') },
+      { id: 'girl-speechless-ellipsis', label: '沉默', ...stickerPath('girl', 'girl-speechless-ellipsis') },
+      { id: 'girl-overtime', label: '加班', ...stickerPath('girl', 'girl-overtime') },
+      { id: 'girl-tea', label: '辛苦了', ...stickerPath('girl', 'girl-tea') },
+      { id: 'girl-surrender', label: '我服了', ...stickerPath('girl', 'girl-surrender') },
+      { id: 'girl-watermelon', label: '吃瓜', ...stickerPath('girl', 'girl-watermelon') },
+      { id: 'girl-busy', label: '忙', ...stickerPath('girl', 'girl-busy') },
+      { id: 'girl-travel', label: '旅行', ...stickerPath('girl', 'girl-travel') },
+      { id: 'girl-fishing', label: '摸鱼', ...stickerPath('girl', 'girl-fishing') },
+      { id: 'girl-alone', label: '静静', ...stickerPath('girl', 'girl-alone') },
+      { id: 'girl-help', label: '救命', ...stickerPath('girl', 'girl-help') },
+      { id: 'girl-loading', label: '宕机', ...stickerPath('girl', 'girl-loading') },
+      { id: 'girl-friday', label: '周五', ...stickerPath('girl', 'girl-friday') },
+      { id: 'girl-birthday', label: '生日', ...stickerPath('girl', 'girl-birthday') },
+      { id: 'girl-hooray', label: '好耶', ...stickerPath('girl', 'girl-hooray') },
+      { id: 'girl-love', label: '爱你', ...stickerPath('girl', 'girl-love') },
+      { id: 'girl-peek', label: '看看', ...stickerPath('girl', 'girl-peek') },
+      { id: 'girl-off-work', label: '下班', ...stickerPath('girl', 'girl-off-work') },
+      { id: 'girl-monday', label: '周一', ...stickerPath('girl', 'girl-monday') },
+      { id: 'girl-new-year', label: '新年', ...stickerPath('girl', 'girl-new-year') },
+    ],
+  },
+];
+
+window.STICKERS = window.STICKER_PACKS.flatMap(pack =>
+  pack.stickers.map(sticker => ({ ...sticker, pack: pack.id, packLabel: pack.label }))
+);
+
+const scenePath = name => ({
+  src: `image/scene/${name}.webp`,
+  thumb: `image/scene/thumbs/${name}.webp`,
+});
+
+window.SCENE_PRESETS = [
+  { id: 'night-desk-laptop', label: '夜间书桌', group: '工作', note: '夜晚桌前工作，适合忙碌或复盘的一天', ...scenePath('night-desk-laptop') },
+  { id: 'sunny-desk-laptop', label: '晨光办公', group: '工作', note: '明亮书桌与电脑，适合清醒开始或效率日', ...scenePath('sunny-desk-laptop') },
+  { id: 'soft-bedroom', label: '卧室放空', group: '日常', note: '柔软卧室场景，适合休息、低电量或自我照顾', ...scenePath('soft-bedroom') },
+  { id: 'paperwork-books', label: '资料整理', group: '工作', note: '纸张书本铺开，适合学习、备考、整理资料', ...scenePath('paperwork-books') },
+  { id: 'plant-reading', label: '窗边阅读', group: '阅读', note: '绿植与阅读，适合安静吸收的一天', ...scenePath('plant-reading') },
+  { id: 'plant-desk', label: '绿植书桌', group: '工作', note: '清爽绿植书桌，适合平稳工作或轻办公', ...scenePath('plant-desk') },
+  { id: 'notes-coffee', label: '咖啡笔记', group: '工作', note: '咖啡和笔记，适合思考、计划、写方案', ...scenePath('notes-coffee') },
+  { id: 'headset-laptop', label: '耳机办公', group: '工作', note: '耳机电脑与夜色，适合会议、远程、剪辑或加班', ...scenePath('headset-laptop') },
+  { id: 'work-commute', label: '通勤出门', group: '通勤', note: '拿包出门的工作日，适合赶路和上班心情', ...scenePath('work-commute') },
+  { id: 'coffee-phone', label: '咖啡手机', group: '日常', note: '咖啡与手机，适合碎片时间和消息很多的一天', ...scenePath('coffee-phone') },
+  { id: 'warm-desk', label: '暖灯书桌', group: '工作', note: '暖色灯光书桌，适合深度专注或温柔收尾', ...scenePath('warm-desk') },
+  { id: 'sunset-walk', label: '黄昏散步', group: '通勤', note: '夕阳街道行走，适合下班、散步、缓慢回家', ...scenePath('sunset-walk') },
+  { id: 'night-study', label: '夜读时刻', group: '阅读', note: '夜晚学习阅读，适合安静努力的晚上', ...scenePath('night-study') },
+  { id: 'wide-laptop-desk', label: '电脑桌面', group: '工作', note: '宽幅电脑桌面，适合日常办公和写作', ...scenePath('wide-laptop-desk') },
+  { id: 'cafe-window', label: '窗边咖啡', group: '日常', note: '窗边咖啡与电脑，适合咖啡馆办公或独处', ...scenePath('cafe-window') },
+  { id: 'wide-work-desk', label: '工作台', group: '工作', note: '铺开的工作台，适合多任务和项目推进', ...scenePath('wide-work-desk') },
+  { id: 'sunny-commute', label: '晴天通勤', group: '通勤', note: '晴天街道通勤，适合出门、面试、办事', ...scenePath('sunny-commute') },
+  { id: 'suitcase-travel', label: '行李出发', group: '旅行', note: '行李箱与出发，适合搬家、旅行、去新地方', ...scenePath('suitcase-travel') },
+  { id: 'night-window', label: '夜窗独处', group: '夜晚', note: '夜晚窗边独处，适合想很多或慢慢沉下来', ...scenePath('night-window') },
+  { id: 'airport-walk', label: '机场路上', group: '旅行', note: '机场/车站式出发，适合奔波、差旅、远行', ...scenePath('airport-walk') },
+  { id: 'bedroom-desk', label: '卧室书桌', group: '工作', note: '卧室小书桌，适合居家办公和轻学习', ...scenePath('bedroom-desk') },
+  { id: 'office-laptop', label: '办公室', group: '工作', note: '明亮办公桌，适合正式工作与汇报', ...scenePath('office-laptop') },
+  { id: 'station-commute', label: '车站通勤', group: '通勤', note: '车站月台感，适合通勤、等待和转场', ...scenePath('station-commute') },
+  { id: 'riverside-sunset', label: '江边黄昏', group: '日常', note: '江边夕阳，适合散心、告别、放松', ...scenePath('riverside-sunset') },
+  { id: 'rainy-night-city', label: '雨夜城市', group: '夜晚', note: '雨夜城市与街灯，适合疲惫、低落、加班归来', ...scenePath('rainy-night-city') },
+  { id: 'night-work-desk', label: '深夜工作', group: '夜晚', note: '深夜桌面工作，适合赶工、灵感或夜班', ...scenePath('night-work-desk') },
+  { id: 'bed-laptop', label: '床边电脑', group: '日常', note: '床上电脑与柔软被褥，适合休息中处理事情', ...scenePath('bed-laptop') },
+  { id: 'morning-stretch', label: '晨起伸展', group: '日常', note: '早晨伸展，适合新开始和恢复元气', ...scenePath('morning-stretch') },
+  { id: 'sunny-paper-desk', label: '阳光桌面', group: '工作', note: '阳光下的纸笔桌面，适合写作、计划、轻松工作', ...scenePath('sunny-paper-desk') },
+];
+
+window.SCENE_GROUPS = Array.from(new Set(window.SCENE_PRESETS.map(scene => scene.group)));
